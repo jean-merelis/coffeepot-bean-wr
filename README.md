@@ -12,13 +12,13 @@ A example:
 
 	//Mapping a class
 	@Record( 
-		fields = {
-			@Field(name = "", constantValue = "PERSON"),
+	  fields = {
+	    @Field(name = "", constantValue = "PERSON"),
 	    @Field(name = "name"),
 	    @Field(name = "age"),
 	    @Field(name = "birth", params = {"dd/MM/yyyy"}),
-			@Field(name = "children"),
-			@Field(name = "", getter = "childrenCount", classType = Integer.class)
+	    @Field(name = "children"),
+	    @Field(name = "", getter = "childrenCount", classType = Integer.class)
 	})
 	public class Person{
 		private String name;
@@ -37,7 +37,7 @@ A example:
 	}
 	
 	@Record(fields = {
-		  @Field(name = "", constantValue = "CHILD"),
+	    @Field(name = "", constantValue = "CHILD"),
 	    @Field(name = "name", params = {"CharCase.UPPER"}),
 	    @Field(name = "age")
 	})
