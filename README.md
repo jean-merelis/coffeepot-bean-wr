@@ -8,7 +8,7 @@ Features:
   - Uses Java annotations for mapping.
   - Custom type handlers are supported.
 	
-A example:
+An example:
 
 	//Mapping a class
 	@Record( 
