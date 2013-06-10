@@ -22,35 +22,41 @@ import org.joda.time.DateTime;
  * @author Jeandeson O. Merelis
  */
 @Records({
+    //    @Record(fields = {
+    //        @Field(name = "name"),
+    //        @Field(name = "age"),
+    //        @Field(name = "birthday"),
+    //        @Field(name = "birthday"),
+    //        @Field(name = "birthday", params = {"date"}),
+    //        @Field(name = "birthday", params = {"dd/MM/yyyy"}),
+    //        @Field(name = "birthday", params = {"dd/MM/yyyy"}),
+    //        @Field(name = "testNumberOnly", params = {DefaultStringHandler.PARAM_FILTER_NUMBER_ONLY}),
+    //        @Field(name = "testNumberOnly", params = {DefaultStringHandler.PARAM_FILTER_NUMBER_LETTERS_ONLY}),
+    //        @Field(name = "longNumber"),
+    //        @Field(name = "jodaDateTime"),
+    //        @Field(name = "salary", typeHandler = CustomDoubleHandler.class),
+    //        @Field(name = "gender"),
+    //        @Field(name = "separator", constantValue = "--------------------", beginNewRecord = true),
+    //        @Field(name = "children"),
+    //        @Field(name = "separator", constantValue = "--------------------", beginNewRecord = true),
+    //        @Field(name = "", constantValue = "children count", beginNewRecord = true),
+    //        @Field(name = "childrenCount", getter = "childrenCount", classType = Integer.class),
+    //        @Field(name = "separator", constantValue = "====================", beginNewRecord = true)
+    //    }),
     @Record(fields = {
+        @Field(name = "", constantValue = "PERSON"),
         @Field(name = "name"),
         @Field(name = "age"),
-        @Field(name = "birthday"),
-        @Field(name = "birthday"),
-        @Field(name = "birthday", params = {"date"}),
         @Field(name = "birthday", params = {"dd/MM/yyyy"}),
-        @Field(name = "birthday", params = {"dd/MM/yyyy"}),
-        @Field(name = "testNumberOnly", params = {DefaultStringHandler.PARAM_FILTER_NUMBER_ONLY}),
-        @Field(name = "testNumberOnly", params = {DefaultStringHandler.PARAM_FILTER_NUMBER_LETTERS_ONLY}),
-        @Field(name = "longNumber"),
-        @Field(name = "jodaDateTime"),
-        @Field(name = "salary", typeHandler = CustomDoubleHandler.class),
-        @Field(name = "gender"),
-        @Field(name = "separator", constantValue = "--------------------", beginNewRecord = true),
         @Field(name = "children"),
-        @Field(name = "separator", constantValue = "--------------------", beginNewRecord = true),
-        @Field(name = "", constantValue = "children count", beginNewRecord = true),
-        @Field(name = "childrenCount", getter = "childrenCount", classType = Integer.class),
-        @Field(name = "separator", constantValue = "====================", beginNewRecord = true)
+        @Field(name = "", getter = "childrenCount", classType = Integer.class)
     }),
     @Record(forFormat = FormatType.FIXED_LENGTH,
             accessorType = AccessorType.FIELD,
             fields = {
         @Field(name = "name", length = 30),
-        
         //for inherited fields, access must be through the PROPERTY and classType must be declared
         @Field(name = "lastName", length = 30, accessorType = AccessorType.PROPERTY, classType = String.class),
-                
         @Field(name = "age", length = 6, align = Align.RIGHT, padding = '0'),
         @Field(name = "b", constantValue = "birtday="),
         @Field(name = "birthday", length = 8, padding = '0', params = {"yyyyMMdd"}),

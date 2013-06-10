@@ -54,9 +54,9 @@ public class DelimitedWriterTest {
 
 
         DelimitedWriter instance = new DelimitedWriter(w);
-        instance.setDelimiter('*');
-        instance.setRecordInitializator("{");
-        instance.setRecordTerminator("}\r\n");
+        instance.setDelimiter(';');
+        instance.setRecordInitializator("");
+        instance.setRecordTerminator("\r\n");
 
 
         //set new custom TypeHandler as default for a class

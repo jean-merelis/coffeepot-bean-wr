@@ -11,7 +11,8 @@ import coffeepot.bean.wr.anotation.Record;
  * @author Jeandeson O. Merelis
  */
 @Record(fields = {
-    @Field(name = "name", params = {"charCase=UPPER"}),
+    @Field(name = "", constantValue = "CHILD"),
+    @Field(name = "name", params = {"CharCase.UPPER"}),
     @Field(name = "age")
 })
 public class Child {

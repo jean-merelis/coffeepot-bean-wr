@@ -52,22 +52,32 @@ public class DefaultDateHandler implements TypeHandler<Date> {
             return;
         }
         for (String s : params) {
-            s = s.replace("pattern=", "");
-            switch (s) {
+            String[] param = s.split("=");
+            String key = param[0].trim();
+            String value;
+            if (param.length > 1) {
+                value = param[1];
+            } else {
+                value = key;
+            }            
+            switch (key) {
                 case "date":
                     dateFormat = new SimpleDateFormat(patternForDate);
                     break;
                 case "time":
                     dateFormat = new SimpleDateFormat(patternForTime);
+                    break;               
+                case "pattern":
+                    dateFormat = new SimpleDateFormat(value);
                     break;
                 default:
-                    dateFormat = new SimpleDateFormat(s);
+                    dateFormat = new SimpleDateFormat(value);
             }
         }
     }
 
     protected void setDefaultValues() {
         dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-        
+
     }
 }
