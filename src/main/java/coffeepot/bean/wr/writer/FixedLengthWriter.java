@@ -127,4 +127,23 @@ public class FixedLengthWriter implements ObjectWriter {
     public void flush() throws IOException {
         writer.flush();
     }
+
+    public static FixedLengthWriter create(Writer w) {
+        return new FixedLengthWriter(w);
+    }
+
+    public FixedLengthWriter withAutoFlush(int autoFlush) {
+        setAutoFlush(autoFlush);
+        return this;
+    }
+
+    public FixedLengthWriter withRecordInitializator(String recordInitializator) {
+        setRecordInitializator(recordInitializator);
+        return this;
+    }
+
+    public FixedLengthWriter withRecordTerminator(String recordTerminator) {
+        setRecordTerminator(recordTerminator);
+        return this;
+    }
 }
