@@ -8,6 +8,10 @@ Features:
   - Uses Java annotations for mapping.
   - Custom type handlers are supported.
 	
+	
+Download jar file: 
+	https://sourceforge.net/projects/coffeepotbeanwr/
+	
 An example:
 
 	//Mapping a class
