@@ -24,8 +24,10 @@ package coffeepot.bean.wr.anotation;
  */
 
 
+import coffeepot.bean.wr.typeHandler.DefaultHandler;
+import coffeepot.bean.wr.typeHandler.TypeHandler;
 import coffeepot.bean.wr.types.AccessorType;
-import coffeepot.bean.wr.types.FormatType;
+import coffeepot.bean.wr.types.Align;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -37,17 +39,52 @@ import java.lang.annotation.Target;
  * @author Jeandeson O. Merelis
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
+@Target({ElementType.ANNOTATION_TYPE})
 @Documented
-public @interface Record {
+public @interface NestedField{
+      String name();
 
-    FormatType forFormat() default FormatType.ANY;
+    String constantValue() default "";
 
-    AccessorType accessorType() default AccessorType.PROPERTY;
+    int minLength() default 0;
 
-    Field[] fields() default {};
+    int maxLength() default 0;
+
+    int length() default 0;
+
+    char padding() default ' ';
+
+    boolean paddingIfNullOrEmpty() default false;
+
+    boolean trim() default true;
+
+    boolean segmentBeginNewRecord() default true;
+
+    boolean beginNewRecord() default false;
+
+    Align align() default Align.LEFT;
+
+    String getter() default "";
+
+    String setter() default "";
+
+    Class<? extends TypeHandler> typeHandler() default DefaultHandler.class;
+
+    /**
+     * Used only when there isn't a field set.
+     *
+     * @return
+     */
+    Class<?> classType() default Class.class;
+
+    /**
+     * Params to config.
+     *
+     * @return
+     */
+    String[] params() default {};
     
-    String groupId() default "";
+    boolean required() default true;
 
-    String[] ignoredFields() default {};
+    AccessorType accessorType() default AccessorType.DEFAULT;    
 }

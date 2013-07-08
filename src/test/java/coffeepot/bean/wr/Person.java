@@ -3,7 +3,29 @@
  */
 package coffeepot.bean.wr;
 
+/*
+ * #%L
+ * coffeepot-bean-wr
+ * %%
+ * Copyright (C) 2013 Jeandeson O. Merelis
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
+
 import coffeepot.bean.wr.anotation.Field;
+import coffeepot.bean.wr.anotation.NestedField;
 import coffeepot.bean.wr.anotation.Record;
 import coffeepot.bean.wr.anotation.Records;
 import coffeepot.bean.wr.typeHandler.DefaultEnumHandler;
@@ -22,34 +44,36 @@ import org.joda.time.DateTime;
  * @author Jeandeson O. Merelis
  */
 @Records({
-    //    @Record(fields = {
-    //        @Field(name = "name"),
-    //        @Field(name = "age"),
-    //        @Field(name = "birthday"),
-    //        @Field(name = "birthday"),
-    //        @Field(name = "birthday", params = {"date"}),
-    //        @Field(name = "birthday", params = {"dd/MM/yyyy"}),
-    //        @Field(name = "birthday", params = {"dd/MM/yyyy"}),
-    //        @Field(name = "testNumberOnly", params = {DefaultStringHandler.PARAM_FILTER_NUMBER_ONLY}),
-    //        @Field(name = "testNumberOnly", params = {DefaultStringHandler.PARAM_FILTER_NUMBER_LETTERS_ONLY}),
-    //        @Field(name = "longNumber"),
-    //        @Field(name = "jodaDateTime"),
-    //        @Field(name = "salary", typeHandler = CustomDoubleHandler.class),
-    //        @Field(name = "gender"),
-    //        @Field(name = "separator", constantValue = "--------------------", beginNewRecord = true),
-    //        @Field(name = "children"),
-    //        @Field(name = "separator", constantValue = "--------------------", beginNewRecord = true),
-    //        @Field(name = "", constantValue = "children count", beginNewRecord = true),
-    //        @Field(name = "childrenCount", getter = "childrenCount", classType = Integer.class),
-    //        @Field(name = "separator", constantValue = "====================", beginNewRecord = true)
-    //    }),
+    @Record(groupId = "testGroupRecord", fields = {
+        @Field(name = "", constantValue = "testGroupRecord"),
+        @Field(name = "name"),
+        @Field(name = "age"),
+        @Field(name = "children")
+    }),
     @Record(fields = {
         @Field(name = "", constantValue = "PERSON"),
         @Field(name = "name"),
         @Field(name = "age"),
-        @Field(name = "birthday", params = {"dd/MM/yyyy"}),
+        @Field(name = "", constantValue = "Nested Test ==>", beginNewRecord = true),
+        @Field(name = "child.name"),
+        @Field(name = "child.child.name"),
+        @Field(name = "", constantValue = "<== Nested Test"),
+        @Field(name = "", constantValue = "Nested Test2 ==>", beginNewRecord = true),
+        @Field(name = "child", nestedFields = {@NestedField(name = "name")}),
+        @Field(name = "", constantValue = "<== Nested Test2"),
+        @Field(name = "", constantValue = "Nested Test3 ==>", beginNewRecord = true),
+        @Field(name = "child", nestedFields = {@NestedField(name = "name"), @NestedField(name = "age")}),
+        @Field(name = "", constantValue = "<== Nested Test3"),
+        @Field(name = "", constantValue = "Nested Test4 ==>", beginNewRecord = true),
+        @Field(name = "child", required = false, beginNewRecord = true, nestedFields = {@NestedField(name = "name"), @NestedField(name = "", constantValue = "==3th=="), @NestedField(name = "child.name")}),
+        @Field(name = "", constantValue = "<== Nested Test4", beginNewRecord = true),
+        @Field(name = "birthday", params = {"dd/MM/yyyy"}, beginNewRecord = true),
         @Field(name = "children"),
-        @Field(name = "", getter = "childrenCount", classType = Integer.class)
+        @Field(name = "", getter = "childrenCount", classType = Integer.class),
+        @Field(name = "", constantValue = "Nested fields in collection", beginNewRecord = true),
+        @Field(name = "jobs", nestedFields = {@NestedField(name = "", constantValue = "item:"), @NestedField(name = "test1"), @NestedField(name = "test4")}),
+        @Field(name = "", constantValue = "Nested fields in collection 2 (single)", beginNewRecord = true),
+        @Field(name = "jobs.test2")
     }),
     @Record(forFormat = FormatType.FIXED_LENGTH,
             accessorType = AccessorType.FIELD,
@@ -65,7 +89,7 @@ import org.joda.time.DateTime;
         @Field(name = "longNumber", length = 5, align = Align.RIGHT),
         @Field(name = "jodaDateTime", length = 10),
         @Field(name = "salary", length = 10, align = Align.RIGHT, padding = '0', typeHandler = CustomDoubleHandler.class),
-        @Field(name = "gender"),
+        @Field(name = "gender", length = 1),
         @Field(name = "filler", constantValue = "FFFFFFF"),
         @Field(name = "filler", constantValue = "1234567890", length = 5, align = Align.RIGHT),
         @Field(name = "", constantValue = "children count", beginNewRecord = true),
@@ -77,13 +101,40 @@ import org.joda.time.DateTime;
 public class Person extends Parent {
 
     private String name;
+
     private int age;
+
     private List<Child> children;
+
     private Long longNumber;
+
     private Date birthday;
+
     private DateTime jodaDateTime;
+
     private Double salary;
+
     private Gender gender;
+
+    private Child child;
+
+    private List<Job> jobs;
+
+    public List<Job> getJobs() {
+        return jobs;
+    }
+
+    public void setJobs(List<Job> jobs) {
+        this.jobs = jobs;
+    }
+
+    public Child getChild() {
+        return child;
+    }
+
+    public void setChild(Child child) {
+        this.child = child;
+    }
 
     public Gender getGender() {
         return gender;
@@ -180,6 +231,7 @@ public class Person extends Parent {
 
         MALE("1"),
         FEMALE("2");
+
         private String code;
 
         private Gender(String code) {

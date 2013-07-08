@@ -3,7 +3,29 @@
  */
 package coffeepot.bean.wr.writer;
 
+/*
+ * #%L
+ * coffeepot-bean-wr
+ * %%
+ * Copyright (C) 2013 Jeandeson O. Merelis
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
+
 import coffeepot.bean.wr.Child;
+import coffeepot.bean.wr.Job;
 import coffeepot.bean.wr.Person;
 import coffeepot.bean.wr.typeHandler.TypeHandlerFactory;
 import coffeepot.bean.wr.writer.customHandler.LowStringHandler;
@@ -109,10 +131,33 @@ public class DelimitedWriterTest {
         child.setName("Ana");
         child.setAge(11);
         chidren.add(child);
-
+        
+        Child        child2 = new Child();
+        child2.setName("test 3th level");
+        child2.setAge(3);
+                
+        child.setChild(child2);        
+        obj.setChild(child);
+               
         obj.setChildren(chidren);
+        
+        List<Job> jobs = new LinkedList<>();
+        
+        jobs.add(new Job("test1","test2","test3","test4"));
+        jobs.add(new Job("test1","test2","test3","test4"));
+        jobs.add(new Job("test1","test2","test3","test4"));
+        jobs.add(new Job("test1","test2","test3","test4"));
+        
+        obj.setJobs(jobs);
         instance.write(obj);
 
+        instance.writeRecord("");
+        instance.writeRecord("");
+        instance.writeRecord("");
+        
+        instance.clearParsers();
+        instance.write(obj, "testGroupRecord");
+        
         w.flush();
         w.close();
 

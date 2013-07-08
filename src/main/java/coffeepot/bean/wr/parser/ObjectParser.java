@@ -3,6 +3,27 @@
  */
 package coffeepot.bean.wr.parser;
 
+/*
+ * #%L
+ * coffeepot-bean-wr
+ * %%
+ * Copyright (C) 2013 Jeandeson O. Merelis
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
+
 import coffeepot.bean.wr.anotation.Record;
 import coffeepot.bean.wr.anotation.Records;
 import coffeepot.bean.wr.typeHandler.TypeHandler;
@@ -12,8 +33,12 @@ import coffeepot.bean.wr.types.FormatType;
 import coffeepot.bean.wr.writer.ObjectWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -30,25 +55,62 @@ import java.util.logging.Logger;
  */
 public class ObjectParser {
 
-    private Class<?> clazz;
+    //private Class<?> clazz;
     private AccessorType accessorType = AccessorType.DEFAULT;
     private Set<String> ignoredFields;
-    private List<Field> mappedFields = new LinkedList<>();
+    private List<FieldImpl> mappedFields = new LinkedList<>();
+    private Class<?> classRoot;
 
-    public ObjectParser(Class<?> clazz, ObjectParserFactory factory) throws UnresolvedObjectParserException, NoSuchFieldException, Exception {
-        if (clazz == null) {
-            throw new IllegalArgumentException("Object to wrapper can't be null");
+    /**
+     * Uses annotations of a class to create a parser for the target class. Of
+     * course that the fields of the target class must be compatible with the
+     * annotations of another class.
+     *
+     * @param fromClass Class with annotations.
+     * @param targetClass Target class.
+     * @param groupId
+     * @param factory
+     */
+    public ObjectParser(Class<?> fromClass, Class<?> targetClass, String groupId, ObjectParserFactory factory) throws UnresolvedObjectParserException, NoSuchFieldException, Exception {
+        if (fromClass == null) {
+            throw new IllegalArgumentException("Object to mapped can't be null");
+        }
+        if (targetClass == null) {
+            throw new IllegalArgumentException("Target class can't be null");
         }
 
         if (factory == null) {
             throw new IllegalArgumentException("ObjectParserFactory can't be null");
         }
 
-        this.clazz = clazz;
-        this.perform(factory);
+        this.classRoot = targetClass;
+        this.perform(factory, getRecordFromClass(fromClass, groupId, factory));
     }
 
-    private void perform(ObjectParserFactory factory) throws UnresolvedObjectParserException, NoSuchFieldException, Exception {
+    /**
+     * Builds a parser for the class using your annotations.
+     *
+     * @param clazz
+     * @param groupId
+     * @param factory
+     * @throws UnresolvedObjectParserException
+     * @throws NoSuchFieldException
+     * @throws Exception
+     */
+    public ObjectParser(Class<?> clazz, String groupId, ObjectParserFactory factory) throws UnresolvedObjectParserException, NoSuchFieldException, Exception {
+        if (clazz == null) {
+            throw new IllegalArgumentException("Object to mapped can't be null");
+        }
+
+        if (factory == null) {
+            throw new IllegalArgumentException("ObjectParserFactory can't be null");
+        }
+
+        this.classRoot = clazz;
+        this.perform(factory, getRecordFromClass(clazz, groupId, factory));
+    }
+
+    private Record getRecordFromClass(Class<?> clazz, String groupId, ObjectParserFactory factory) {
         Record record = null;
         Records records = clazz.getAnnotation(Records.class);
         if (records != null) {
@@ -61,11 +123,22 @@ public class ObjectParser {
                     break;
                 }
             }
+            if (groupId != null && !"".equals(groupId)) {
+                for (Record rec : value) {
+                    if (rec.groupId().equals(groupId)) {
+                        record = rec;
+                        break;
+                    }
+                }
+            }
         }
         if (record == null) {
             record = clazz.getAnnotation(Record.class);
         }
+        return record;
+    }
 
+    private void perform(ObjectParserFactory factory, Record record) throws UnresolvedObjectParserException, NoSuchFieldException, Exception {
         if (record != null) {
             accessorType = record.accessorType();
             String[] ig = record.ignoredFields();
@@ -84,7 +157,7 @@ public class ObjectParser {
             }
         }
         if (mappedFields.isEmpty()) {
-            throw new UnresolvedObjectParserException("Class " + clazz.getName() + " can't be mapped");
+            throw new UnresolvedObjectParserException("Class " + classRoot.getName() + " can't be mapped");
         }
     }
 
@@ -94,144 +167,230 @@ public class ObjectParser {
                 continue;
             }
 
-            AccessorType at;
-            if (f.accessorType().equals(AccessorType.DEFAULT)) {
-                at = accessorType.equals(AccessorType.PROPERTY) ? AccessorType.PROPERTY : AccessorType.FIELD;
-            } else {
-                at = f.accessorType();
+            this.mappedFields.add(mappingField(null, Helpful.toFieldImpl(f), factory, classRoot));
+        }
+    }
+
+    private FieldImpl mappingField(String fieldName, FieldImpl f, ObjectParserFactory factory, Class<?> clazz) throws NoSuchFieldException, InstantiationException, IllegalAccessException, NoSuchMethodException {
+
+        AccessorType at;
+        if (f.getAccessorType().equals(AccessorType.DEFAULT)) {
+            at = accessorType.equals(AccessorType.PROPERTY) ? AccessorType.PROPERTY : AccessorType.FIELD;
+        } else {
+            at = f.getAccessorType();
+        }
+
+        FieldImpl mappedField = f.clone();
+        mappedField.setAccessorType(at);
+
+        if (factory.getFormatType().equals(FormatType.FIXED_LENGTH)) {
+            mappedField.setPaddingIfNullOrEmpty(true);
+        }
+
+        boolean isNested = false;
+        String nestedField = null;
+
+
+        if (!"".equals(f.getConstantValue())) {
+            mappedField.setClassType(String.class);
+        } else {
+
+            if (fieldName == null || fieldName.isEmpty()) {
+                fieldName = f.getName();
             }
 
-            Field mappedField = new Field();
-            mappedField.setAccessorType(at);
-            mappedField.setAlign(f.align());
-
-            mappedField.setMaxLength(f.maxLength());
-            mappedField.setMinLength(f.minLength());
-
-            if (f.length() > 0) {
-                mappedField.setMaxLength(f.length());
-                mappedField.setMinLength(f.length());
+            //check if it is nested field
+            int idx = fieldName.indexOf(".");
+            if (idx > -1) {
+                nestedField = fieldName.substring(idx + 1);
+                fieldName = fieldName.substring(0, idx);
+                if (!nestedField.isEmpty()) {
+                    isNested = true;
+                }
             }
+            mappedField.setName(fieldName);
 
-            mappedField.setName(f.name());
-            mappedField.setPadding(f.padding());
-            mappedField.setPaddingIfNullOrEmpty(f.paddingIfNullOrEmpty());
+            try {
+                if (mappedField.getAccessorType().equals(AccessorType.FIELD)) {
+                    java.lang.reflect.Field declaredField = clazz.getDeclaredField(fieldName);
+                    mappedField.setClassType(declaredField.getType());
 
-            if (factory.getFormatType().equals(FormatType.FIXED_LENGTH)) {
-                mappedField.setPaddingIfNullOrEmpty(true);
-            }
-
-            mappedField.setTrim(f.trim());
-            mappedField.setSegmentBeginNewRecord(f.segmentBeginNewRecord());
-            mappedField.setBeginNewRecord(f.beginNewRecord());
-            mappedField.setConstantValue(f.constantValue());
-
-            if (!"".equals(f.constantValue())) {
-                mappedField.setClazz(String.class);
-            } else {
-                try {
-                    java.lang.reflect.Field declaredField = clazz.getDeclaredField(f.name());
-                    mappedField.setClazz(declaredField.getType());
-
-
-                    if (Collection.class.isAssignableFrom(declaredField.getType())) {
+                    if (!Class.class.equals(f.getClassType())) {
+                        mappedField.setClassType(f.getClassType());
+                    } else if (Collection.class.isAssignableFrom(mappedField.getClassType())) {
                         mappedField.setCollection(true);
+
                         Type genericType = declaredField.getGenericType();
                         if (ParameterizedType.class.isAssignableFrom(genericType.getClass())) {
                             ParameterizedType pt = (ParameterizedType) genericType;
                             Type[] actualTypeArguments = pt.getActualTypeArguments();
                             if (actualTypeArguments != null && actualTypeArguments.length > 0) {
                                 //FIXME: support for generics with multiple params.
-                                mappedField.setClazz((Class<?>) actualTypeArguments[0]);
+                                mappedField.setClassType((Class<?>) actualTypeArguments[0]);
                             }
                         }
                     }
 
-                    if (!"".equals(f.getter())) {
-                        mappedField.setGetter(clazz.getDeclaredMethod(f.getter()));
-                    } else if (mappedField.getAccessorType().equals(AccessorType.PROPERTY)) {
+                    Method m;
+
+                    //if define getter
+                    if (f.getGetter() != null && !f.getGetter().isEmpty()) {
+                        m = clazz.getDeclaredMethod(f.getGetter());
+                    } else {
                         String methodName = "get" + mappedField.getName().substring(0, 1).toUpperCase();
                         if (mappedField.getName().length() > 1) {
                             methodName += mappedField.getName().substring(1);
                         }
-
-                        mappedField.setGetter(clazz.getDeclaredMethod(methodName));
-                        mappedField.getGetter().setAccessible(true);
+                        m = clazz.getDeclaredMethod(methodName);
                     }
-                    if (!"".equals(f.setter())) {
-                        mappedField.setSetter(clazz.getDeclaredMethod(f.setter()));
-                    } else if (mappedField.getAccessorType().equals(AccessorType.PROPERTY)) {
+
+                    mappedField.setGetterMethod(m);
+
+                    Class<?> classForSetterMethodParam;
+                    classForSetterMethodParam = declaredField.getType();
+
+
+                    //if define setter
+                    if (f.getSetter() != null && !f.getSetter().isEmpty()) {
+                        m = clazz.getDeclaredMethod(f.getSetter(), classForSetterMethodParam);
+                    } else {
                         String methodName = "set" + mappedField.getName().substring(0, 1).toUpperCase();
                         if (mappedField.getName().length() > 1) {
                             methodName += mappedField.getName().substring(1);
                         }
-                        Class<?> type = declaredField.getType();
-                        mappedField.setSetter(clazz.getDeclaredMethod(methodName, type));
-                        mappedField.getSetter().setAccessible(true);
-                    }
-                } catch (NoSuchFieldException ex) {
-                    if ("".equals(f.getter()) && "".equals(f.setter()) && !mappedField.getAccessorType().equals(AccessorType.PROPERTY)) {
-                        throw ex;
+                        m = clazz.getDeclaredMethod(methodName, classForSetterMethodParam);
                     }
 
-                    if (Class.class.equals(f.classType())) {
-                        throw new NoSuchFieldException("Class not defined for method mode");
-                    }
+                    mappedField.setSetterMethod(m);
 
-                    mappedField.setClazz(f.classType());
+                } else {
+                    // accessor type is PROPERTY
+                    Method m = null;
 
-
-                    if (!"".equals(f.getter())) {
-                        mappedField.setGetter(clazz.getDeclaredMethod(f.getter()));
-                        mappedField.getGetter().setAccessible(true);
-                    } else if (mappedField.getAccessorType().equals(AccessorType.PROPERTY)) {
-                        // for inherited methods
-                        try {
-                            String methodName = "get" + mappedField.getName().substring(0, 1).toUpperCase();
-                            if (mappedField.getName().length() > 1) {
-                                methodName += mappedField.getName().substring(1);
-                            }
-                            mappedField.setGetter(clazz.getMethod(methodName));
-                            mappedField.getGetter().setAccessible(true);
-                        } catch (Exception e) {
-                            mappedField.setIgnoreOnWrite(true);
-                        }
+                    //define getter
+                    if (f.getGetter() != null && !f.getGetter().isEmpty()) {
+                        m = clazz.getMethod(f.getGetter());
                     } else {
-                        mappedField.setIgnoreOnWrite(true);
+
+                        String methodName = "get" + mappedField.getName().substring(0, 1).toUpperCase();
+                        if (mappedField.getName().length() > 1) {
+                            methodName += mappedField.getName().substring(1);
+                        }
+                        m = clazz.getMethod(methodName);
+
                     }
 
 
-                    if (!"".equals(f.setter())) {
-                        mappedField.setSetter(clazz.getDeclaredMethod(f.setter(), f.classType()));
-                        mappedField.getSetter().setAccessible(true);
-                    } else if (mappedField.getAccessorType().equals(AccessorType.PROPERTY)) {
-                        // for inherited methods
-                        try {
+                    mappedField.setGetterMethod(m);
+
+                    mappedField.setClassType(m.getReturnType());
+
+                    if (!Class.class.equals(f.getClassType())) {
+                        mappedField.setClassType(f.getClassType());
+                    } else if (Collection.class.isAssignableFrom(mappedField.getClassType())) {
+                        mappedField.setCollection(true);
+
+                        Type genericType = m.getGenericReturnType();
+                        if (ParameterizedType.class.isAssignableFrom(genericType.getClass())) {
+                            ParameterizedType pt = (ParameterizedType) genericType;
+                            Type[] actualTypeArguments = pt.getActualTypeArguments();
+                            if (actualTypeArguments != null && actualTypeArguments.length > 0) {
+                                //FIXME: support for generics with multiple params.
+                                mappedField.setClassType((Class<?>) actualTypeArguments[0]);
+                            }
+                        }
+                    }
+
+                    Class<?> classForSetterMethodParam;
+                    classForSetterMethodParam = m.getReturnType();
+
+                    //define setter
+                    try {
+                        if (f.getSetter() != null && !f.getSetter().isEmpty()) {
+                            m = clazz.getMethod(f.getSetter(), classForSetterMethodParam);
+                        } else if (mappedField.getName() == null || mappedField.getName().isEmpty()) {
+                            mappedField.setIgnoreOnRead(true);
+                        } else {
                             String methodName = "set" + mappedField.getName().substring(0, 1).toUpperCase();
                             if (mappedField.getName().length() > 1) {
                                 methodName += mappedField.getName().substring(1);
                             }
-                            mappedField.setSetter(clazz.getMethod(methodName, mappedField.getClazz()));
-                            mappedField.getSetter().setAccessible(true);
-                        } catch (Exception e) {
-                            mappedField.setIgnoreOnRead(true);
+                            m = clazz.getMethod(methodName, classForSetterMethodParam);
                         }
-                    } else {
+
+
+                        mappedField.setSetterMethod(m);
+                    } catch (NoSuchMethodException exc) {
                         mappedField.setIgnoreOnRead(true);
                     }
-
-
                 }
+            } catch (NoSuchFieldException | NoSuchMethodException ex) {
+                if ("".equals(f.getGetter()) && "".equals(f.getSetter()) && !mappedField.getAccessorType().equals(AccessorType.PROPERTY)) {
+                    throw ex;
+                }
+
+                if (Class.class.equals(mappedField.getClassType())) {
+                    throw new NoSuchFieldException("Class not defined for method mode");
+                }
+
+                if (!"".equals(f.getGetter())) {
+                    mappedField.setGetterMethod(clazz.getDeclaredMethod(f.getGetter()));
+                } else if (mappedField.getAccessorType().equals(AccessorType.PROPERTY)) {
+                    // for inherited methods
+                    try {
+                        String methodName = "get" + mappedField.getName().substring(0, 1).toUpperCase();
+                        if (mappedField.getName().length() > 1) {
+                            methodName += mappedField.getName().substring(1);
+                        }
+                        mappedField.setGetterMethod(clazz.getMethod(methodName));
+
+                    } catch (Exception e) {
+                        mappedField.setIgnoreOnWrite(true);
+                    }
+                } else {
+                    mappedField.setIgnoreOnWrite(true);
+                }
+
+
+                if (!"".equals(f.getSetter())) {
+                    mappedField.setSetterMethod(clazz.getDeclaredMethod(f.getSetter(), f.getClassType()));
+                } else if (mappedField.getAccessorType().equals(AccessorType.PROPERTY)) {
+                    // for inherited methods
+                    try {
+                        String methodName = "set" + mappedField.getName().substring(0, 1).toUpperCase();
+                        if (mappedField.getName().length() > 1) {
+                            methodName += mappedField.getName().substring(1);
+                        }
+                        mappedField.setSetterMethod(clazz.getMethod(methodName, mappedField.getClassType()));
+                    } catch (Exception e) {
+                        mappedField.setIgnoreOnRead(true);
+                    }
+                } else {
+                    mappedField.setIgnoreOnRead(true);
+                }
+
+
             }
+        }
 
-            TypeHandler handler = factory.getHandlerFactory().create(mappedField.getClazz(), f.typeHandler(), f.params());
-            mappedField.setTypeHandler(handler);
+        if (!Class.class.equals(f.getClassType())) {
+            mappedField.setClassType(f.getClassType());
+        }
 
-            if (mappedField.getTypeHandler() == null && (mappedField.getClazz().isEnum())) {
+        if (f.getNestedFields() != null && f.getNestedFields().size() > 0) {
+            isNested = true;
+        }
+
+        TypeHandler handler;
+        if (!isNested) {
+            handler = factory.getHandlerFactory().create(mappedField.getClassType(), f.getTypeHandler(), f.getParams());
+            mappedField.setTypeHandlerImpl(handler);
+
+            if (mappedField.getTypeHandlerImpl() == null && (mappedField.getClassType().isEnum())) {
                 //set default EnumTypeHandler
                 boolean defEnum = false;
-                if (f.params() != null) {
-                    for (String s : f.params()) {
+                if (f.getParams() != null) {
+                    for (String s : f.getParams()) {
                         if (s.startsWith("enum") || s.startsWith("class")) {
                             defEnum = true;
                             break;
@@ -240,29 +399,46 @@ public class ObjectParser {
                 }
                 String[] newParams;
                 if (!defEnum) {
-                    if (f.params() == null) {
+                    if (f.getParams() == null) {
                         newParams = new String[1];
                     } else {
-                        newParams = Arrays.copyOf(f.params(), f.params().length + 1);
+                        newParams = Arrays.copyOf(f.getParams(), f.getParams().length + 1);
                     }
-                    newParams[ newParams.length - 1] = "enumClass=" + mappedField.getClazz().getName();
+                    newParams[ newParams.length - 1] = "enumClass=" + mappedField.getClassType().getName();
                 } else {
-                    newParams = f.params();
+                    newParams = f.getParams();
                 }
-                handler = factory.getHandlerFactory().create(Enum.class, f.typeHandler(), newParams);
-                mappedField.setTypeHandler(handler);
-            }
-
-
-            this.mappedFields.add(mappedField);
-            if (mappedField.getTypeHandler() == null) {
-                factory.getNoResolved().add(mappedField.getClazz());
+                handler = factory.getHandlerFactory().create(Enum.class, f.getTypeHandler(), newParams);
+                mappedField.setTypeHandlerImpl(handler);
             }
         }
+
+        if (mappedField.getTypeHandlerImpl() == null && !isNested) {
+            factory.getNoResolved().add(mappedField.getClassType());
+        } else if (isNested) {
+            if (nestedField != null) {
+                FieldImpl n = mappingField(nestedField, f, factory, mappedField.getClassType());
+                if (n != null) {
+                    List<FieldImpl> nfs = new ArrayList<>();
+                    nfs.add(n);
+                    mappedField.setNestedFields(nfs);
+                } else {
+                    factory.getNoResolved().add(mappedField.getClassType());
+                }
+            } else {
+                List<FieldImpl> nfs = new ArrayList<>();
+                for (FieldImpl nf : f.getNestedFields()) {
+                    nfs.add(mappingField(nf.getName(), nf, factory, mappedField.getClassType()));
+                }
+                mappedField.setNestedFields(nfs);
+            }
+            mappedField.setTypeHandlerImpl(null);
+        }
+        return mappedField;
     }
 
     public Class<?> getClazz() {
-        return clazz;
+        return classRoot;
     }
 
     public AccessorType getAccessorType() {
@@ -273,7 +449,7 @@ public class ObjectParser {
         return ignoredFields;
     }
 
-    public List<Field> getMappedFields() {
+    public List<FieldImpl> getMappedFields() {
         return mappedFields;
     }
 
@@ -284,40 +460,47 @@ public class ObjectParser {
         }
     }
 
-    private List<String> marshal(ObjectWriter w, Object obj, List<String> fieldsValue) throws IOException {
-        if (obj == null) {
-            return fieldsValue;
-        }
-
+    private List<String> marshalField(ObjectWriter w, final Object obj, List<String> fieldsValue, Class<?> clazz, final FieldImpl f) throws IOException {
         try {
-            for (Field f : mappedFields) {
-                if (f.isIgnoreOnWrite()) {
-                    continue;
-                }
+            Object o = null;
+            if (obj != null) {
 
-                if (!"".equals(f.getConstantValue())) {
-
-                    if (f.isBeginNewRecord()) {
-                        w.writeRecord(fieldsValue);
-                        fieldsValue = null;
-                    }
-                    if (fieldsValue == null) {
-                        fieldsValue = new LinkedList<>();
-                    }
-                    String s = process(f.getConstantValue(), f);
-                    fieldsValue.add(s);
-                    continue;
-                }
-                Object o;
-                java.lang.reflect.Field declaredField;
+               final java.lang.reflect.Field declaredField;
 
 
-                if (f.getGetter() != null) {
-                    o = f.getGetter().invoke(obj);
+                if (f.getGetterMethod() != null) {
+
+                   o = AccessController.doPrivileged(new PrivilegedAction() {
+                        @Override
+                        public Object run() {
+                            boolean wasAccessible = f.getGetterMethod().isAccessible();
+                            try {
+                                f.getGetterMethod().setAccessible(true);
+                                return f.getGetterMethod().invoke(obj);     
+                            } catch (Exception ex) {
+                                throw new IllegalStateException("Cannot invoke method get", ex);
+                            } finally {
+                                f.getGetterMethod().setAccessible(wasAccessible);
+                            }
+                        }
+                    });
+
                 } else {
                     declaredField = clazz.getDeclaredField(f.getName());
-                    declaredField.setAccessible(true);
-                    o = declaredField.get(obj);
+                    o = AccessController.doPrivileged(new PrivilegedAction() {
+                        @Override
+                        public Object run() {
+                            boolean wasAccessible = declaredField.isAccessible();
+                            try {
+                                declaredField.setAccessible(true);
+                                return declaredField.get(obj);     
+                            } catch (Exception ex) {
+                                throw new IllegalStateException("Cannot invoke method get", ex);
+                            } finally {
+                                declaredField.setAccessible(wasAccessible);
+                            }
+                        }
+                    });
                 }
 
                 if (f.isCollection()) {
@@ -330,15 +513,26 @@ public class ObjectParser {
                         w.writeRecord(fieldsValue);
                         fieldsValue = null;
                     }
-                    continue;
+                    return fieldsValue;
                 }
 
-                if (f.getTypeHandler() == null) {
+                if (//f.getTypeHandlerImpl() == null && 
+                        f.getNestedFields() != null && !f.getNestedFields().isEmpty()) {
+                    if (f.isBeginNewRecord()) {
+                        w.writeRecord(fieldsValue);
+                        fieldsValue = null;
+                    }
+                    if (o == null && !f.isRequired()) {
+                        return fieldsValue;
+                    }
+                    return marshal(w, o, fieldsValue, f.getNestedFields(), f.getClassType());
+
+                } else if (f.getTypeHandlerImpl() == null) {
                     if (f.isSegmentBeginNewRecord() || f.isBeginNewRecord()) {
                         w.writeRecord(fieldsValue);
                         fieldsValue = null;
                     }
-                    ObjectParser parser = w.getObjectParserFactory().getParsers().get(f.getClazz());
+                    ObjectParser parser = w.getObjectParserFactory().getParsers().get(f.getClassType());
                     if (parser != null) {
                         fieldsValue = parser.marshal(w, o, fieldsValue);
                         if (f.isSegmentBeginNewRecord() || f.isBeginNewRecord()) {
@@ -346,29 +540,25 @@ public class ObjectParser {
                             fieldsValue = null;
                         }
                     } else {
-                        throw new RuntimeException("Parser not found for class: " + f.getClazz().getName());
+                        throw new RuntimeException("Parser not found for class: " + f.getClassType().getName());
                     }
-                    continue;
+                    return fieldsValue;
                 }
-
-                if (f.isBeginNewRecord()) {
-                    w.writeRecord(fieldsValue);
-                    fieldsValue = null;
-                }
-
-                String s = process(f.getTypeHandler().toString(o), f);
-                if (fieldsValue == null) {
-                    fieldsValue = new LinkedList<>();
-                }
-                fieldsValue.add(s);
+            }
+            if (f.isBeginNewRecord()) {
+                w.writeRecord(fieldsValue);
+                fieldsValue = null;
             }
 
+            String s = process(f.getTypeHandlerRecursively().toString(o), f);
+            if (fieldsValue == null) {
+                fieldsValue = new LinkedList<>();
+            }
+            fieldsValue.add(s);
+
+
             //FIXME: Exceptions
-        } catch (IllegalAccessException ex) {
-            Logger.getLogger(ObjectParser.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IllegalArgumentException ex) {
-            Logger.getLogger(ObjectParser.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvocationTargetException ex) {
             Logger.getLogger(ObjectParser.class.getName()).log(Level.SEVERE, null, ex);
         } catch (NoSuchFieldException ex) {
             Logger.getLogger(ObjectParser.class.getName()).log(Level.SEVERE, null, ex);
@@ -378,30 +568,93 @@ public class ObjectParser {
         return fieldsValue;
     }
 
-    private List<String> marshalCollection(ObjectWriter w, Object obj, List<String> fieldsValue, Field field) throws IOException {
+    private List<String> marshal(ObjectWriter w, Object obj, List<String> fieldsValue) throws IOException {
+        if (obj == null) {
+            return fieldsValue;
+        }
+        return marshal(w, obj, fieldsValue, mappedFields, classRoot);
+    }
+
+    private List<String> marshal(ObjectWriter w, Object obj, List<String> fieldsValue, List<FieldImpl> fields, Class<?> clazz) throws IOException {
+//        if (obj == null) {
+//            return fieldsValue;
+//        }
+
+        for (FieldImpl f : fields) {
+            if (f.isIgnoreOnWrite()) {
+                continue;
+            }
+
+            if (!"".equals(f.getConstantValue())) {
+
+                if (f.isBeginNewRecord()) {
+                    w.writeRecord(fieldsValue);
+                    fieldsValue = null;
+                }
+                if (fieldsValue == null) {
+                    fieldsValue = new LinkedList<>();
+                }
+                String s = process(f.getConstantValue(), f);
+                fieldsValue.add(s);
+                continue;
+            }
+            fieldsValue = marshalField(w, obj, fieldsValue, clazz, f);
+        }
+
+        return fieldsValue;
+    }
+
+    private List<String> marshalCollection(ObjectWriter w, Object obj, List<String> fieldsValue, FieldImpl field) throws IOException {
         if (obj == null) {
             return fieldsValue;
         }
         if (!Collection.class.isAssignableFrom(obj.getClass())) {
             return fieldsValue;
         }
-        ObjectParser parser = w.getObjectParserFactory().getParsers().get(field.getClazz());
-        if (parser != null) {
+        if (field.getNestedFields() != null && !field.getNestedFields().isEmpty()) {
             Collection c = (Collection) obj;
             Iterator it = c.iterator();
             while (it.hasNext()) {
-                fieldsValue = parser.marshal(w, it.next(), fieldsValue);
+                Class<?> cl;
+                List<FieldImpl> fi;
+
+                fi = field.getNestedFields();
+                cl = field.getClassType();
+
+                fieldsValue = marshal(w, it.next(), fieldsValue, fi, cl);
                 if (field.isSegmentBeginNewRecord()) {
                     w.writeRecord(fieldsValue);
                     fieldsValue = null;
                 }
+            }
+        } else {
 
+            ObjectParser parser = w.getObjectParserFactory().getParsers().get(field.getClassType());
+            if (parser != null) {
+                Collection c = (Collection) obj;
+                Iterator it = c.iterator();
+                while (it.hasNext()) {
+                    Class<?> cl;
+                    List<FieldImpl> fi;
+                    if (field.getNestedFields() != null && !field.getNestedFields().isEmpty()) {
+                        fi = field.getNestedFields();
+                        cl = field.getClassType();
+                    } else {
+                        fi = parser.getMappedFields();
+                        cl = parser.getClazz();
+                    }
+                    fieldsValue = parser.marshal(w, it.next(), fieldsValue, fi, cl);
+                    if (field.isSegmentBeginNewRecord()) {
+                        w.writeRecord(fieldsValue);
+                        fieldsValue = null;
+                    }
+                }
             }
         }
         return fieldsValue;
     }
 
-    private String process(String s, Field field) {
+    private String process(String s, FieldImpl field) {
         if (s == null && !field.isPaddingIfNullOrEmpty()) {
             return "";
         }
