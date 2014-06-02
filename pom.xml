@@ -4,7 +4,7 @@
 
     <groupId>coffeepot</groupId>
     <artifactId>coffeepot-bean-wr</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
     <packaging>jar</packaging>
 
     <name>coffeepot-bean-wr</name>
@@ -71,7 +71,7 @@
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
-            <version>2.2</version>
+            <version>2.3</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -22,25 +22,38 @@ package coffeepot.bean.wr.typeHandler;
  * limitations under the License.
  * #L%
  */
-
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- *
+ * Handler default for Date type.
+ * Parameters supported by this handler: date, time, datetime, pattern or direct pattern.
+ * Multiple params are not supported.
  * @author Jeandeson O. Merelis
  */
 public class DefaultDateHandler implements TypeHandler<Date> {
 
     protected SimpleDateFormat dateFormat;
-    protected String patternForDate;
-    protected String patternForTime;
+    protected static final String DEFAULT;
+    protected static String patternDefault;
+    protected static String patternForDate;
+    protected static String patternForTime;
+    protected static String patternForDateTime;
 
-    public DefaultDateHandler() {
+    static {
+        DEFAULT = "yyyy-MM-dd'T'HH:mm:ss";
+        patternDefault = DEFAULT;
         patternForDate = "yyyy-MM-dd";
         patternForTime = "HH:mm:ss";
-        dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        patternForDateTime = DEFAULT;
+    }
+
+    public DefaultDateHandler() {
+        if (patternDefault == null) {
+            dateFormat = new SimpleDateFormat(DEFAULT);
+        } else {
+            dateFormat = new SimpleDateFormat(patternDefault);
+        }
     }
 
     @Override
@@ -69,7 +82,7 @@ public class DefaultDateHandler implements TypeHandler<Date> {
     @Override
     public void setConfig(String[] params) {
         if (params == null || params.length == 0) {
-            setDefaultValues();
+            resetPatterns();
             return;
         }
         for (String s : params) {
@@ -80,14 +93,17 @@ public class DefaultDateHandler implements TypeHandler<Date> {
                 value = param[1];
             } else {
                 value = key;
-            }            
+            }
             switch (key) {
                 case "date":
                     dateFormat = new SimpleDateFormat(patternForDate);
                     break;
                 case "time":
                     dateFormat = new SimpleDateFormat(patternForTime);
-                    break;               
+                    break;
+                case "datetime":
+                    dateFormat = new SimpleDateFormat(patternForDateTime);
+                    break;
                 case "pattern":
                     dateFormat = new SimpleDateFormat(value);
                     break;
@@ -97,8 +113,43 @@ public class DefaultDateHandler implements TypeHandler<Date> {
         }
     }
 
-    protected void setDefaultValues() {
-        dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-
+    public static void resetPatterns() {
+        patternForDate = "yyyy-MM-dd";
+        patternForTime = "HH:mm:ss";
+        patternDefault = "yyyy-MM-dd'T'HH:mm:ss";
+        patternForDateTime = DEFAULT;        
     }
+
+    public static String getPatternDefault() {
+        return patternDefault;
+    }
+
+    public static void setPatternDefault(String patternDefault) {
+        DefaultDateHandler.patternDefault = patternDefault;
+    }
+
+    public static String getPatternForDate() {
+        return patternForDate;
+    }
+
+    public static void setPatternForDate(String patternForDate) {
+        DefaultDateHandler.patternForDate = patternForDate;
+    }
+
+    public static String getPatternForTime() {
+        return patternForTime;
+    }
+
+    public static void setPatternForTime(String patternForTime) {
+        DefaultDateHandler.patternForTime = patternForTime;
+    }
+
+    public static String getPatternForDateTime() {
+        return patternForDateTime;
+    }
+
+    public static void setPatternForDateTime(String patternForDateTime) {
+        DefaultDateHandler.patternForDateTime = patternForDateTime;
+    }
+
 }

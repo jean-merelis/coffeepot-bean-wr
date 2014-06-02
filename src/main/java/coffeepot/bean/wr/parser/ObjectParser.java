@@ -24,8 +24,8 @@ package coffeepot.bean.wr.parser;
  */
 
 
-import coffeepot.bean.wr.anotation.Record;
-import coffeepot.bean.wr.anotation.Records;
+import coffeepot.bean.wr.annotation.Record;
+import coffeepot.bean.wr.annotation.Records;
 import coffeepot.bean.wr.typeHandler.TypeHandler;
 import coffeepot.bean.wr.types.AccessorType;
 import coffeepot.bean.wr.types.Align;
@@ -146,7 +146,7 @@ public class ObjectParser {
                 ignoredFields = new HashSet<>();
                 ignoredFields.addAll(Arrays.asList(ig));
             }
-            coffeepot.bean.wr.anotation.Field[] fields = record.fields();
+            coffeepot.bean.wr.annotation.Field[] fields = record.fields();
             if (fields != null) {
                 try {
                     mappingFields(fields, factory);
@@ -161,8 +161,8 @@ public class ObjectParser {
         }
     }
 
-    private void mappingFields(coffeepot.bean.wr.anotation.Field[] fields, ObjectParserFactory factory) throws NoSuchFieldException, InstantiationException, IllegalAccessException, NoSuchMethodException {
-        for (coffeepot.bean.wr.anotation.Field f : fields) {
+    private void mappingFields(coffeepot.bean.wr.annotation.Field[] fields, ObjectParserFactory factory) throws NoSuchFieldException, InstantiationException, IllegalAccessException, NoSuchMethodException {
+        for (coffeepot.bean.wr.annotation.Field f : fields) {
             if (ignoredFields != null && ignoredFields.contains(f.name())) {
                 continue;
             }

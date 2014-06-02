@@ -22,15 +22,16 @@ package coffeepot.bean.wr.writer;
  * limitations under the License.
  * #L%
  */
-
-
 import coffeepot.bean.wr.Child;
 import coffeepot.bean.wr.Person;
+import coffeepot.bean.wr.typeHandler.DefaultDateHandler;
+import coffeepot.bean.wr.typeHandler.TypeHandler;
 import coffeepot.bean.wr.typeHandler.TypeHandlerFactory;
-import coffeepot.bean.wr.writer.customHandler.LowStringHandler;
 import coffeepot.bean.wr.writer.customHandler.DateTimeHandler;
+import coffeepot.bean.wr.writer.customHandler.LowStringHandler;
 import java.io.FileWriter;
 import java.io.Writer;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import org.joda.time.DateTime;
@@ -70,11 +71,9 @@ public class FixedLengthWriterTest {
         System.out.println("write");
         Writer w = new FileWriter("D:\\TESTE_.TXT");
 
-
         FixedLengthWriter instance = new FixedLengthWriter(w);
 
         instance.setRecordTerminator("\r\n");
-
 
         //set new custom TypeHandler as default for a class
         TypeHandlerFactory handlerFactory = instance.getObjectParserFactory().getHandlerFactory();
@@ -86,7 +85,7 @@ public class FixedLengthWriterTest {
         //set new custom TypeHandler as default for Enum
         handlerFactory.registerTypeHandlerClassFor(Enum.class, Person.EncodedEnumHandler.class);
 
-        //instance.createParser(Person.class);
+
 
         Person obj = new Person();
         obj.setName("Jean");
@@ -94,7 +93,7 @@ public class FixedLengthWriterTest {
         obj.setAge(37);
         obj.setTestNumberOnly("ad(*&%¨(*&%fd2---14324.32432adfa");
         obj.setLongNumber(Long.MIN_VALUE);
-        // obj.setBirthday(new Date());
+        obj.setBirthday(new Date());
         obj.setJodaDateTime(DateTime.now());
         obj.setSalary(5999.9);
         obj.setGender(Person.Gender.MALE);
@@ -121,7 +120,6 @@ public class FixedLengthWriterTest {
         child.setName("John");
         child.setAge(14);
         chidren.add(child);
-
 
         child = new Child();
         child.setName("Ana");

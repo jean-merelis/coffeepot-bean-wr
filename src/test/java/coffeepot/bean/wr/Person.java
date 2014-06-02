@@ -24,10 +24,10 @@ package coffeepot.bean.wr;
  */
 
 
-import coffeepot.bean.wr.anotation.Field;
-import coffeepot.bean.wr.anotation.NestedField;
-import coffeepot.bean.wr.anotation.Record;
-import coffeepot.bean.wr.anotation.Records;
+import coffeepot.bean.wr.annotation.Field;
+import coffeepot.bean.wr.annotation.NestedField;
+import coffeepot.bean.wr.annotation.Record;
+import coffeepot.bean.wr.annotation.Records;
 import coffeepot.bean.wr.typeHandler.DefaultEnumHandler;
 import coffeepot.bean.wr.typeHandler.DefaultStringHandler;
 import coffeepot.bean.wr.typeHandler.HandlerParseException;
@@ -83,7 +83,7 @@ import org.joda.time.DateTime;
         @Field(name = "lastName", length = 30, accessorType = AccessorType.PROPERTY, classType = String.class),
         @Field(name = "age", length = 6, align = Align.RIGHT, padding = '0'),
         @Field(name = "b", constantValue = "birtday="),
-        @Field(name = "birthday", length = 8, padding = '0', params = {"yyyyMMdd"}),
+        @Field(name = "birthday", length = 8, padding = '0'),
         @Field(name = "testNumberOnly", length = 5, params = {DefaultStringHandler.PARAM_FILTER_NUMBER_ONLY}),
         @Field(name = "testNumberOnly", length = 8, params = {DefaultStringHandler.PARAM_FILTER_NUMBER_LETTERS_ONLY}),
         @Field(name = "longNumber", length = 5, align = Align.RIGHT),

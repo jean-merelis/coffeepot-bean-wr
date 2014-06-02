@@ -1,7 +1,7 @@
 /*
  * Copyright 2013 - Jeandeson O. Merelis
  */
-package coffeepot.bean.wr.anotation;
+package coffeepot.bean.wr.annotation;
 
 /*
  * #%L
@@ -41,8 +41,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.ANNOTATION_TYPE})
 @Documented
-public @interface NestedField{
-      String name();
+public @interface Field{
+
+    String name();
 
     String constantValue() default "";
 
@@ -83,8 +84,10 @@ public @interface NestedField{
      * @return
      */
     String[] params() default {};
+
+    AccessorType accessorType() default AccessorType.DEFAULT;
     
     boolean required() default true;
-
-    AccessorType accessorType() default AccessorType.DEFAULT;    
+    
+    NestedField[] nestedFields() default {};
 }

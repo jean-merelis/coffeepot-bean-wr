@@ -1,7 +1,7 @@
 /*
  * Copyright 2013 - Jeandeson O. Merelis
  */
-package coffeepot.bean.wr.anotation;
+package coffeepot.bean.wr.annotation;
 
 /*
  * #%L
@@ -24,6 +24,8 @@ package coffeepot.bean.wr.anotation;
  */
 
 
+import coffeepot.bean.wr.types.AccessorType;
+import coffeepot.bean.wr.types.FormatType;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -37,7 +39,15 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 @Documented
-public @interface Records {
+public @interface Record {
 
-    Record[] value();
+    FormatType forFormat() default FormatType.ANY;
+
+    AccessorType accessorType() default AccessorType.PROPERTY;
+
+    Field[] fields() default {};
+    
+    String groupId() default "";
+
+    String[] ignoredFields() default {};
 }

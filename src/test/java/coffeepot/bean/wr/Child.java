@@ -24,9 +24,9 @@ package coffeepot.bean.wr;
  */
 
 
-import coffeepot.bean.wr.anotation.Field;
-import coffeepot.bean.wr.anotation.Record;
-import coffeepot.bean.wr.anotation.Records;
+import coffeepot.bean.wr.annotation.Field;
+import coffeepot.bean.wr.annotation.Record;
+import coffeepot.bean.wr.annotation.Records;
 import coffeepot.bean.wr.types.Align;
 import coffeepot.bean.wr.types.FormatType;
 

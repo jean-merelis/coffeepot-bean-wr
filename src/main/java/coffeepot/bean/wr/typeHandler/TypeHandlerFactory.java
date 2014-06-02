@@ -39,6 +39,7 @@ public interface TypeHandlerFactory {
      * @param forClass
      * @param handlerInstance 
      */
+    @Deprecated
     void registerTypeHandlerInstanceAsDefaultFor(Class<?> forClass, TypeHandler handlerInstance);
     
     void registerTypeHandlerClassFor(Class<?> forClass, Class<? extends TypeHandler> handlerClass);

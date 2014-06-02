@@ -24,8 +24,8 @@ package coffeepot.bean.wr.parser;
  */
 
 
-import coffeepot.bean.wr.anotation.Field;
-import coffeepot.bean.wr.anotation.NestedField;
+import coffeepot.bean.wr.annotation.Field;
+import coffeepot.bean.wr.annotation.NestedField;
 import coffeepot.bean.wr.parser.FieldImpl;
 import java.util.LinkedList;
 import java.util.List;
