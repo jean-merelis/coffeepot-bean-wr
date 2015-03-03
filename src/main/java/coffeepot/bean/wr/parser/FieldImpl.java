@@ -29,6 +29,8 @@ import coffeepot.bean.wr.types.AccessorType;
 import coffeepot.bean.wr.types.Align;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -62,39 +64,46 @@ public class FieldImpl implements Cloneable {
     private boolean ignoreOnRead = false;
     private boolean ignoreOnWrite = false;
     private boolean required = false;
+    private boolean id = false;
 
     @Override
     public FieldImpl clone() {
-        FieldImpl c = new FieldImpl();
-
-        c.name = this.name;
-        c.constantValue = this.constantValue;
-        c.minLength = this.minLength;
-        c.maxLength = this.maxLength;
-        c.length = this.length;
-        c.padding = this.padding;
-        c.paddingIfNullOrEmpty = this.paddingIfNullOrEmpty;
-        c.trim = this.trim;
-        c.segmentBeginNewRecord = this.segmentBeginNewRecord;
-        c.beginNewRecord = this.beginNewRecord;
-        c.align = this.align;
-        c.getter = this.getter;
-        c.setter = this.setter;
-        c.typeHandler = this.typeHandler;
-        c.classType = this.classType;
-        c.params = this.params;
-        c.accessorType = this.accessorType;
-        c.nestedFields = this.nestedFields;
-        //
-        c.typeHandlerImpl = this.typeHandlerImpl;
-        c.getterMethod = this.getterMethod;
-        c.setterMethod = this.setterMethod;
-        c.collection = this.collection;
-        c.ignoreOnRead = this.ignoreOnRead;
-        c.ignoreOnWrite = this.ignoreOnWrite;
-        c.required = this.required;
-
-        return c;
+        try {
+            return (FieldImpl) super.clone();
+//        FieldImpl c = new FieldImpl();
+//
+//        c.name = this.name;
+//        c.constantValue = this.constantValue;
+//        c.minLength = this.minLength;
+//        c.maxLength = this.maxLength;
+//        c.length = this.length;
+//        c.padding = this.padding;
+//        c.paddingIfNullOrEmpty = this.paddingIfNullOrEmpty;
+//        c.trim = this.trim;
+//        c.segmentBeginNewRecord = this.segmentBeginNewRecord;
+//        c.beginNewRecord = this.beginNewRecord;
+//        c.align = this.align;
+//        c.getter = this.getter;
+//        c.setter = this.setter;
+//        c.typeHandler = this.typeHandler;
+//        c.classType = this.classType;
+//        c.params = this.params;
+//        c.accessorType = this.accessorType;
+//        c.nestedFields = this.nestedFields;
+//        //
+//        c.typeHandlerImpl = this.typeHandlerImpl;
+//        c.getterMethod = this.getterMethod;
+//        c.setterMethod = this.setterMethod;
+//        c.collection = this.collection;
+//        c.ignoreOnRead = this.ignoreOnRead;
+//        c.ignoreOnWrite = this.ignoreOnWrite;
+//        c.required = this.required;
+//
+//        return c;
+        } catch (CloneNotSupportedException ex) {
+            Logger.getLogger(FieldImpl.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }
     }
 
     public TypeHandler getTypeHandlerRecursively() {
@@ -110,6 +119,14 @@ public class FieldImpl implements Cloneable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean isId() {
+        return id;
+    }
+
+    public void setId(boolean id) {
+        this.id = id;
     }
 
     public String getConstantValue() {

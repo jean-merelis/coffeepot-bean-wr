@@ -22,13 +22,16 @@ package coffeepot.bean.wr.writer;
  * limitations under the License.
  * #L%
  */
-import coffeepot.bean.wr.Child;
-import coffeepot.bean.wr.Person;
+import coffeepot.bean.wr.model.Child;
+import coffeepot.bean.wr.model.Person;
 import coffeepot.bean.wr.typeHandler.DefaultDateHandler;
 import coffeepot.bean.wr.typeHandler.TypeHandler;
 import coffeepot.bean.wr.typeHandler.TypeHandlerFactory;
 import coffeepot.bean.wr.writer.customHandler.DateTimeHandler;
 import coffeepot.bean.wr.writer.customHandler.LowStringHandler;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.Writer;
 import java.util.Date;
@@ -37,6 +40,7 @@ import java.util.List;
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -66,10 +70,14 @@ public class FixedLengthWriterTest {
     public void tearDown() {
     }
 
+    //TODO: MORE TESTS
+    
     @Test
     public void testWrite() throws Exception {
         System.out.println("write");
-        Writer w = new FileWriter("D:\\TESTE_.TXT");
+
+        File file = new File("TEST_FIXEDLENGTH_.TXT");
+        Writer w = new FileWriter(file);
 
         FixedLengthWriter instance = new FixedLengthWriter(w);
 
@@ -84,8 +92,6 @@ public class FixedLengthWriterTest {
 
         //set new custom TypeHandler as default for Enum
         handlerFactory.registerTypeHandlerClassFor(Enum.class, Person.EncodedEnumHandler.class);
-
-
 
         Person obj = new Person();
         obj.setName("Jean");
@@ -132,5 +138,29 @@ public class FixedLengthWriterTest {
         w.flush();
         w.close();
 
+        FileReader in = new FileReader(file);
+        try (BufferedReader reader = new BufferedReader(in)) {
+            String line;
+
+            line = reader.readLine();
+            Assert.assertEquals(128, line.length());
+            Assert.assertEquals("jean                          merelis                       0000372015-03-21432adfd2143758082015-03-0305,999.9001FFFFFFF67890000", line);
+
+            line = reader.readLine();
+            Assert.assertEquals(128, line.length());
+            Assert.assertEquals("john                                                        00001400000000                            0000000000 FFFFFFF67890000", line);
+
+            line = reader.readLine();
+            Assert.assertEquals(128, line.length());
+            Assert.assertEquals("ana                                                         00001100000000                            0000000000 FFFFFFF67890000", line);
+
+            line = reader.readLine();
+            Assert.assertEquals(128, line.length());
+            Assert.assertEquals("jean                                                        00003700000000                            0000000000 FFFFFFF67890002", line);
+
+            line = reader.readLine();
+            Assert.assertNull(line);
+
+        }
     }
 }

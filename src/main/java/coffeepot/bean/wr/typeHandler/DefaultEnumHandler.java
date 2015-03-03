@@ -34,8 +34,8 @@ import java.util.logging.Logger;
 public class DefaultEnumHandler implements TypeHandler<Enum> {
 
     protected boolean ordinalMode = false;
-    protected Class<? extends Enum> type;
-
+    protected Class<? extends Enum> type = Enum.class;;
+    
     @Override
     public Enum parse(String text) throws HandlerParseException {
         if (text == null || "".equals(text)) {
@@ -68,7 +68,7 @@ public class DefaultEnumHandler implements TypeHandler<Enum> {
             return String.valueOf(obj.ordinal());
         }
 
-        return obj.toString();
+        return obj.name();
     }
 
     @Override

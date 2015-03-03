@@ -67,6 +67,7 @@ public class Helpful {
     
     public static FieldImpl toFieldImpl(Field nf) {
         FieldImpl f = new FieldImpl();
+        f.setId(nf.id());
         f.setAccessorType(nf.accessorType());
         f.setAlign(nf.align());
         f.setBeginNewRecord(nf.beginNewRecord());

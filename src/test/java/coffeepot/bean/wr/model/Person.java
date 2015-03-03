@@ -1,7 +1,7 @@
 /*
  * Copyright 2013 - Jeandeson O. Merelis
  */
-package coffeepot.bean.wr;
+package coffeepot.bean.wr.model;
 
 /*
  * #%L
@@ -22,8 +22,6 @@ package coffeepot.bean.wr;
  * limitations under the License.
  * #L%
  */
-
-
 import coffeepot.bean.wr.annotation.Field;
 import coffeepot.bean.wr.annotation.NestedField;
 import coffeepot.bean.wr.annotation.Record;
@@ -45,7 +43,7 @@ import org.joda.time.DateTime;
  */
 @Records({
     @Record(groupId = "testGroupRecord", fields = {
-        @Field(name = "", constantValue = "testGroupRecord"),
+        @Field(name = "", constantValue = "TESTE 1"),
         @Field(name = "name"),
         @Field(name = "age"),
         @Field(name = "children")
@@ -54,48 +52,31 @@ import org.joda.time.DateTime;
         @Field(name = "", constantValue = "PERSON"),
         @Field(name = "name"),
         @Field(name = "age"),
-        @Field(name = "", constantValue = "Nested Test ==>", beginNewRecord = true),
-        @Field(name = "child.name"),
-        @Field(name = "child.child.name"),
-        @Field(name = "", constantValue = "<== Nested Test"),
-        @Field(name = "", constantValue = "Nested Test2 ==>", beginNewRecord = true),
-        @Field(name = "child", nestedFields = {@NestedField(name = "name")}),
-        @Field(name = "", constantValue = "<== Nested Test2"),
-        @Field(name = "", constantValue = "Nested Test3 ==>", beginNewRecord = true),
-        @Field(name = "child", nestedFields = {@NestedField(name = "name"), @NestedField(name = "age")}),
-        @Field(name = "", constantValue = "<== Nested Test3"),
-        @Field(name = "", constantValue = "Nested Test4 ==>", beginNewRecord = true),
-        @Field(name = "child", required = false, beginNewRecord = true, nestedFields = {@NestedField(name = "name"), @NestedField(name = "", constantValue = "==3th=="), @NestedField(name = "child.name")}),
-        @Field(name = "", constantValue = "<== Nested Test4", beginNewRecord = true),
-        @Field(name = "birthday", params = {"dd/MM/yyyy"}, beginNewRecord = true),
-        @Field(name = "children"),
+        @Field(name = "birthday", params = {"dd/MM/yyyy"}),
         @Field(name = "", getter = "childrenCount", classType = Integer.class),
-        @Field(name = "", constantValue = "Nested fields in collection", beginNewRecord = true),
-        @Field(name = "jobs", nestedFields = {@NestedField(name = "", constantValue = "item:"), @NestedField(name = "test1"), @NestedField(name = "test4")}),
-        @Field(name = "", constantValue = "Nested fields in collection 2 (single)", beginNewRecord = true),
-        @Field(name = "jobs.test2")
+        //Jobs inline
+        @Field(name = "jobs", segmentBeginNewRecord = false, nestedFields = {@NestedField(name = "test1"), @NestedField(name = "test4")}),
+        //Jobs in list
+        @Field(name = "jobs", nestedFields = {@NestedField(name = "test1"), @NestedField(name = "test4")})
     }),
     @Record(forFormat = FormatType.FIXED_LENGTH,
             accessorType = AccessorType.FIELD,
             fields = {
-        @Field(name = "name", length = 30),
-        //for inherited fields, access must be through the PROPERTY and classType must be declared
-        @Field(name = "lastName", length = 30, accessorType = AccessorType.PROPERTY, classType = String.class),
-        @Field(name = "age", length = 6, align = Align.RIGHT, padding = '0'),
-        @Field(name = "b", constantValue = "birtday="),
-        @Field(name = "birthday", length = 8, padding = '0'),
-        @Field(name = "testNumberOnly", length = 5, params = {DefaultStringHandler.PARAM_FILTER_NUMBER_ONLY}),
-        @Field(name = "testNumberOnly", length = 8, params = {DefaultStringHandler.PARAM_FILTER_NUMBER_LETTERS_ONLY}),
-        @Field(name = "longNumber", length = 5, align = Align.RIGHT),
-        @Field(name = "jodaDateTime", length = 10),
-        @Field(name = "salary", length = 10, align = Align.RIGHT, padding = '0', typeHandler = CustomDoubleHandler.class),
-        @Field(name = "gender", length = 1),
-        @Field(name = "filler", constantValue = "FFFFFFF"),
-        @Field(name = "filler", constantValue = "1234567890", length = 5, align = Align.RIGHT),
-        @Field(name = "", constantValue = "children count", beginNewRecord = true),
-        @Field(name = "childrenCount", getter = "childrenCount", classType = Integer.class),
-        @Field(name = "filler", constantValue = "FILLER IN NEW RECORD", beginNewRecord = true)
-    })
+                @Field(name = "name", length = 30),
+                //for inherited fields, access must be through the PROPERTY and classType must be declared
+                @Field(name = "lastName", length = 30, accessorType = AccessorType.PROPERTY, classType = String.class),
+                @Field(name = "age", length = 6, align = Align.RIGHT, padding = '0'),
+                @Field(name = "birthday", length = 8, padding = '0'),
+                @Field(name = "testNumberOnly", length = 5, params = {DefaultStringHandler.PARAM_FILTER_NUMBER_ONLY}),
+                @Field(name = "testNumberOnly", length = 8, params = {DefaultStringHandler.PARAM_FILTER_NUMBER_LETTERS_ONLY}),
+                @Field(name = "longNumber", length = 5, align = Align.RIGHT),
+                @Field(name = "jodaDateTime", length = 10),
+                @Field(name = "salary", length = 10, align = Align.RIGHT, padding = '0', typeHandler = CustomDoubleHandler.class),
+                @Field(name = "gender", length = 1),
+                @Field(name = "filler", constantValue = "FFFFFFF"),
+                @Field(name = "filler", constantValue = "1234567890", length = 5, align = Align.RIGHT),
+                @Field(name = "childrenCount", length = 3, align = Align.RIGHT, padding = '0', getter = "childrenCount", classType = Integer.class)
+            })
 })
 //@Record
 public class Person extends Parent {
@@ -116,8 +97,6 @@ public class Person extends Parent {
 
     private Gender gender;
 
-    private Child child;
-
     private List<Job> jobs;
 
     public List<Job> getJobs() {
@@ -126,14 +105,6 @@ public class Person extends Parent {
 
     public void setJobs(List<Job> jobs) {
         this.jobs = jobs;
-    }
-
-    public Child getChild() {
-        return child;
-    }
-
-    public void setChild(Child child) {
-        this.child = child;
     }
 
     public Gender getGender() {

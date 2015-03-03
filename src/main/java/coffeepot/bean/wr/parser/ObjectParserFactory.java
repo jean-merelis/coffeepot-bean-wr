@@ -31,8 +31,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -45,6 +43,8 @@ public final class ObjectParserFactory {
     private Map<Class, ObjectParser> parses = new HashMap<>();
 
     private TypeHandlerFactory handlerFactory = new TypeHandlerFactoryImpl();
+    
+    private Map<String,Class> idsMap= new HashMap<>();
 
     private FormatType formatType;
 
@@ -127,4 +127,10 @@ public final class ObjectParserFactory {
     public FormatType getFormatType() {
         return formatType;
     }
+
+    public Map<String, Class> getIdsMap() {
+        return idsMap;
+    }
+    
+    
 }

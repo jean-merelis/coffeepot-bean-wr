@@ -32,6 +32,11 @@ public class DefaultBooleanHandler implements TypeHandler<Boolean> {
 
     private String trueText;
     private String falseText;
+    
+    protected static String trueTextDefault = "true";
+    protected static String falseTextDefault = "false";
+    
+    
 
     @Override
     public Boolean parse(String text) throws HandlerParseException {
@@ -125,7 +130,25 @@ public class DefaultBooleanHandler implements TypeHandler<Boolean> {
     }
 
     private void setDefaultValues() {
-        trueText = "true";
-        falseText = "false";
+        trueText = trueTextDefault;
+        falseText = falseTextDefault;
     }
+
+    public static String getTrueTextDefault() {
+        return trueTextDefault;
+    }
+
+    public static void setTrueTextDefault(String trueTextDefault) {
+        DefaultBooleanHandler.trueTextDefault = trueTextDefault;
+    }
+
+    public static String getFalseTextDefault() {
+        return falseTextDefault;
+    }
+
+    public static void setFalseTextDefault(String falseTextDefault) {
+        DefaultBooleanHandler.falseTextDefault = falseTextDefault;
+    }
+    
+    
 }

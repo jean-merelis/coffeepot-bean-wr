@@ -45,10 +45,6 @@ public interface ObjectWriter {
 
     void write(Object obj, String recordGroupId) throws IOException;
 
-    void writeRecord(List<String> values) throws IOException;
-
-    void writeRecord(String value) throws IOException;
-
     void flush() throws IOException;
     
     void close() throws IOException;

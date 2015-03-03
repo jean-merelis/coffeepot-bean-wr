@@ -22,16 +22,16 @@ package coffeepot.bean.wr.writer;
  * limitations under the License.
  * #L%
  */
-
-
-import coffeepot.bean.wr.Child;
-import coffeepot.bean.wr.Job;
-import coffeepot.bean.wr.Person;
+import coffeepot.bean.wr.model.Child;
+import coffeepot.bean.wr.model.Job;
+import coffeepot.bean.wr.model.Person;
 import coffeepot.bean.wr.typeHandler.TypeHandlerFactory;
 import coffeepot.bean.wr.writer.customHandler.LowStringHandler;
 import coffeepot.bean.wr.writer.customHandler.DateTimeHandler;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.Writer;
 import java.util.Date;
 import java.util.LinkedList;
@@ -39,10 +39,10 @@ import java.util.List;
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *
@@ -68,18 +68,20 @@ public class DelimitedWriterTest {
     @After
     public void tearDown() {
     }
+    
+    //TODO: MORE TESTS
 
     @Test
     public void testWrite() throws Exception {
-        System.out.println("write");
-        Writer w = new FileWriter("D:\\TESTE_.TXT");
 
+        File file = new File("TESTE_.TXT");
+        Writer w = new FileWriter(file);
 
         DelimitedWriter instance = new DelimitedWriter(w);
-        instance.setDelimiter(';');
+        instance.setDelimiter('|');
+        instance.setEscape('\\');
         instance.setRecordInitializator("");
-        instance.setRecordTerminator("\r\n");
-
+        instance.setRecordTerminator("|\r\n");
 
         //set new custom TypeHandler as default for a class
         TypeHandlerFactory handlerFactory = instance.getObjectParserFactory().getHandlerFactory();
@@ -92,11 +94,9 @@ public class DelimitedWriterTest {
         handlerFactory.registerTypeHandlerClassFor(Enum.class, Person.EncodedEnumHandler.class);
 
         //instance.createParser(Person.class);
-
         Person obj = new Person();
         obj.setName("Jean");
-        obj.setAge(37);
-        obj.setTestNumberOnly("ad(*&%¨(*&%fd2---14324.32432adfa");
+        obj.setAge(37);        
         obj.setLongNumber(Long.MIN_VALUE);
         obj.setBirthday(new Date());
         obj.setJodaDateTime(DateTime.now());
@@ -126,40 +126,60 @@ public class DelimitedWriterTest {
         child.setAge(14);
         chidren.add(child);
 
-
         child = new Child();
         child.setName("Ana");
         child.setAge(11);
         chidren.add(child);
-        
-        Child        child2 = new Child();
-        child2.setName("test 3th level");
-        child2.setAge(3);
-                
-        child.setChild(child2);        
-        obj.setChild(child);
-               
+
         obj.setChildren(chidren);
-        
+
         List<Job> jobs = new LinkedList<>();
-        
-        jobs.add(new Job("test1","test2","test3","test4"));
-        jobs.add(new Job("test1","test2","test3","test4"));
-        jobs.add(new Job("test1","test2","test3","test4"));
-        jobs.add(new Job("test1","test2","test3","test4"));
-        
+
+        jobs.add(new Job("initial\\First Job", "11", "22", "33"));
+        jobs.add(new Job("Second job|escape test", "44", "55", "66"));
+        jobs.add(new Job("3th job", "77", "88", "99"));
+        jobs.add(new Job("4th job", "00", "aa", "bb"));
+
         obj.setJobs(jobs);
         instance.write(obj);
 
-        instance.writeRecord("");
-        instance.writeRecord("");
-        instance.writeRecord("");
-        
-        instance.clearParsers();
-        instance.write(obj, "testGroupRecord");
-        
+//        instance.clearParsers();
+//        instance.write(obj, "testGroupRecord");
         w.flush();
         w.close();
+
+        FileReader in = new FileReader(file);
+        try (BufferedReader reader = new BufferedReader(in)) {
+            String line;
+
+            line = reader.readLine();
+            Assert.assertEquals("PERSON|jean|5|03/03/2015|0|", line);
+
+            line = reader.readLine();
+            Assert.assertEquals("PERSON|john|5||0|", line);
+
+            line = reader.readLine();
+            Assert.assertEquals("PERSON|ana|5||0|", line);
+
+            line = reader.readLine();
+            Assert.assertEquals("PERSON|jean|5||2|initial\\\\first job|33|second job\\|escape test|66|3th job|99|4th job|bb|", line);
+
+            line = reader.readLine();
+            Assert.assertEquals("initial\\\\first job|33|", line);
+
+            line = reader.readLine();
+            Assert.assertEquals("second job\\|escape test|66|", line);
+
+            line = reader.readLine();
+            Assert.assertEquals("3th job|99|", line);
+
+            line = reader.readLine();
+            Assert.assertEquals("4th job|bb|", line);
+
+            line = reader.readLine();
+            Assert.assertNull(line);
+
+        }
 
     }
 }

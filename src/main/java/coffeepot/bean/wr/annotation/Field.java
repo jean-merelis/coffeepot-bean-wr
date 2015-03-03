@@ -47,6 +47,8 @@ public @interface Field{
 
     String constantValue() default "";
 
+    boolean id() default false;
+    
     int minLength() default 0;
 
     int maxLength() default 0;
