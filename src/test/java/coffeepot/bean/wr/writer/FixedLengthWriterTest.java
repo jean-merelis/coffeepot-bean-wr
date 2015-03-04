@@ -24,8 +24,6 @@ package coffeepot.bean.wr.writer;
  */
 import coffeepot.bean.wr.model.Child;
 import coffeepot.bean.wr.model.Person;
-import coffeepot.bean.wr.typeHandler.DefaultDateHandler;
-import coffeepot.bean.wr.typeHandler.TypeHandler;
 import coffeepot.bean.wr.typeHandler.TypeHandlerFactory;
 import coffeepot.bean.wr.writer.customHandler.DateTimeHandler;
 import coffeepot.bean.wr.writer.customHandler.LowStringHandler;
@@ -34,7 +32,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.Writer;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import org.joda.time.DateTime;
@@ -76,7 +73,7 @@ public class FixedLengthWriterTest {
     public void testWrite() throws Exception {
         System.out.println("write");
 
-        File file = new File("TEST_FIXEDLENGTH_.TXT");
+        File file = new File("TEST_FIXEDLENGTH_.tmp");
         Writer w = new FileWriter(file);
 
         FixedLengthWriter instance = new FixedLengthWriter(w);

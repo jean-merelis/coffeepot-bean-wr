@@ -221,7 +221,7 @@ public class DelimitedWriterTest {
         item.getDetails().add(new ItemDet("white"));
         order.getItems().add(item);
 
-        File file = new File("ORDER.TXT");
+        File file = new File("ORDER.tmp");
         Writer w = new FileWriter(file);
 
         DelimitedWriter instance = new DelimitedWriter(w);

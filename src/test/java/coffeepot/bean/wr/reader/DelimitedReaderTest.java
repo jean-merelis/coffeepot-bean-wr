@@ -111,7 +111,7 @@ public class DelimitedReaderTest {
         item.getDetails().add(new ItemDet("white"));
         order.getItems().add(item);
 
-        File file = new File("ORDER_to_reader.TXT");
+        File file = new File("ORDER_to_reader.tmp");
         try (Writer w = new FileWriter(file)) {
 
             DelimitedWriter delimitedWriter = new DelimitedWriter(w);
