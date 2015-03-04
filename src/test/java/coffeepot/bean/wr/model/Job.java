@@ -3,6 +3,9 @@
  */
 package coffeepot.bean.wr.model;
 
+import coffeepot.bean.wr.annotation.Field;
+import coffeepot.bean.wr.annotation.Record;
+
 /*
  * #%L
  * coffeepot-bean-wr
@@ -22,13 +25,17 @@ package coffeepot.bean.wr.model;
  * limitations under the License.
  * #L%
  */
-
-
 /**
  *
  * @author Jeandeson O. Merelis
  */
-public class Job {    
+@Record(fields = {
+    @Field(name = "test1"),
+    @Field(name = "test4")
+}
+)
+public class Job {
+
     private String test1;
     private String test2;
     private String test3;
@@ -75,5 +82,5 @@ public class Job {
     public void setTest4(String test4) {
         this.test4 = test4;
     }
-        
+
 }

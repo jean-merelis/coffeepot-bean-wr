@@ -121,7 +121,7 @@ public class DelimitedWriter extends AbstractWriter {
             sb.append(recordInitializator);
         }
 
-        String esc = null;
+        String escDelimiter = null;
         String _esc = null;
         String esc2esc = null;
         String _delimiter = String.valueOf(delimiter);
@@ -134,13 +134,13 @@ public class DelimitedWriter extends AbstractWriter {
         }
 
         if (escape != null) {
-            esc = escape + _delimiter;
+            escDelimiter = escape + _delimiter;
             _esc = String.valueOf(escape);
             esc2esc = "" + escape + escape;
             if (fieldValue != null) {
                 fieldValue = fieldValue.replace(_esc, esc2esc);
                 if (!removeDelimiter) {
-                    fieldValue = fieldValue.replace(_delimiter, esc);
+                    fieldValue = fieldValue.replace(_delimiter, escDelimiter);
                 }
             }
         }
@@ -156,7 +156,7 @@ public class DelimitedWriter extends AbstractWriter {
                 fieldValue = fieldValue.replace(_esc, esc2esc);
 
                 if (!removeDelimiter) {
-                    fieldValue = fieldValue.replace(_delimiter, esc);
+                    fieldValue = fieldValue.replace(_delimiter, escDelimiter);
                 }
             }
             sb.append(delimiter).append(fieldValue);

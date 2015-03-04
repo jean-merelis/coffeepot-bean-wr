@@ -61,10 +61,6 @@ public @interface Field{
 
     boolean trim() default true;
 
-    boolean segmentBeginNewRecord() default true;
-
-    boolean beginNewRecord() default false;
-
     Align align() default Align.LEFT;
 
     String getter() default "";
@@ -90,6 +86,4 @@ public @interface Field{
     AccessorType accessorType() default AccessorType.DEFAULT;
     
     boolean required() default true;
-    
-    NestedField[] nestedFields() default {};
 }

@@ -23,7 +23,10 @@ package coffeepot.bean.wr.writer;
  * #L%
  */
 import coffeepot.bean.wr.model.Child;
+import coffeepot.bean.wr.model.Item;
+import coffeepot.bean.wr.model.ItemDet;
 import coffeepot.bean.wr.model.Job;
+import coffeepot.bean.wr.model.Order;
 import coffeepot.bean.wr.model.Person;
 import coffeepot.bean.wr.typeHandler.TypeHandlerFactory;
 import coffeepot.bean.wr.writer.customHandler.LowStringHandler;
@@ -33,6 +36,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -68,9 +72,8 @@ public class DelimitedWriterTest {
     @After
     public void tearDown() {
     }
-    
-    //TODO: MORE TESTS
 
+    //TODO: MORE TESTS
     @Test
     public void testWrite() throws Exception {
 
@@ -96,9 +99,9 @@ public class DelimitedWriterTest {
         //instance.createParser(Person.class);
         Person obj = new Person();
         obj.setName("Jean");
-        obj.setAge(37);        
+        obj.setAge(37);
         obj.setLongNumber(Long.MIN_VALUE);
-        obj.setBirthday(new Date());
+//        obj.setBirthday(new Date());
         obj.setJodaDateTime(DateTime.now());
         obj.setSalary(5999.9);
         obj.setGender(Person.Gender.MALE);
@@ -153,7 +156,7 @@ public class DelimitedWriterTest {
             String line;
 
             line = reader.readLine();
-            Assert.assertEquals("PERSON|jean|5|03/03/2015|0|", line);
+            Assert.assertEquals("PERSON|jean|5||0|", line);
 
             line = reader.readLine();
             Assert.assertEquals("PERSON|john|5||0|", line);
@@ -162,7 +165,7 @@ public class DelimitedWriterTest {
             Assert.assertEquals("PERSON|ana|5||0|", line);
 
             line = reader.readLine();
-            Assert.assertEquals("PERSON|jean|5||2|initial\\\\first job|33|second job\\|escape test|66|3th job|99|4th job|bb|", line);
+            Assert.assertEquals("PERSON|jean|5||2|", line);
 
             line = reader.readLine();
             Assert.assertEquals("initial\\\\first job|33|", line);
@@ -181,5 +184,65 @@ public class DelimitedWriterTest {
 
         }
 
+    }
+
+    @Test
+    public void testWrite2() throws Exception {
+        Order order = new Order();
+        order.setCustomer("John B");
+        order.setDate(new Date());
+        order.setId(123);
+        order.setItems(new ArrayList<Item>());
+
+        Item item = new Item();
+        item.setNumber(1);
+        item.setProduct("Product1");
+        item.setQuantity(10);
+        item.setDetails(new ArrayList<ItemDet>());
+        item.getDetails().add(new ItemDet("something"));
+        item.getDetails().add(new ItemDet("another something"));
+        order.getItems().add(item);
+
+        item = new Item();
+        item.setNumber(2);
+        item.setProduct("Product 002");
+        item.setQuantity(5);
+        item.setDetails(new ArrayList<ItemDet>());
+        item.getDetails().add(new ItemDet("blue"));
+        item.getDetails().add(new ItemDet("yellow"));
+        order.getItems().add(item);
+
+        item = new Item();
+        item.setNumber(3);
+        item.setProduct("Product 003");
+        item.setQuantity(2);
+        item.setDetails(new ArrayList<ItemDet>());
+        item.getDetails().add(new ItemDet("red"));
+        item.getDetails().add(new ItemDet("white"));
+        order.getItems().add(item);
+
+        File file = new File("ORDER.TXT");
+        Writer w = new FileWriter(file);
+
+        DelimitedWriter instance = new DelimitedWriter(w);
+        instance.setDelimiter('|');
+        instance.setEscape('\\');
+        instance.setRecordInitializator("");
+        instance.setRecordTerminator("|\r\n");
+
+        //set new custom TypeHandler as default for a class
+        TypeHandlerFactory handlerFactory = instance.getObjectParserFactory().getHandlerFactory();
+        handlerFactory.registerTypeHandlerClassFor(DateTime.class, DateTimeHandler.class);
+
+        //set new custom TypeHandler as default for the class String
+        handlerFactory.registerTypeHandlerClassFor(String.class, LowStringHandler.class);
+
+        //set new custom TypeHandler as default for Enum
+        handlerFactory.registerTypeHandlerClassFor(Enum.class, Person.EncodedEnumHandler.class);
+
+        instance.write(order);
+
+        w.flush();
+        w.close();
     }
 }

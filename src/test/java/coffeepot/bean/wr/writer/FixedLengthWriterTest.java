@@ -99,8 +99,8 @@ public class FixedLengthWriterTest {
         obj.setAge(37);
         obj.setTestNumberOnly("ad(*&%¨(*&%fd2---14324.32432adfa");
         obj.setLongNumber(Long.MIN_VALUE);
-        obj.setBirthday(new Date());
-        obj.setJodaDateTime(DateTime.now());
+        obj.setBirthday(DateTime.parse("2015-03-21").toDate());
+        obj.setJodaDateTime(DateTime.parse("2015-03-21"));
         obj.setSalary(5999.9);
         obj.setGender(Person.Gender.MALE);
 
@@ -144,7 +144,7 @@ public class FixedLengthWriterTest {
 
             line = reader.readLine();
             Assert.assertEquals(128, line.length());
-            Assert.assertEquals("jean                          merelis                       0000372015-03-21432adfd2143758082015-03-0305,999.9001FFFFFFF67890000", line);
+            Assert.assertEquals("jean                          merelis                       0000372015-03-21432adfd2143758082015-03-2105,999.9001FFFFFFF67890000", line);
 
             line = reader.readLine();
             Assert.assertEquals(128, line.length());

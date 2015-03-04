@@ -43,38 +43,13 @@ import java.util.logging.Logger;
  *
  * @author Jeandeson O. Merelis
  */
-public class ObjectParser {
-    
+public class ObjectMapper {
+
     private AccessorType accessorType = AccessorType.DEFAULT;
     private Set<String> ignoredFields;
     private final List<FieldImpl> mappedFields = new LinkedList<>();
     private Class<?> rootClass;
-
-    /**
-     * Uses annotations of a class to create a parser for the target class. Of
-     * course that the fields of the target class must be compatible with the
-     * annotations of another class.
-     *
-     * @param fromClass   Class with annotations.
-     * @param targetClass Target class.
-     * @param groupId
-     * @param factory
-     */
-    public ObjectParser(Class<?> fromClass, Class<?> targetClass, String groupId, ObjectParserFactory factory) throws UnresolvedObjectParserException, NoSuchFieldException, Exception {
-        if (fromClass == null) {
-            throw new IllegalArgumentException("Object to mapped can't be null");
-        }
-        if (targetClass == null) {
-            throw new IllegalArgumentException("Target class can't be null");
-        }
-
-        if (factory == null) {
-            throw new IllegalArgumentException("ObjectParserFactory can't be null");
-        }
-
-        this.rootClass = targetClass;
-        this.perform(factory, getRecordFromClass(fromClass, groupId, factory));
-    }
+    private ObjectMapper parent;
 
     /**
      * Builds a parser for the class using your annotations.
@@ -82,24 +57,26 @@ public class ObjectParser {
      * @param clazz
      * @param groupId
      * @param factory
-     * @throws UnresolvedObjectParserException
+     * @param parent
+     * @throws UnresolvedObjectMapperException
      * @throws NoSuchFieldException
      * @throws Exception
      */
-    public ObjectParser(Class<?> clazz, String groupId, ObjectParserFactory factory) throws UnresolvedObjectParserException, NoSuchFieldException, Exception {
+    public ObjectMapper(Class<?> clazz, String groupId, ObjectMapperFactory factory, ObjectMapper parent) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
         if (clazz == null) {
             throw new IllegalArgumentException("Object to mapped can't be null");
         }
 
         if (factory == null) {
-            throw new IllegalArgumentException("ObjectParserFactory can't be null");
+            throw new IllegalArgumentException("ObjectMapperFactory can't be null");
         }
 
         this.rootClass = clazz;
-        this.perform(factory, getRecordFromClass(clazz, groupId, factory));
+        this.parent = parent;
+        this.perform(factory, getRecordFromClass(clazz, groupId, factory), groupId);
     }
 
-    private Record getRecordFromClass(Class<?> clazz, String groupId, ObjectParserFactory factory) {
+    private Record getRecordFromClass(Class<?> clazz, String groupId, ObjectMapperFactory factory) {
         Record record = null;
         Records records = clazz.getAnnotation(Records.class);
         if (records != null) {
@@ -127,7 +104,8 @@ public class ObjectParser {
         return record;
     }
 
-    private void perform(ObjectParserFactory factory, Record record) throws UnresolvedObjectParserException, NoSuchFieldException, Exception {
+    //step2
+    private void perform(ObjectMapperFactory factory, Record record, String groupId) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
         if (record != null) {
             accessorType = record.accessorType();
             String[] ig = record.ignoredFields();
@@ -138,29 +116,29 @@ public class ObjectParser {
             coffeepot.bean.wr.annotation.Field[] fields = record.fields();
             if (fields != null) {
                 try {
-                    mappingFields(fields, factory);
+                    mappingFields(fields, factory, groupId);
                 } catch (InstantiationException | IllegalAccessException ex) {
-                    Logger.getLogger(ObjectParser.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(ObjectMapper.class.getName()).log(Level.SEVERE, null, ex);
                     throw new Exception(ex);
                 }
             }
         }
         if (mappedFields.isEmpty()) {
-            throw new UnresolvedObjectParserException("Class " + rootClass.getName() + " can't be mapped");
+            throw new UnresolvedObjectMapperException("Class " + rootClass.getName() + " can't be mapped");
         }
     }
 
-    private void mappingFields(coffeepot.bean.wr.annotation.Field[] fields, ObjectParserFactory factory) throws NoSuchFieldException, InstantiationException, IllegalAccessException, NoSuchMethodException {
+    private void mappingFields(coffeepot.bean.wr.annotation.Field[] fields, ObjectMapperFactory factory, String groupId) throws Exception {
         for (coffeepot.bean.wr.annotation.Field f : fields) {
             if (ignoredFields != null && ignoredFields.contains(f.name())) {
                 continue;
             }
 
-            this.mappedFields.add(mappingField(null, Helpful.toFieldImpl(f), factory, rootClass));
+            this.mappedFields.add(mappingField(null, Helpful.toFieldImpl(f), factory, rootClass, groupId));
         }
     }
 
-    private FieldImpl mappingField(String fieldName, FieldImpl f, ObjectParserFactory factory, Class<?> clazz) throws NoSuchFieldException, InstantiationException, IllegalAccessException, NoSuchMethodException {
+    private FieldImpl mappingField(String fieldName, FieldImpl f, ObjectMapperFactory factory, Class<?> clazz, String groupId) throws Exception {
 
         AccessorType at;
         if (f.getAccessorType().equals(AccessorType.DEFAULT)) {
@@ -176,16 +154,21 @@ public class ObjectParser {
             mappedField.setPaddingIfNullOrEmpty(true);
         }
 
-        
-
         if (!"".equals(f.getConstantValue())) {
             mappedField.setClassType(String.class);
+            if (f.isId()) {
+                ObjectMapper old = factory.getIdsMap().put(f.getConstantValue(), this);
+                if (old != null) {
+                    throw new IllegalStateException("Conflict mapping ids. There is already a class mapped to the id '"
+                            + f.getConstantValue() + "' -\n" + old.getRootClass().getName() + "\n-" + clazz.getName());
+                }
+            }
         } else {
 
             if (fieldName == null || fieldName.isEmpty()) {
                 fieldName = f.getName();
             }
-            
+
             mappedField.setName(fieldName);
 
             try {
@@ -198,7 +181,6 @@ public class ObjectParser {
                     } else if (Collection.class.isAssignableFrom(mappedField.getClassType())) {
                         mappedField.setCollection(true);
                         mappedField.setCollectionType(mappedField.getClassType());
-
                         Type genericType = declaredField.getGenericType();
                         if (ParameterizedType.class.isAssignableFrom(genericType.getClass())) {
                             ParameterizedType pt = (ParameterizedType) genericType;
@@ -206,6 +188,7 @@ public class ObjectParser {
                             if (actualTypeArguments != null && actualTypeArguments.length > 0) {
                                 //FIXME: support for generics with multiple params.
                                 mappedField.setClassType((Class<?>) actualTypeArguments[0]);
+                                factory.create(mappedField.getClassType(), groupId, this);
                             }
                         }
                     }
@@ -250,6 +233,7 @@ public class ObjectParser {
                             if (actualTypeArguments != null && actualTypeArguments.length > 0) {
                                 //FIXME: support for generics with multiple params.
                                 mappedField.setClassType((Class<?>) actualTypeArguments[0]);
+                                factory.create(mappedField.getClassType(), groupId, this);
                             }
                         }
                     }
@@ -327,42 +311,41 @@ public class ObjectParser {
             mappedField.setClassType(f.getClassType());
         }
 
-
         TypeHandler handler;
-       
-            handler = factory.getHandlerFactory().create(mappedField.getClassType(), f.getTypeHandler(), f.getParams());
-            mappedField.setTypeHandlerImpl(handler);
 
-            if (mappedField.getTypeHandlerImpl() == null && (mappedField.getClassType().isEnum())) {
-                //set default EnumTypeHandler
-                boolean defEnum = false;
-                if (f.getParams() != null) {
-                    for (String s : f.getParams()) {
-                        if (s.startsWith("enum") || s.startsWith("class")) {
-                            defEnum = true;
-                            break;
-                        }
+        handler = factory.getHandlerFactory().create(mappedField.getClassType(), f.getTypeHandler(), f.getParams());
+        mappedField.setTypeHandlerImpl(handler);
+
+        if (mappedField.getTypeHandlerImpl() == null && (mappedField.getClassType().isEnum())) {
+            //set default EnumTypeHandler
+            boolean defEnum = false;
+            if (f.getParams() != null) {
+                for (String s : f.getParams()) {
+                    if (s.startsWith("enum") || s.startsWith("class")) {
+                        defEnum = true;
+                        break;
                     }
                 }
-                String[] newParams;
-                if (!defEnum) {
-                    if (f.getParams() == null) {
-                        newParams = new String[1];
-                    } else {
-                        newParams = Arrays.copyOf(f.getParams(), f.getParams().length + 1);
-                    }
-                    newParams[newParams.length - 1] = "enumClass=" + mappedField.getClassType().getName();
-                } else {
-                    newParams = f.getParams();
-                }
-                handler = factory.getHandlerFactory().create(Enum.class, f.getTypeHandler(), newParams);
-                mappedField.setTypeHandlerImpl(handler);
             }
-        
+            String[] newParams;
+            if (!defEnum) {
+                if (f.getParams() == null) {
+                    newParams = new String[1];
+                } else {
+                    newParams = Arrays.copyOf(f.getParams(), f.getParams().length + 1);
+                }
+                newParams[newParams.length - 1] = "enumClass=" + mappedField.getClassType().getName();
+            } else {
+                newParams = f.getParams();
+            }
+            handler = factory.getHandlerFactory().create(Enum.class, f.getTypeHandler(), newParams);
+            mappedField.setTypeHandlerImpl(handler);
+        }
 
         if (mappedField.getTypeHandlerImpl() == null) {
-            factory.getNoResolved().add(mappedField.getClassType());
-        } 
+            mappedField.setNestedObject(true);
+            factory.create(mappedField.getClassType(), groupId, this);
+        }
         return mappedField;
     }
 
@@ -380,5 +363,9 @@ public class ObjectParser {
 
     public List<FieldImpl> getMappedFields() {
         return mappedFields;
+    }
+
+    public ObjectMapper getParent() {
+        return parent;
     }
 }

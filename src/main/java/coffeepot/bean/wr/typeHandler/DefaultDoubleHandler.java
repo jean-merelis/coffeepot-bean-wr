@@ -46,10 +46,10 @@ public class DefaultDoubleHandler implements TypeHandler<Double> {
         if (text == null || "".equals(text)) {
             return null;
         }
-        Double d;
+        Number d;
         try {
-            d = (Double) decimalFormat.parse(text);
-            return d;
+            d =  decimalFormat.parse(text);
+            return d.doubleValue();
         } catch (Exception ex) {
             throw new HandlerParseException(ex.getMessage());
         }

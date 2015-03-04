@@ -168,11 +168,6 @@ public abstract class AbstractWriter implements ObjectWriter {
             }
 
             if (!"".equals(f.getConstantValue())) {
-
-                if (f.isBeginNewRecord()) {
-                    writeRecord(fieldsValue);
-                    fieldsValue = null;
-                }
                 if (fieldsValue == null) {
                     fieldsValue = new LinkedList<>();
                 }
@@ -229,57 +224,34 @@ public abstract class AbstractWriter implements ObjectWriter {
                 }
 
                 if (f.isCollection()) {
-                    if (f.isSegmentBeginNewRecord() || f.isBeginNewRecord()) {
-                        writeRecord(fieldsValue);
-                        fieldsValue = null;
-                    }
+
+                    writeRecord(fieldsValue);
+                    fieldsValue = null;
+
                     fieldsValue = marshalCollection(o, fieldsValue, f, op);
-                    if (f.isSegmentBeginNewRecord() || f.isBeginNewRecord()) {
-                        writeRecord(fieldsValue);
-                        fieldsValue = null;
-                    }
+
+                    writeRecord(fieldsValue);
+                    fieldsValue = null;
+
                     return fieldsValue;
                 }
 
-                if (f.getNestedFields() != null && !f.getNestedFields().isEmpty()) {
-                    if (f.isBeginNewRecord()) {
-                        writeRecord(fieldsValue);
-                        fieldsValue = null;
-                    }
-                    if (o == null && !f.isRequired()) {
-                        return fieldsValue;
-                    }
-                    return marshal(o, fieldsValue, f.getNestedFields(), f.getClassType(), op);
-
-                } else if (f.getTypeHandlerImpl() == null) {
-                    if (f.isSegmentBeginNewRecord() || f.isBeginNewRecord()) {
-                        writeRecord(fieldsValue);
-                        fieldsValue = null;
-                    }
+                if (f.getTypeHandlerImpl() == null) {
                     ObjectParser parser = getObjectParserFactory().getParsers().get(f.getClassType());
                     if (parser != null) {
                         fieldsValue = marshal(o, fieldsValue, parser);
-                        if (f.isSegmentBeginNewRecord() || f.isBeginNewRecord()) {
-                            writeRecord(fieldsValue);
-                            fieldsValue = null;
-                        }
                     } else {
                         throw new RuntimeException("Parser not found for class: " + f.getClassType().getName());
                     }
                     return fieldsValue;
                 }
             }
-            if (f.isBeginNewRecord()) {
-                writeRecord(fieldsValue);
-                fieldsValue = null;
-            }
 
-            String s = process(f.getTypeHandlerRecursively().toString(o), f);
+            String s = process(f.getTypeHandlerImpl().toString(o), f);
             if (fieldsValue == null) {
                 fieldsValue = new LinkedList<>();
             }
             fieldsValue.add(s);
-
             //FIXME: Exceptions
         } catch (IllegalArgumentException ex) {
             Logger.getLogger(ObjectParser.class.getName()).log(Level.SEVERE, null, ex);
@@ -298,46 +270,25 @@ public abstract class AbstractWriter implements ObjectWriter {
         if (!Collection.class.isAssignableFrom(obj.getClass())) {
             return fieldsValue;
         }
-        if (field.getNestedFields() != null && !field.getNestedFields().isEmpty()) {
+
+        ObjectParser parser = getObjectParserFactory().getParsers().get(field.getClassType());
+        if (parser != null) {
             Collection c = (Collection) obj;
             Iterator it = c.iterator();
             while (it.hasNext()) {
                 Class<?> cl;
                 List<FieldImpl> fi;
 
-                fi = field.getNestedFields();
-                cl = field.getClassType();
+                fi = parser.getMappedFields();
+                cl = parser.getRootClass();
 
-                fieldsValue = marshal(it.next(), fieldsValue, fi, cl, op);
-                if (field.isSegmentBeginNewRecord()) {
-                    writeRecord(fieldsValue);
-                    fieldsValue = null;
-                }
-            }
-        } else {
+                fieldsValue = marshal(it.next(), fieldsValue, fi, cl, parser);
 
-            ObjectParser parser = getObjectParserFactory().getParsers().get(field.getClassType());
-            if (parser != null) {
-                Collection c = (Collection) obj;
-                Iterator it = c.iterator();
-                while (it.hasNext()) {
-                    Class<?> cl;
-                    List<FieldImpl> fi;
-                    if (field.getNestedFields() != null && !field.getNestedFields().isEmpty()) {
-                        fi = field.getNestedFields();
-                        cl = field.getClassType();
-                    } else {
-                        fi = parser.getMappedFields();
-                        cl = parser.getRootClass();
-                    }
-                    fieldsValue = marshal(it.next(), fieldsValue, fi, cl, parser);
-                    if (field.isSegmentBeginNewRecord()) {
-                        writeRecord(fieldsValue);
-                        fieldsValue = null;
-                    }
-                }
+                writeRecord(fieldsValue);
+                fieldsValue = null;
             }
         }
+
         return fieldsValue;
     }
 

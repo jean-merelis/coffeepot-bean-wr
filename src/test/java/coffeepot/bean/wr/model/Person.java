@@ -23,7 +23,6 @@ package coffeepot.bean.wr.model;
  * #L%
  */
 import coffeepot.bean.wr.annotation.Field;
-import coffeepot.bean.wr.annotation.NestedField;
 import coffeepot.bean.wr.annotation.Record;
 import coffeepot.bean.wr.annotation.Records;
 import coffeepot.bean.wr.typeHandler.DefaultEnumHandler;
@@ -53,11 +52,9 @@ import org.joda.time.DateTime;
         @Field(name = "name"),
         @Field(name = "age"),
         @Field(name = "birthday", params = {"dd/MM/yyyy"}),
-        @Field(name = "", getter = "childrenCount", classType = Integer.class),
-        //Jobs inline
-        @Field(name = "jobs", segmentBeginNewRecord = false, nestedFields = {@NestedField(name = "test1"), @NestedField(name = "test4")}),
+        @Field(name = "", getter = "childrenCount", classType = Integer.class),        
         //Jobs in list
-        @Field(name = "jobs", nestedFields = {@NestedField(name = "test1"), @NestedField(name = "test4")})
+        @Field(name = "jobs")
     }),
     @Record(forFormat = FormatType.FIXED_LENGTH,
             accessorType = AccessorType.FIELD,

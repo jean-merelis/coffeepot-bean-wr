@@ -40,11 +40,11 @@ public final class ObjectParserFactory {
 
     private Set<Class> noResolved = new HashSet<>();
 
-    private Map<Class, ObjectParser> parses = new HashMap<>();
+    private Map<Class, ObjectParser> parsers = new HashMap<>();
 
     private TypeHandlerFactory handlerFactory = new TypeHandlerFactoryImpl();
     
-    private Map<String,Class> idsMap= new HashMap<>();
+    private Map<String, ObjectMapper> idsMap= new HashMap<>();
 
     private FormatType formatType;
 
@@ -60,7 +60,7 @@ public final class ObjectParserFactory {
         ObjectParser objectParser;
         try {
             objectParser = new ObjectParser(fromClass, targetClass, recordGroupId, this);
-            parses.put(targetClass, objectParser);
+            parsers.put(targetClass, objectParser);
             noResolved.remove(targetClass);
             while (!noResolved.isEmpty()) {
                 Class next = noResolved.iterator().next();
@@ -72,24 +72,25 @@ public final class ObjectParserFactory {
         }
     }
 
-    public void create(Class<?> clazz) throws UnresolvedObjectParserException, NoSuchFieldException, Exception {
-        create(clazz, null);
+    public ObjectParser create(Class<?> clazz) throws UnresolvedObjectParserException, NoSuchFieldException, Exception {
+        return create(clazz, null);
     }
 
-    public void create(Class<?> clazz, String recordGroupId) throws UnresolvedObjectParserException, NoSuchFieldException, Exception {
-        ObjectParser objectParser = parses.get(clazz);
+    public ObjectParser create(Class<?> clazz, String recordGroupId) throws UnresolvedObjectParserException, NoSuchFieldException, Exception {
+        ObjectParser objectParser = parsers.get(clazz);
         if (objectParser != null) {
-            return;
+            return objectParser;
         }
 
         try {
             objectParser = new ObjectParser(clazz, recordGroupId, this);
-            parses.put(clazz, objectParser);
+            parsers.put(clazz, objectParser);
             noResolved.remove(clazz);
             while (!noResolved.isEmpty()) {
                 Class next = noResolved.iterator().next();
                 createHelper(next, recordGroupId);
             }
+            return objectParser;
         } catch (UnresolvedObjectParserException ex) {
             //Logger.getLogger(ObjectParserFactory.class.getName()).log(Level.SEVERE, null, ex);
             throw ex;
@@ -97,14 +98,14 @@ public final class ObjectParserFactory {
     }
 
     private void createHelper(Class<?> clazz, String recordGroupId) throws UnresolvedObjectParserException, NoSuchFieldException, Exception {
-        ObjectParser objectParser = parses.get(clazz);
+        ObjectParser objectParser = parsers.get(clazz);
         if (objectParser != null) {
             noResolved.remove(clazz);
             return;
         }
 
         objectParser = new ObjectParser(clazz, recordGroupId, this);
-        parses.put(clazz, objectParser);
+        parsers.put(clazz, objectParser);
         noResolved.remove(clazz);
     }
 
@@ -113,9 +114,9 @@ public final class ObjectParserFactory {
     }
 
     public Map<Class, ObjectParser> getParsers() {
-        return parses;
+        return parsers;
     }
-
+    
     public TypeHandlerFactory getHandlerFactory() {
         return handlerFactory;
     }
@@ -128,7 +129,7 @@ public final class ObjectParserFactory {
         return formatType;
     }
 
-    public Map<String, Class> getIdsMap() {
+    public Map<String, ObjectMapper> getIdsMap() {
         return idsMap;
     }
     

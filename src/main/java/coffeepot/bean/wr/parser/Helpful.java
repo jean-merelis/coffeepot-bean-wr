@@ -25,10 +25,6 @@ package coffeepot.bean.wr.parser;
 
 
 import coffeepot.bean.wr.annotation.Field;
-import coffeepot.bean.wr.annotation.NestedField;
-import coffeepot.bean.wr.parser.FieldImpl;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  *
@@ -36,41 +32,12 @@ import java.util.List;
  */
 public class Helpful {
 
-    public static FieldImpl toFieldImpl(NestedField nf) {
-        FieldImpl f = new FieldImpl();
-        f.setAccessorType(nf.accessorType());
-        f.setAlign(nf.align());
-        f.setBeginNewRecord(nf.beginNewRecord());
-        f.setClassType(nf.classType());
-        f.setCollection(false);
-        f.setConstantValue(nf.constantValue());
-        f.setGetter(nf.getter());
-        f.setLength(nf.length());
-        f.setMaxLength(nf.maxLength());
-        f.setMinLength(nf.minLength());
-        f.setName(nf.name());
-        f.setPadding(nf.padding());
-        f.setPaddingIfNullOrEmpty(nf.paddingIfNullOrEmpty());
-        f.setParams(nf.params());
-        f.setSegmentBeginNewRecord(nf.segmentBeginNewRecord());
-        f.setSetter(nf.setter());
-        f.setTrim(nf.trim());
-        f.setTypeHandler(nf.typeHandler());
-        f.setTypeHandler(nf.typeHandler());
-        f.setRequired(nf.required());
-        if (nf.length()> 0){
-            f.setMinLength(nf.length());
-            f.setMaxLength(nf.length());
-        }
-        return f;
-    }
-    
+   
     public static FieldImpl toFieldImpl(Field nf) {
         FieldImpl f = new FieldImpl();
         f.setId(nf.id());
         f.setAccessorType(nf.accessorType());
-        f.setAlign(nf.align());
-        f.setBeginNewRecord(nf.beginNewRecord());
+        f.setAlign(nf.align());        
         f.setClassType(nf.classType());
         f.setCollection(false);
         f.setConstantValue(nf.constantValue());
@@ -81,8 +48,7 @@ public class Helpful {
         f.setName(nf.name());
         f.setPadding(nf.padding());
         f.setPaddingIfNullOrEmpty(nf.paddingIfNullOrEmpty());
-        f.setParams(nf.params());
-        f.setSegmentBeginNewRecord(nf.segmentBeginNewRecord());
+        f.setParams(nf.params());        
         f.setSetter(nf.setter());
         f.setTrim(nf.trim());
         f.setTypeHandler(nf.typeHandler());
@@ -92,13 +58,6 @@ public class Helpful {
             f.setMaxLength(nf.length());
         }
         
-        if (nf.nestedFields().length > 0){
-            List<FieldImpl> nfs = new LinkedList<>();
-            for (NestedField n: nf.nestedFields()){
-                nfs.add( toFieldImpl(n));
-            }
-            f.setNestedFields(nfs);
-        }
         
         return f;
     }

@@ -22,8 +22,6 @@ package coffeepot.bean.wr.parser;
  * limitations under the License.
  * #L%
  */
-
-
 import coffeepot.bean.wr.typeHandler.TypeHandler;
 import coffeepot.bean.wr.types.AccessorType;
 import coffeepot.bean.wr.types.Align;
@@ -46,8 +44,6 @@ public class FieldImpl implements Cloneable {
     private char padding;
     private boolean paddingIfNullOrEmpty;
     private boolean trim;
-    private boolean segmentBeginNewRecord;
-    private boolean beginNewRecord;
     private Align align;
     private String getter;
     private String setter;
@@ -55,11 +51,13 @@ public class FieldImpl implements Cloneable {
     private Class<?> classType;
     private String[] params;
     private AccessorType accessorType;
-    private List<FieldImpl> nestedFields;
+    private FieldImpl parent;  
+    private boolean nestedObject;
     //
     private TypeHandler typeHandlerImpl;
     private Method getterMethod;
     private Method setterMethod;
+    private Class collectionType;
     private boolean collection = false;
     private boolean ignoreOnRead = false;
     private boolean ignoreOnWrite = false;
@@ -70,47 +68,10 @@ public class FieldImpl implements Cloneable {
     public FieldImpl clone() {
         try {
             return (FieldImpl) super.clone();
-//        FieldImpl c = new FieldImpl();
-//
-//        c.name = this.name;
-//        c.constantValue = this.constantValue;
-//        c.minLength = this.minLength;
-//        c.maxLength = this.maxLength;
-//        c.length = this.length;
-//        c.padding = this.padding;
-//        c.paddingIfNullOrEmpty = this.paddingIfNullOrEmpty;
-//        c.trim = this.trim;
-//        c.segmentBeginNewRecord = this.segmentBeginNewRecord;
-//        c.beginNewRecord = this.beginNewRecord;
-//        c.align = this.align;
-//        c.getter = this.getter;
-//        c.setter = this.setter;
-//        c.typeHandler = this.typeHandler;
-//        c.classType = this.classType;
-//        c.params = this.params;
-//        c.accessorType = this.accessorType;
-//        c.nestedFields = this.nestedFields;
-//        //
-//        c.typeHandlerImpl = this.typeHandlerImpl;
-//        c.getterMethod = this.getterMethod;
-//        c.setterMethod = this.setterMethod;
-//        c.collection = this.collection;
-//        c.ignoreOnRead = this.ignoreOnRead;
-//        c.ignoreOnWrite = this.ignoreOnWrite;
-//        c.required = this.required;
-//
-//        return c;
         } catch (CloneNotSupportedException ex) {
             Logger.getLogger(FieldImpl.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
-    }
-
-    public TypeHandler getTypeHandlerRecursively() {
-        if (nestedFields != null && nestedFields.size() == 1) {
-            return nestedFields.get(0).getTypeHandlerRecursively();
-        }
-        return typeHandlerImpl;
     }
 
     public String getName() {
@@ -185,22 +146,6 @@ public class FieldImpl implements Cloneable {
         this.trim = trim;
     }
 
-    public boolean isSegmentBeginNewRecord() {
-        return segmentBeginNewRecord;
-    }
-
-    public void setSegmentBeginNewRecord(boolean segmentBeginNewRecord) {
-        this.segmentBeginNewRecord = segmentBeginNewRecord;
-    }
-
-    public boolean isBeginNewRecord() {
-        return beginNewRecord;
-    }
-
-    public void setBeginNewRecord(boolean beginNewRecord) {
-        this.beginNewRecord = beginNewRecord;
-    }
-
     public Align getAlign() {
         return align;
     }
@@ -257,14 +202,6 @@ public class FieldImpl implements Cloneable {
         this.accessorType = accessorType;
     }
 
-    public List<FieldImpl> getNestedFields() {
-        return nestedFields;
-    }
-
-    public void setNestedFields(List<FieldImpl> nestedFields) {
-        this.nestedFields = nestedFields;
-    }
-
     public TypeHandler getTypeHandlerImpl() {
         return typeHandlerImpl;
     }
@@ -319,5 +256,32 @@ public class FieldImpl implements Cloneable {
 
     public void setRequired(boolean required) {
         this.required = required;
-    }    
+    }
+
+    public FieldImpl getParent() {
+        return parent;
+    }
+
+    public void setParent(FieldImpl parent) {
+        this.parent = parent;
+    }
+
+    public Class getCollectionType() {
+        return this.collectionType;
+    }
+
+    public void setCollectionType(Class collectionType) {
+        this.collectionType = collectionType;
+    }
+
+    public boolean isNestedObject() {
+        return nestedObject;
+    }
+
+    public void setNestedObject(boolean nestedObject) {
+        this.nestedObject = nestedObject;
+    }
+
+    
+
 }
