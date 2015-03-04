@@ -77,7 +77,7 @@ public class DelimitedWriterTest {
     @Test
     public void testWrite() throws Exception {
 
-        File file = new File("TESTE_.TXT");
+        File file = new File("TESTE_.tmp");
         Writer w = new FileWriter(file);
 
         DelimitedWriter instance = new DelimitedWriter(w);

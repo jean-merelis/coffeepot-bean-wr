@@ -1,8 +1,0 @@
-PERSON|jean|5||0|
-PERSON|john|5||0|
-PERSON|ana|5||0|
-PERSON|jean|5||2|
-initial\\first job|33|
-second job\|escape test|66|
-3th job|99|
-4th job|bb|
