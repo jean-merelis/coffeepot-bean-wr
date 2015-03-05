@@ -127,7 +127,9 @@ public class DelimitedReader implements ObjectReader {
     }
 
     private <T> T unmarshal(InputStream src, Class<T> clazz) throws Exception {
-     
+        currentRecord = null;
+        nextRecord = null;
+        
         String delim = "" + delimiter;
         if (escape != null) {
             String esc = String.valueOf(escape);
