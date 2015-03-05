@@ -202,4 +202,14 @@ public class DelimitedWriter extends AbstractWriter {
         setRecordTerminator(recordTerminator);
         return this;
     }
+
+    /**
+     * Sets whether to remove delimiter on field values.
+     * @param r
+     * @return 
+     */
+    public DelimitedWriter removeDelimiter(boolean r) {
+        setRemoveDelimiter(r);
+        return this;
+    }
 }

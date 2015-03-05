@@ -22,8 +22,6 @@ package coffeepot.bean.wr.typeHandler;
  * limitations under the License.
  * #L%
  */
-
-
 import java.text.DecimalFormat;
 
 /**
@@ -37,6 +35,10 @@ public class DefaultDoubleHandler implements TypeHandler<Double> {
     protected char decimalSeparator;
     protected char groupingSeparator;
 
+    protected static String patternDefault = "#0.##########";
+    protected static char decimalSeparatorDefault = ((DecimalFormat) DecimalFormat.getInstance()).getDecimalFormatSymbols().getDecimalSeparator();
+    protected static char groupingSeparatorDefault = ((DecimalFormat) DecimalFormat.getInstance()).getDecimalFormatSymbols().getGroupingSeparator();
+
     public DefaultDoubleHandler() {
         setDefaultValues();
     }
@@ -48,7 +50,7 @@ public class DefaultDoubleHandler implements TypeHandler<Double> {
         }
         Number d;
         try {
-            d =  decimalFormat.parse(text);
+            d = decimalFormat.parse(text);
             return d.doubleValue();
         } catch (Exception ex) {
             throw new HandlerParseException(ex.getMessage());
@@ -104,9 +106,33 @@ public class DefaultDoubleHandler implements TypeHandler<Double> {
     }
 
     private void setDefaultValues() {
-        pattern = "#0.##########";
+        pattern = patternDefault;
         decimalFormat = new DecimalFormat(pattern);
-        decimalSeparator = decimalFormat.getDecimalFormatSymbols().getDecimalSeparator();
-        groupingSeparator = decimalFormat.getDecimalFormatSymbols().getGroupingSeparator();
+        decimalSeparator = decimalSeparatorDefault;
+        groupingSeparator = groupingSeparatorDefault;
+    }
+
+    public static String getPatternDefault() {
+        return patternDefault;
+    }
+
+    public static void setPatternDefault(String patternDefault) {
+        DefaultDoubleHandler.patternDefault = patternDefault;
+    }
+
+    public static char getDecimalSeparatorDefault() {
+        return decimalSeparatorDefault;
+    }
+
+    public static void setDecimalSeparatorDefault(char decimalSeparatorDefault) {
+        DefaultDoubleHandler.decimalSeparatorDefault = decimalSeparatorDefault;
+    }
+
+    public static char getGroupingSeparatorDefault() {
+        return groupingSeparatorDefault;
+    }
+
+    public static void setGroupingSeparatorDefault(char groupingSeparatorDefault) {
+        DefaultDoubleHandler.groupingSeparatorDefault = groupingSeparatorDefault;
     }
 }
