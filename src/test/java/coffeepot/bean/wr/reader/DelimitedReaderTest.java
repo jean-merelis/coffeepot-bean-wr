@@ -23,25 +23,19 @@ package coffeepot.bean.wr.reader;
  * #L%
  */
 import coffeepot.bean.wr.writer.*;
-import coffeepot.bean.wr.model.Child;
 import coffeepot.bean.wr.model.Item;
 import coffeepot.bean.wr.model.ItemDet;
-import coffeepot.bean.wr.model.Job;
 import coffeepot.bean.wr.model.Order;
 import coffeepot.bean.wr.model.Person;
 import coffeepot.bean.wr.typeHandler.TypeHandlerFactory;
 import coffeepot.bean.wr.writer.customHandler.LowStringHandler;
 import coffeepot.bean.wr.writer.customHandler.DateTimeHandler;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -86,7 +80,7 @@ public class DelimitedReaderTest {
 
         Item item = new Item();
         item.setNumber(1);
-        item.setProduct("Product1");
+        item.setProduct("Product \\1");
         item.setQuantity(10);
         item.setDetails(new ArrayList<ItemDet>());
         item.getDetails().add(new ItemDet("something"));
@@ -95,7 +89,7 @@ public class DelimitedReaderTest {
 
         item = new Item();
         item.setNumber(2);
-        item.setProduct("Product 002");
+        item.setProduct("Product | 002");
         item.setQuantity(5);
         item.setDetails(new ArrayList<ItemDet>());
         item.getDetails().add(new ItemDet("blue"));
@@ -135,10 +129,11 @@ public class DelimitedReaderTest {
             w.flush();
             w.close();
         }
-         DelimitedReader reader = new DelimitedReader();
-         reader.setDelimiter('|');         
+        DelimitedReader reader = new DelimitedReader();
+        reader.setDelimiter('|');
+        reader.setEscape('\\');
         Order o = reader.read(new FileInputStream(file), Order.class);
-        
+
         Assert.assertNotNull(o);
 
     }

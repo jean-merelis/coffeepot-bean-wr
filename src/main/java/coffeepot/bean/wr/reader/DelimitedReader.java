@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -126,7 +127,20 @@ public class DelimitedReader implements ObjectReader {
     }
 
     private <T> T unmarshal(InputStream src, Class<T> clazz) throws Exception {
-        //TODO: Read byte by byte?
+     
+        String delim = "" + delimiter;
+        if (escape != null) {
+            String esc = String.valueOf(escape);
+            regexSplit = "(?<!" + Pattern.quote(esc) + ")" + Pattern.quote(delim);
+       
+            escOld = esc + esc;
+            escNew = esc;
+
+            delimOld = esc + delim;
+            delimNew = delim;                   
+        } else {
+            regexSplit = Pattern.quote(delim);
+        }      
 
         T product;
 
@@ -213,31 +227,15 @@ public class DelimitedReader implements ObjectReader {
 
     private String[] currentRecord;
     private String[] nextRecord;
+    private String regexSplit;
+    private String escOld;
+    private String escNew;
+    private String delimOld;
+    private String delimNew;
 
     private void readLine(BufferedReader reader) throws Exception {
         currentRecord = nextRecord;
         nextRecord = getNextRecord(reader);
-    }
-
-    //TODO: escape to regex
-    private String getDelimiterForRegex() {
-        switch (delimiter) {
-            case '|':
-                return "\\|";
-            case '\\':
-                return "\\\\";
-        }
-        return String.valueOf(delimiter);
-    }
-
-    private String getEscapeForRegex() {
-        switch (escape) {
-            case '|':
-                return "\\|";
-            case '\\':
-                return "\\\\";
-        }
-        return String.valueOf(escape);
     }
 
     private String[] getNextRecord(BufferedReader reader) throws Exception {
@@ -259,25 +257,12 @@ public class DelimitedReader implements ObjectReader {
             }
         }
 
-        String splitExp;
-
-        String d = getDelimiterForRegex();
-        if (escape != null) {
-            splitExp = "[^" + getEscapeForRegex() + "]" + d;
-        } else {
-            splitExp = "" + d;
-        }
-        String[] values = line.split(splitExp);
+        String[] values = line.split(regexSplit);
 
         if (escape != null) {
-            String _esc = String.valueOf(escape);
-            String esc2esc = "" + escape + escape;
-            String _delimiter = String.valueOf(delimiter);
-            String escDelimiter = escape + _delimiter;
-
             for (int i = 0; i < values.length; i++) {
-                values[i] = values[i].replace(esc2esc, _esc);
-                values[i] = values[i].replace(escDelimiter, _delimiter);
+                values[i] = values[i].replace(escOld, escNew);
+                values[i] = values[i].replace(delimOld, delimNew);
             }
         }
 
