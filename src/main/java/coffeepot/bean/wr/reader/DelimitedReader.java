@@ -37,11 +37,11 @@ package coffeepot.bean.wr.reader;
 import coffeepot.bean.wr.parser.FieldImpl;
 import coffeepot.bean.wr.parser.ObjectMapper;
 import coffeepot.bean.wr.parser.ObjectMapperFactory;
-import coffeepot.bean.wr.typeHandler.HandlerParseException;
 import coffeepot.bean.wr.types.FormatType;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Collection;
@@ -52,7 +52,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import javax.management.RuntimeErrorException;
 
 /**
  *
@@ -66,6 +65,7 @@ public class DelimitedReader implements ObjectReader {
     private boolean removeRecordInitializator = true;
     private Character escape;
     private boolean ignoreUnknownRecords;
+    private String charsetName;
 
     private final ObjectMapperFactory mapperFactory = new ObjectMapperFactory(FormatType.DELIMITED);
 
@@ -141,6 +141,21 @@ public class DelimitedReader implements ObjectReader {
         this.ignoreUnknownRecords = ignoreUnknownRecords;
     }
 
+    public String getCharsetName() {
+        return charsetName;
+    }
+
+    public void setCharsetName(String charsetName) {
+        this.charsetName = charsetName;
+    }
+
+    private InputStreamReader createInputStreamReader(InputStream src) throws UnsupportedEncodingException{
+        if (charsetName != null && !charsetName.isEmpty()){
+            return new InputStreamReader(src, charsetName);
+        }
+        return new InputStreamReader(src);
+    }
+
     private <T> T unmarshal(InputStream src, Class<T> clazz) throws Exception {
         currentRecord = null;
         nextRecord = null;
@@ -149,7 +164,7 @@ public class DelimitedReader implements ObjectReader {
 
         T product;
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(src))) {
+        try (BufferedReader reader = new BufferedReader(createInputStreamReader(src))) {
 
             if (Collection.class.isAssignableFrom(clazz)) {
                 readLine(reader);
@@ -203,7 +218,7 @@ public class DelimitedReader implements ObjectReader {
 
         T product;
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(src))) {
+        try (BufferedReader reader = new BufferedReader(createInputStreamReader(src))) {
 
             if (Collection.class.isAssignableFrom(clazz)) {
                 readLine(reader);
