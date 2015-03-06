@@ -22,14 +22,11 @@ package coffeepot.bean.wr.writer;
  * limitations under the License.
  * #L%
  */
-
-
 import coffeepot.bean.wr.types.FormatType;
-import coffeepot.bean.wr.parser.ObjectParserFactory;
-import coffeepot.bean.wr.parser.UnresolvedObjectParserException;
+import coffeepot.bean.wr.parser.ObjectMapperFactory;
+import coffeepot.bean.wr.parser.UnresolvedObjectMapperException;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.List;
 
 /**
  *
@@ -39,14 +36,14 @@ public interface ObjectWriter {
 
     FormatType getFormatType();
 
-    ObjectParserFactory getObjectParserFactory();
+    ObjectMapperFactory getObjectParserFactory();
 
     void write(Object obj) throws IOException;
 
     void write(Object obj, String recordGroupId) throws IOException;
 
     void flush() throws IOException;
-    
+
     void close() throws IOException;
 
     int getAutoFlush();
@@ -57,13 +54,9 @@ public interface ObjectWriter {
 
     void setWriter(Writer w);
 
-    void clearParsers();
+    void clearMappers();
 
-    void createParser(Class<?> clazz) throws UnresolvedObjectParserException, NoSuchFieldException, Exception;
+    void createMapper(Class<?> clazz) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception;
 
-    void createParser(Class<?> clazz, String recordGroupId) throws UnresolvedObjectParserException, NoSuchFieldException, Exception;
-
-    void createParserByAnotherClass(Class<?> fromClass, Class<?> targetClass) throws UnresolvedObjectParserException, NoSuchFieldException, Exception;
-
-    void createParserByAnotherClass(Class<?> fromClass, Class<?> targetClass, String recordGroupId) throws UnresolvedObjectParserException, NoSuchFieldException, Exception;
+    void createMapper(Class<?> clazz, String recordGroupId) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception;
 }

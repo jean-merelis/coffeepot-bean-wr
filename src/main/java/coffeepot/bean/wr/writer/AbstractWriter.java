@@ -35,9 +35,9 @@ package coffeepot.bean.wr.writer;
  * #L%
  */
 import coffeepot.bean.wr.parser.FieldImpl;
-import coffeepot.bean.wr.parser.ObjectParser;
-import coffeepot.bean.wr.parser.ObjectParserFactory;
-import coffeepot.bean.wr.parser.UnresolvedObjectParserException;
+import coffeepot.bean.wr.parser.ObjectMapper;
+import coffeepot.bean.wr.parser.ObjectMapperFactory;
+import coffeepot.bean.wr.parser.UnresolvedObjectMapperException;
 import coffeepot.bean.wr.types.Align;
 import java.io.IOException;
 import java.io.Writer;
@@ -64,31 +64,21 @@ public abstract class AbstractWriter implements ObjectWriter {
     protected abstract void writeRecord(List<String> values) throws IOException;
 
     @Override
-    public abstract ObjectParserFactory getObjectParserFactory();
+    public abstract ObjectMapperFactory getObjectParserFactory();
 
     @Override
-    public void clearParsers() {
-        getObjectParserFactory().getParsers().clear();
+    public void clearMappers() {
+        getObjectParserFactory().getMappers().clear();
     }
 
     @Override
-    public void createParser(Class<?> clazz) throws UnresolvedObjectParserException, NoSuchFieldException, Exception {
+    public void createMapper(Class<?> clazz) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
         getObjectParserFactory().create(clazz);
     }
 
     @Override
-    public void createParser(Class<?> clazz, String recordGroupId) throws UnresolvedObjectParserException, NoSuchFieldException, Exception {
+    public void createMapper(Class<?> clazz, String recordGroupId) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
         getObjectParserFactory().create(clazz, recordGroupId);
-    }
-
-    @Override
-    public void createParserByAnotherClass(Class<?> fromClass, Class<?> targetClass) throws UnresolvedObjectParserException, NoSuchFieldException, Exception {
-        getObjectParserFactory().createByAnotherClass(fromClass, targetClass);
-    }
-
-    @Override
-    public void createParserByAnotherClass(Class<?> fromClass, Class<?> targetClass, String recordGroupId) throws UnresolvedObjectParserException, NoSuchFieldException, Exception {
-        getObjectParserFactory().createByAnotherClass(fromClass, targetClass, recordGroupId);
     }
 
     @Override
@@ -132,14 +122,14 @@ public abstract class AbstractWriter implements ObjectWriter {
 
     @Override
     public void write(Object obj, String recordGroupId) throws IOException {
-        ObjectParser op = getObjectParserFactory().getParsers().get(obj.getClass());
+        ObjectMapper op = getObjectParserFactory().getMappers().get(obj.getClass());
         if (op == null) {
             try {
-                createParser(obj.getClass(), recordGroupId);
+                createMapper(obj.getClass(), recordGroupId);
             } catch (Exception ex) {
                 throw new RuntimeException(ex);
             }
-            op = getObjectParserFactory().getParsers().get(obj.getClass());
+            op = getObjectParserFactory().getMappers().get(obj.getClass());
             if (op == null) {
                 throw new RuntimeException("Parser for class has not been set.");
             }
@@ -147,21 +137,21 @@ public abstract class AbstractWriter implements ObjectWriter {
         marshal(obj, op);
     }
 
-    private void marshal(Object obj, ObjectParser op) throws IOException {
+    private void marshal(Object obj, ObjectMapper op) throws IOException {
         List<String> fieldsValue = marshal(obj, null, op);
         if (fieldsValue != null && !fieldsValue.isEmpty()) {
             writeRecord(fieldsValue);
         }
     }
 
-    private List<String> marshal(Object obj, List<String> fieldsValue, ObjectParser op) throws IOException {
+    private List<String> marshal(Object obj, List<String> fieldsValue, ObjectMapper op) throws IOException {
         if (obj == null) {
             return fieldsValue;
         }
         return marshal(obj, fieldsValue, op.getMappedFields(), op.getRootClass(), op);
     }
 
-    private List<String> marshal(Object obj, List<String> fieldsValue, List<FieldImpl> fields, Class<?> clazz, ObjectParser op) throws IOException {
+    private List<String> marshal(Object obj, List<String> fieldsValue, List<FieldImpl> fields, Class<?> clazz, ObjectMapper op) throws IOException {
         for (FieldImpl f : fields) {
             if (f.isIgnoreOnWrite()) {
                 continue;
@@ -181,7 +171,7 @@ public abstract class AbstractWriter implements ObjectWriter {
         return fieldsValue;
     }
 
-    private List<String> marshalField(final Object obj, List<String> fieldsValue, Class<?> clazz, final FieldImpl f, ObjectParser op) throws IOException {
+    private List<String> marshalField(final Object obj, List<String> fieldsValue, Class<?> clazz, final FieldImpl f, ObjectMapper op) throws IOException {
         try {
             Object o = null;
             if (obj != null) {
@@ -236,12 +226,12 @@ public abstract class AbstractWriter implements ObjectWriter {
                     return fieldsValue;
                 }
 
-                if (f.getTypeHandlerImpl() == null) {
+                if (f.getTypeHandler() == null) {
                     if (f.isNestedObject()) {
                         writeRecord(fieldsValue);
                         fieldsValue = null;
                     }
-                    ObjectParser parser = getObjectParserFactory().getParsers().get(f.getClassType());
+                    ObjectMapper parser = getObjectParserFactory().getMappers().get(f.getClassType());
                     if (parser != null) {
                         fieldsValue = marshal(o, fieldsValue, parser);
                         if (f.isNestedObject()) {
@@ -260,23 +250,23 @@ public abstract class AbstractWriter implements ObjectWriter {
                 fieldsValue = null;
             }
 
-            String s = process(f.getTypeHandlerImpl().toString(o), f);
+            String s = process(f.getTypeHandler().toString(o), f);
             if (fieldsValue == null) {
                 fieldsValue = new LinkedList<>();
             }
             fieldsValue.add(s);
             //FIXME: Exceptions
         } catch (IllegalArgumentException ex) {
-            Logger.getLogger(ObjectParser.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ObjectMapper.class.getName()).log(Level.SEVERE, null, ex);
         } catch (NoSuchFieldException ex) {
-            Logger.getLogger(ObjectParser.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ObjectMapper.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SecurityException ex) {
-            Logger.getLogger(ObjectParser.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ObjectMapper.class.getName()).log(Level.SEVERE, null, ex);
         }
         return fieldsValue;
     }
 
-    private List<String> marshalCollection(Object obj, List<String> fieldsValue, FieldImpl field, ObjectParser op) throws IOException {
+    private List<String> marshalCollection(Object obj, List<String> fieldsValue, FieldImpl field, ObjectMapper op) throws IOException {
         if (obj == null) {
             return fieldsValue;
         }
@@ -284,7 +274,7 @@ public abstract class AbstractWriter implements ObjectWriter {
             return fieldsValue;
         }
 
-        ObjectParser parser = getObjectParserFactory().getParsers().get(field.getClassType());
+        ObjectMapper parser = getObjectParserFactory().getMappers().get(field.getClassType());
         if (parser != null) {
             Collection c = (Collection) obj;
             Iterator it = c.iterator();

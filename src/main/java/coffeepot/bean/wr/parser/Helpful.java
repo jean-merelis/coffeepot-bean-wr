@@ -51,7 +51,7 @@ public class Helpful {
         f.setParams(nf.params());
         f.setSetter(nf.setter());
         f.setTrim(nf.trim());
-        f.setTypeHandler(nf.typeHandler());
+        f.setTypeHandlerClass(nf.typeHandler());
         f.setRequired(nf.required());
         f.setIgnoreOnRead(nf.ignoreOnRead());
         f.setIgnoreOnWrite(nf.ignoreOnWrite());

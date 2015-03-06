@@ -44,4 +44,6 @@ import java.io.InputStream;
 public interface ObjectReader {
     public <T> T read(InputStream src, Class<T> clazz);
     public <T> T read(InputStream src, Class<T> clazz, String recordGroupId);
+    public <T> T parse(String line, Class<T> clazz);
+    public <T> T parse(String line, Class<T> clazz, String recordGroupId);
 }

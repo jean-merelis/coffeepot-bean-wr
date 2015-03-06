@@ -23,7 +23,7 @@ package coffeepot.bean.wr.writer;
  * #L%
  */
 import coffeepot.bean.wr.types.FormatType;
-import coffeepot.bean.wr.parser.ObjectParserFactory;
+import coffeepot.bean.wr.parser.ObjectMapperFactory;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Iterator;
@@ -45,7 +45,7 @@ public class DelimitedWriter extends AbstractWriter {
 
     private boolean removeDelimiter;
 
-    protected ObjectParserFactory parserFactory = new ObjectParserFactory(FormatType.DELIMITED);
+    protected ObjectMapperFactory parserFactory = new ObjectMapperFactory(FormatType.DELIMITED);
 
     public DelimitedWriter(Writer writer) {
         this.writer = writer;
@@ -175,7 +175,7 @@ public class DelimitedWriter extends AbstractWriter {
     }
 
     @Override
-    public ObjectParserFactory getObjectParserFactory() {
+    public ObjectMapperFactory getObjectParserFactory() {
         return parserFactory;
     }
 

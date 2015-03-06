@@ -32,7 +32,6 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -46,7 +45,6 @@ import java.util.logging.Logger;
 public class ObjectMapper {
 
     private AccessorType accessorType = AccessorType.DEFAULT;
-    private Set<String> ignoredFields;
     private final List<FieldImpl> mappedFields = new LinkedList<>();
     private Class<?> rootClass;
 
@@ -112,11 +110,7 @@ public class ObjectMapper {
     private void perform(ObjectMapperFactory factory, Record record, String groupId) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
         if (record != null) {
             accessorType = record.accessorType();
-            String[] ig = record.ignoredFields();
-            if (ig != null) {
-                ignoredFields = new HashSet<>();
-                ignoredFields.addAll(Arrays.asList(ig));
-            }
+
             coffeepot.bean.wr.annotation.Field[] fields = record.fields();
             if (fields != null) {
                 try {
@@ -134,10 +128,6 @@ public class ObjectMapper {
 
     private void mappingFields(coffeepot.bean.wr.annotation.Field[] fields, ObjectMapperFactory factory, String groupId) throws Exception {
         for (coffeepot.bean.wr.annotation.Field f : fields) {
-            if (ignoredFields != null && ignoredFields.contains(f.name())) {
-                continue;
-            }
-
             this.mappedFields.add(mappingField(null, Helpful.toFieldImpl(f), factory, rootClass, groupId));
         }
     }
@@ -317,10 +307,10 @@ public class ObjectMapper {
 
         TypeHandler handler;
 
-        handler = factory.getHandlerFactory().create(mappedField.getClassType(), f.getTypeHandler(), f.getParams());
-        mappedField.setTypeHandlerImpl(handler);
+        handler = factory.getHandlerFactory().create(mappedField.getClassType(), f.getTypeHandlerClass(), f.getParams());
+        mappedField.setTypeHandler(handler);
 
-        if (mappedField.getTypeHandlerImpl() == null && (mappedField.getClassType().isEnum())) {
+        if (mappedField.getTypeHandler() == null && (mappedField.getClassType().isEnum())) {
             //set default EnumTypeHandler
             boolean defEnum = false;
             if (f.getParams() != null) {
@@ -342,13 +332,13 @@ public class ObjectMapper {
             } else {
                 newParams = f.getParams();
             }
-            handler = factory.getHandlerFactory().create(Enum.class, f.getTypeHandler(), newParams);
-            mappedField.setTypeHandlerImpl(handler);
+            handler = factory.getHandlerFactory().create(Enum.class, f.getTypeHandlerClass(), newParams);
+            mappedField.setTypeHandler(handler);
         }
 
-        if (mappedField.getTypeHandlerImpl() == null) {
+        if (mappedField.getTypeHandler() == null) {
             mappedField.setNestedObject(true);
-            factory.create(mappedField.getClassType(), groupId);
+            factory.getNoResolved().add(mappedField.getClassType());
         }
         return mappedField;
     }
@@ -359,10 +349,6 @@ public class ObjectMapper {
 
     public AccessorType getAccessorType() {
         return accessorType;
-    }
-
-    public Set<String> getIgnoredFields() {
-        return ignoredFields;
     }
 
     public List<FieldImpl> getMappedFields() {

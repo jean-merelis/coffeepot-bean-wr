@@ -23,7 +23,7 @@ package coffeepot.bean.wr.writer;
  * #L%
  */
 import coffeepot.bean.wr.types.FormatType;
-import coffeepot.bean.wr.parser.ObjectParserFactory;
+import coffeepot.bean.wr.parser.ObjectMapperFactory;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Iterator;
@@ -39,11 +39,11 @@ public class FixedLengthWriter extends AbstractWriter{
 
     protected String recordTerminator = "\r\n";
 
-    protected ObjectParserFactory parserFactory;
+    protected ObjectMapperFactory parserFactory;
 
     public FixedLengthWriter(Writer writer) {
         this.writer = writer;
-        parserFactory = new ObjectParserFactory(FormatType.FIXED_LENGTH);
+        parserFactory = new ObjectMapperFactory(FormatType.FIXED_LENGTH);
     }
 
     public String getRecordInitializator() {
@@ -94,7 +94,7 @@ public class FixedLengthWriter extends AbstractWriter{
     }
 
     @Override
-    public ObjectParserFactory getObjectParserFactory() {
+    public ObjectMapperFactory getObjectParserFactory() {
         return parserFactory;
     }
 

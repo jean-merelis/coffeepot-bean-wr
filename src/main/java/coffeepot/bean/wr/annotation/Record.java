@@ -22,8 +22,6 @@ package coffeepot.bean.wr.annotation;
  * limitations under the License.
  * #L%
  */
-
-
 import coffeepot.bean.wr.types.AccessorType;
 import coffeepot.bean.wr.types.FormatType;
 import java.lang.annotation.Documented;
@@ -46,8 +44,6 @@ public @interface Record {
     AccessorType accessorType() default AccessorType.PROPERTY;
 
     Field[] fields() default {};
-    
-    String groupId() default "";
 
-    String[] ignoredFields() default {};
+    String groupId() default "";
 }

@@ -26,7 +26,6 @@ import coffeepot.bean.wr.typeHandler.TypeHandler;
 import coffeepot.bean.wr.types.AccessorType;
 import coffeepot.bean.wr.types.Align;
 import java.lang.reflect.Method;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -47,14 +46,13 @@ public class FieldImpl implements Cloneable {
     private Align align;
     private String getter;
     private String setter;
-    private Class<? extends TypeHandler> typeHandler;
+    private Class<? extends TypeHandler> typeHandlerClass;
     private Class<?> classType;
     private String[] params;
     private AccessorType accessorType;
-    private FieldImpl parent;  
+    private FieldImpl parent;
     private boolean nestedObject;
-    //
-    private TypeHandler typeHandlerImpl;
+    private TypeHandler typeHandler;
     private Method getterMethod;
     private Method setterMethod;
     private Class collectionType;
@@ -170,12 +168,12 @@ public class FieldImpl implements Cloneable {
         this.setter = setter;
     }
 
-    public Class<? extends TypeHandler> getTypeHandler() {
-        return typeHandler;
+    public Class<? extends TypeHandler> getTypeHandlerClass() {
+        return typeHandlerClass;
     }
 
-    public void setTypeHandler(Class<? extends TypeHandler> typeHandler) {
-        this.typeHandler = typeHandler;
+    public void setTypeHandlerClass(Class<? extends TypeHandler> typeHandlerClass) {
+        this.typeHandlerClass = typeHandlerClass;
     }
 
     public Class<?> getClassType() {
@@ -202,12 +200,12 @@ public class FieldImpl implements Cloneable {
         this.accessorType = accessorType;
     }
 
-    public TypeHandler getTypeHandlerImpl() {
-        return typeHandlerImpl;
+    public TypeHandler getTypeHandler() {
+        return typeHandler;
     }
 
-    public void setTypeHandlerImpl(TypeHandler typeHandlerImpl) {
-        this.typeHandlerImpl = typeHandlerImpl;
+    public void setTypeHandler(TypeHandler typeHandler) {
+        this.typeHandler = typeHandler;
     }
 
     public Method getGetterMethod() {
@@ -281,7 +279,5 @@ public class FieldImpl implements Cloneable {
     public void setNestedObject(boolean nestedObject) {
         this.nestedObject = nestedObject;
     }
-
-    
 
 }

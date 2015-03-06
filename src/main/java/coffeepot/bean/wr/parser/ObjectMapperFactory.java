@@ -22,8 +22,6 @@ package coffeepot.bean.wr.parser;
  * limitations under the License.
  * #L%
  */
-
-
 import coffeepot.bean.wr.typeHandler.TypeHandlerFactory;
 import coffeepot.bean.wr.typeHandler.TypeHandlerFactoryImpl;
 import coffeepot.bean.wr.types.FormatType;
@@ -38,53 +36,29 @@ import java.util.Set;
  */
 public final class ObjectMapperFactory {
 
-    private Set<Class> noResolved = new HashSet<>();
-
-    private Map<Class, ObjectMapper> parsers = new HashMap<>();
-
+    private final Set<Class> noResolved = new HashSet<>();
+    private final Map<Class, ObjectMapper> mappers = new HashMap<>();
+    private final Map<String, ObjectMapper> idsMap = new HashMap<>();
+    private final FormatType formatType;
     private TypeHandlerFactory handlerFactory = new TypeHandlerFactoryImpl();
-    
-    private Map<String, ObjectMapper> idsMap= new HashMap<>();
-
-    private FormatType formatType;
 
     public ObjectMapperFactory(FormatType formatType) {
         this.formatType = formatType;
     }
-
-//    public void createByAnotherClass(Class<?> fromClass, Class<?> targetClass) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
-//        createByAnotherClass(fromClass, targetClass, null);
-//    }
-//
-//    public void createByAnotherClass(Class<?> fromClass, Class<?> targetClass, String recordGroupId) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
-//        ObjectMapper objectMapper;
-//        try {
-//            objectMapper = new ObjectMapper(fromClass, targetClass, recordGroupId, this);
-//            parsers.put(targetClass, objectMapper);
-//            noResolved.remove(targetClass);
-//            while (!noResolved.isEmpty()) {
-//                Class next = noResolved.iterator().next();
-//                createHelper(next, recordGroupId);
-//            }
-//        } catch (UnresolvedObjectMapperException ex) {
-//            //Logger.getLogger(ObjectMapperFactory.class.getName()).log(Level.SEVERE, null, ex);
-//            throw ex;
-//        }
-//    }
 
     public ObjectMapper create(Class<?> clazz) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
         return create(clazz, null);
     }
 
     public ObjectMapper create(Class<?> clazz, String recordGroupId) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
-        ObjectMapper objectMapper = parsers.get(clazz);
+        ObjectMapper objectMapper = mappers.get(clazz);
         if (objectMapper != null) {
             return objectMapper;
         }
 
         try {
             objectMapper = new ObjectMapper(clazz, recordGroupId, this);
-            parsers.put(clazz, objectMapper);
+            mappers.put(clazz, objectMapper);
             noResolved.remove(clazz);
             while (!noResolved.isEmpty()) {
                 Class next = noResolved.iterator().next();
@@ -98,14 +72,14 @@ public final class ObjectMapperFactory {
     }
 
     private void createHelper(Class<?> clazz, String recordGroupId) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
-        ObjectMapper objectMapper = parsers.get(clazz);
+        ObjectMapper objectMapper = mappers.get(clazz);
         if (objectMapper != null) {
             noResolved.remove(clazz);
             return;
         }
 
         objectMapper = new ObjectMapper(clazz, recordGroupId, this);
-        parsers.put(clazz, objectMapper);
+        mappers.put(clazz, objectMapper);
         noResolved.remove(clazz);
     }
 
@@ -113,10 +87,10 @@ public final class ObjectMapperFactory {
         return noResolved;
     }
 
-    public Map<Class, ObjectMapper> getParsers() {
-        return parsers;
+    public Map<Class, ObjectMapper> getMappers() {
+        return mappers;
     }
-    
+
     public TypeHandlerFactory getHandlerFactory() {
         return handlerFactory;
     }
@@ -132,6 +106,5 @@ public final class ObjectMapperFactory {
     public Map<String, ObjectMapper> getIdsMap() {
         return idsMap;
     }
-    
-    
+
 }
