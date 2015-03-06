@@ -49,7 +49,6 @@ public class ObjectMapper {
     private Set<String> ignoredFields;
     private final List<FieldImpl> mappedFields = new LinkedList<>();
     private Class<?> rootClass;
-    private ObjectMapper parent;
 
     /**
      * Builds a parser for the class using your annotations.
@@ -57,12 +56,11 @@ public class ObjectMapper {
      * @param clazz
      * @param groupId
      * @param factory
-     * @param parent
      * @throws UnresolvedObjectMapperException
      * @throws NoSuchFieldException
      * @throws Exception
      */
-    public ObjectMapper(Class<?> clazz, String groupId, ObjectMapperFactory factory, ObjectMapper parent) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
+    public ObjectMapper(Class<?> clazz, String groupId, ObjectMapperFactory factory) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
         if (clazz == null) {
             throw new IllegalArgumentException("Object to mapped can't be null");
         }
@@ -71,9 +69,15 @@ public class ObjectMapper {
             throw new IllegalArgumentException("ObjectMapperFactory can't be null");
         }
 
-        this.rootClass = clazz;
-        this.parent = parent;
-        this.perform(factory, getRecordFromClass(clazz, groupId, factory), groupId);
+        if (Collection.class.isAssignableFrom(clazz)) {
+            if (!List.class.isAssignableFrom(clazz) && !Set.class.isAssignableFrom(clazz)) {
+                throw new RuntimeException("Only classes derived from Set and List are supported");
+            }
+            this.rootClass = (Class<?>) ((ParameterizedType) clazz.getGenericSuperclass()).getActualTypeArguments()[0];
+        } else {
+            this.rootClass = clazz;
+        }
+        this.perform(factory, getRecordFromClass(this.rootClass, groupId, factory), groupId);
     }
 
     private Record getRecordFromClass(Class<?> clazz, String groupId, ObjectMapperFactory factory) {
@@ -188,7 +192,7 @@ public class ObjectMapper {
                             if (actualTypeArguments != null && actualTypeArguments.length > 0) {
                                 //FIXME: support for generics with multiple params.
                                 mappedField.setClassType((Class<?>) actualTypeArguments[0]);
-                                factory.create(mappedField.getClassType(), groupId, this);
+                                factory.create(mappedField.getClassType(), groupId);
                             }
                         }
                     }
@@ -233,7 +237,7 @@ public class ObjectMapper {
                             if (actualTypeArguments != null && actualTypeArguments.length > 0) {
                                 //FIXME: support for generics with multiple params.
                                 mappedField.setClassType((Class<?>) actualTypeArguments[0]);
-                                factory.create(mappedField.getClassType(), groupId, this);
+                                factory.create(mappedField.getClassType(), groupId);
                             }
                         }
                     }
@@ -344,7 +348,7 @@ public class ObjectMapper {
 
         if (mappedField.getTypeHandlerImpl() == null) {
             mappedField.setNestedObject(true);
-            factory.create(mappedField.getClassType(), groupId, this);
+            factory.create(mappedField.getClassType(), groupId);
         }
         return mappedField;
     }
@@ -363,9 +367,5 @@ public class ObjectMapper {
 
     public List<FieldImpl> getMappedFields() {
         return mappedFields;
-    }
-
-    public ObjectMapper getParent() {
-        return parent;
     }
 }

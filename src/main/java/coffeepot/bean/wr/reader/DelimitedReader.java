@@ -37,6 +37,7 @@ package coffeepot.bean.wr.reader;
 import coffeepot.bean.wr.parser.FieldImpl;
 import coffeepot.bean.wr.parser.ObjectMapper;
 import coffeepot.bean.wr.parser.ObjectMapperFactory;
+import coffeepot.bean.wr.typeHandler.HandlerParseException;
 import coffeepot.bean.wr.types.FormatType;
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -51,6 +52,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import javax.management.RuntimeErrorException;
 
 /**
  *
@@ -58,10 +60,12 @@ import java.util.regex.Pattern;
  */
 public class DelimitedReader implements ObjectReader {
 
+    private final static int ID_POSITION = 0;
     protected char delimiter = ';';
     private String recordInitializator;
     private boolean removeRecordInitializator = true;
     private Character escape;
+    private boolean ignoreUnknownRecords;
 
     private final ObjectMapperFactory mapperFactory = new ObjectMapperFactory(FormatType.DELIMITED);
 
@@ -79,9 +83,12 @@ public class DelimitedReader implements ObjectReader {
     public <T> T read(InputStream src, Class<T> clazz, String recordGroupId) {
 
         try {
-            getObjectMapperFactory().create(clazz, recordGroupId);
+            ObjectMapper om = getObjectMapperFactory().create(clazz, recordGroupId);
             if (getObjectMapperFactory().getIdsMap().isEmpty()) {
-                throw new UnsupportedOperationException("Até o momento, somente leitura de classes mapeadas com ID são suportadas");
+                if (om == null) {
+                    throw new RuntimeException("Unable to map the class");
+                }
+                return unmarshalSingleClass(src, clazz, om);
             }
             return unmarshal(src, clazz);
         } catch (Exception ex) {
@@ -126,23 +133,19 @@ public class DelimitedReader implements ObjectReader {
         this.removeRecordInitializator = removeRecordInitializator;
     }
 
+    public boolean isIgnoreUnknownRecords() {
+        return ignoreUnknownRecords;
+    }
+
+    public void setIgnoreUnknownRecords(boolean ignoreUnknownRecords) {
+        this.ignoreUnknownRecords = ignoreUnknownRecords;
+    }
+
     private <T> T unmarshal(InputStream src, Class<T> clazz) throws Exception {
         currentRecord = null;
         nextRecord = null;
-        
-        String delim = "" + delimiter;
-        if (escape != null) {
-            String esc = String.valueOf(escape);
-            regexSplit = "(?<!" + Pattern.quote(esc) + ")" + Pattern.quote(delim);
-       
-            escOld = esc + esc;
-            escNew = esc;
 
-            delimOld = esc + delim;
-            delimNew = delim;                   
-        } else {
-            regexSplit = Pattern.quote(delim);
-        }      
+        config();
 
         T product;
 
@@ -171,59 +174,87 @@ public class DelimitedReader implements ObjectReader {
                     return null;
                 }
 
+                //Check if clazz is a wrapper
                 ObjectMapper om = getObjectMapperFactory().getParsers().get(clazz);
-                ObjectMapper omm = getObjectMapperFactory().getIdsMap().get(nextRecord[0]);
-                if (om.getRootClass().equals(omm.getRootClass())) {
-                    readLine(reader);//posiciona
+                ObjectMapper omm = getObjectMapperFactory().getIdsMap().get(nextRecord[ID_POSITION]);
+
+                if (omm == null) {
+                    if (!ignoreUnknownRecords) {
+                        throw new RuntimeException("The record with ID '" + nextRecord[ID_POSITION] + "' is unknown.");
+                    }
+                } else if (om.getRootClass().equals(omm.getRootClass())) {
+                    readLine(reader);
                 }
+                //--
 
                 product = clazz.newInstance();
-                List<FieldImpl> mappedFields = om.getMappedFields();
-
-                int i = 0;
-                for (FieldImpl f : mappedFields) {
-                    if (!f.getConstantValue().isEmpty()) {
-                        i++;
-                        continue;
-                    }
-
-                    if (!f.isCollection() && !f.isNestedObject() && f.getTypeHandlerImpl() != null) {
-                        Object value = f.getTypeHandlerImpl().parse(currentRecord[i]);
-                        setValue(product, value, f);
-                    } else if (f.isCollection()) {
-                        if (nextRecord != null) {
-                            //se o proximo registro é um objeto desta collection                
-                            String nextId = nextRecord[0];
-                            ObjectMapper mc = getObjectMapperFactory().getIdsMap().get(nextId);
-                            if (mc.getRootClass().equals(f.getClassType())) {
-                                Collection c = getCollection(product, f);
-                                do {
-                                    readLine(reader);
-                                    Object r = processRecord(reader);
-                                    if (r != null) {
-                                        c.add(r);
-                                    }
-                                } while (nextRecord != null && nextRecord[0].equals(nextId));
-                            }
-                        }
-
-                    } else if (f.isNestedObject() && nextRecord != null) {
-                        //se o proximo registro é um objeto deste mesmo tipo               
-                        String nextId = nextRecord[0];
-                        ObjectMapper mc = getObjectMapperFactory().getIdsMap().get(nextId);
-                        if (mc.getRootClass().equals(f.getClassType())) {
-                            readLine(reader);
-                            Object r = processRecord(reader);
-                            setValue(product, r, f);
-                        }
-                    }
-
-                    i++;
-                }
-
+                fill(product, om, reader);
                 return product;
             }
 
+        }
+    }
+
+    //for single class
+    private <T> T unmarshalSingleClass(InputStream src, Class<T> clazz, ObjectMapper om) throws Exception {
+        currentRecord = null;
+        nextRecord = null;
+        config();
+
+        T product;
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(src))) {
+
+            if (Collection.class.isAssignableFrom(clazz)) {
+                readLine(reader);
+                if (currentRecord == null && nextRecord != null) {
+                    readLine(reader);
+                }
+                if (currentRecord == null) {
+                    return null;
+                }
+                product = clazz.newInstance();
+                while (currentRecord != null) {
+                    Object o = processRecordForSingleClass(reader, om);
+                    if (o != null) {
+                        ((Collection) product).add(o);
+                    }
+                    readLine(reader);
+                }
+                return product;
+            } else {
+                readLine(reader);
+                if (nextRecord == null) {
+                    return null;
+                }
+
+                //Check if clazz is not a wrapper
+                if (om.getRootClass().equals(clazz)) {
+                    readLine(reader);
+                }
+                //--
+
+                product = clazz.newInstance();
+                fillSingleClass(product, om, reader);
+                return product;
+            }
+
+        }
+    }
+
+    private void config() {
+        String delim = "" + delimiter;
+        if (escape != null) {
+            String esc = String.valueOf(escape);
+            regexSplit = "(?<!" + Pattern.quote(esc) + ")" + Pattern.quote(delim);
+
+            escOld = esc + esc;
+            escNew = esc;
+
+            delimOld = esc + delim;
+            delimNew = delim;
+        } else {
+            regexSplit = Pattern.quote(delim);
         }
     }
 
@@ -277,9 +308,21 @@ public class DelimitedReader implements ObjectReader {
             return null;
         }
 
-        ObjectMapper om = getObjectMapperFactory().getIdsMap().get(currentRecord[0]);
+        ObjectMapper om = getObjectMapperFactory().getIdsMap().get(currentRecord[ID_POSITION]);
+
+        if (om == null) {
+            if (!ignoreUnknownRecords) {
+                throw new RuntimeException("The record with ID '" + currentRecord[ID_POSITION] + "' is unknown.");
+            }
+            return null;
+        }
 
         Object product = om.getRootClass().newInstance();
+        fill(product, om, reader);
+        return product;
+    }
+
+    private void fill(Object product, ObjectMapper om, BufferedReader reader) throws Exception {
 
         List<FieldImpl> mappedFields = om.getMappedFields();
 
@@ -295,8 +338,8 @@ public class DelimitedReader implements ObjectReader {
                 setValue(product, value, f);
             } else if (f.isCollection()) {
                 if (nextRecord != null) {
-                    //se o proximo registro é um objeto desta collection                
-                    String nextId = nextRecord[0];
+                    //se o proximo registro é um objeto desta collection
+                    String nextId = nextRecord[ID_POSITION];
                     ObjectMapper mc = getObjectMapperFactory().getIdsMap().get(nextId);
                     if (mc.getRootClass().equals(f.getClassType())) {
                         Collection c = getCollection(product, f);
@@ -306,13 +349,13 @@ public class DelimitedReader implements ObjectReader {
                             if (r != null) {
                                 c.add(r);
                             }
-                        } while (nextRecord != null && nextRecord[0].equals(nextId));
+                        } while (nextRecord != null && nextRecord[ID_POSITION].equals(nextId));
                     }
                 }
 
             } else if (f.isNestedObject() && nextRecord != null) {
-                //se o proximo registro é um objeto deste mesmo tipo               
-                String nextId = nextRecord[0];
+                //se o proximo registro é um objeto deste mesmo tipo
+                String nextId = nextRecord[ID_POSITION];
                 ObjectMapper mc = getObjectMapperFactory().getIdsMap().get(nextId);
                 if (mc.getRootClass().equals(f.getClassType())) {
                     readLine(reader);
@@ -323,7 +366,60 @@ public class DelimitedReader implements ObjectReader {
 
             i++;
         }
+
+    }
+
+    private Object processRecordForSingleClass(BufferedReader reader, ObjectMapper om) throws Exception {
+
+        if (currentRecord == null) {
+            return null;
+        }
+
+        Object product = om.getRootClass().newInstance();
+        fillSingleClass(product, om, reader);
         return product;
+    }
+
+    private void fillSingleClass(Object product, ObjectMapper om, BufferedReader reader) throws Exception {
+        List<FieldImpl> mappedFields = om.getMappedFields();
+        int i = 0;
+        for (FieldImpl f : mappedFields) {
+            if (!f.getConstantValue().isEmpty()) {
+                i++;
+                continue;
+            }
+
+            if (!f.isCollection() && !f.isNestedObject() && f.getTypeHandlerImpl() != null) {
+                Object value = f.getTypeHandlerImpl().parse(currentRecord[i]);
+                setValue(product, value, f);
+            } else if (f.isCollection()) {
+                if (nextRecord != null) {
+                    //Desde que o root nao seja uma collection, o objeto poderá ter uma collection, mas somente uma e deve ser o último a ser processado
+                    //if the root is not one collection, the object may have a collection, but only one and should be the last to be processed
+                    ObjectMapper oc = getObjectMapperFactory().getParsers().get(f.getClassType());
+                    if (oc != null) {
+                        Collection c = getCollection(product, f);
+                        do {
+                            readLine(reader);
+                            Object r = processRecordForSingleClass(reader, oc);
+                            if (r != null) {
+                                c.add(r);
+                            }
+                        } while (nextRecord != null);
+                    }
+                }
+
+            } else if (f.isNestedObject() && nextRecord != null) {
+                ObjectMapper oc = getObjectMapperFactory().getParsers().get(f.getClassType());
+                if (oc != null) {
+                    readLine(reader);
+                    Object r = processRecordForSingleClass(reader, oc);
+                    setValue(product, r, f);
+                }
+            }
+
+            i++;
+        }
     }
 
     private Collection getCollection(final Object obj, final FieldImpl f) {

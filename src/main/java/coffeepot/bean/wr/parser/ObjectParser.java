@@ -44,7 +44,7 @@ import java.util.logging.Logger;
  * @author Jeandeson O. Merelis
  */
 public class ObjectParser {
-    
+
     private AccessorType accessorType = AccessorType.DEFAULT;
     private Set<String> ignoredFields;
     private final List<FieldImpl> mappedFields = new LinkedList<>();
@@ -176,7 +176,7 @@ public class ObjectParser {
             mappedField.setPaddingIfNullOrEmpty(true);
         }
 
-        
+
 
         if (!"".equals(f.getConstantValue())) {
             mappedField.setClassType(String.class);
@@ -185,7 +185,7 @@ public class ObjectParser {
             if (fieldName == null || fieldName.isEmpty()) {
                 fieldName = f.getName();
             }
-            
+
             mappedField.setName(fieldName);
 
             try {
@@ -329,7 +329,7 @@ public class ObjectParser {
 
 
         TypeHandler handler;
-       
+
             handler = factory.getHandlerFactory().create(mappedField.getClassType(), f.getTypeHandler(), f.getParams());
             mappedField.setTypeHandlerImpl(handler);
 
@@ -358,11 +358,12 @@ public class ObjectParser {
                 handler = factory.getHandlerFactory().create(Enum.class, f.getTypeHandler(), newParams);
                 mappedField.setTypeHandlerImpl(handler);
             }
-        
+
 
         if (mappedField.getTypeHandlerImpl() == null) {
+            mappedField.setNestedObject(true);
             factory.getNoResolved().add(mappedField.getClassType());
-        } 
+        }
         return mappedField;
     }
 

@@ -27,6 +27,9 @@ import coffeepot.bean.wr.model.Item;
 import coffeepot.bean.wr.model.ItemDet;
 import coffeepot.bean.wr.model.Order;
 import coffeepot.bean.wr.model.Person;
+import coffeepot.bean.wr.model.Read2;
+import coffeepot.bean.wr.model.SingleClass;
+import coffeepot.bean.wr.model.UnidentifiedObjWithList;
 import coffeepot.bean.wr.typeHandler.TypeHandlerFactory;
 import coffeepot.bean.wr.writer.customHandler.LowStringHandler;
 import coffeepot.bean.wr.writer.customHandler.DateTimeHandler;
@@ -36,10 +39,12 @@ import java.io.FileWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -132,9 +137,173 @@ public class DelimitedReaderTest {
         DelimitedReader reader = new DelimitedReader();
         reader.setDelimiter('|');
         reader.setEscape('\\');
+
         Order o = reader.read(new FileInputStream(file), Order.class);
 
-        Assert.assertNotNull(o);
+        assertNotNull(o);
+        //TODO: check field values
+    }
 
+    @Test
+    public void singleClassTest() throws Exception {
+        List<SingleClass> list = new ArrayList<>();
+
+        SingleClass s;
+
+        s = new SingleClass();
+        s.setField1("111111");
+        s.setField2("222222");
+        list.add(s);
+
+        s = new SingleClass();
+        s.setField1("111111");
+        s.setField2("222222");
+        list.add(s);
+
+        s = new SingleClass();
+        s.setField1("111111");
+        s.setField2("222222");
+        list.add(s);
+
+        s = new SingleClass();
+        s.setField1("111111");
+        s.setField2("222222");
+        list.add(s);
+
+        File file = new File("single.tmp");
+        try (Writer w = new FileWriter(file)) {
+
+            DelimitedWriter delimitedWriter = new DelimitedWriter(w);
+            delimitedWriter.setDelimiter('|');
+            delimitedWriter.setRecordTerminator("|\r\n");
+
+            for (SingleClass sc : list) {
+                delimitedWriter.write(sc);
+            }
+
+            w.flush();
+            w.close();
+        }
+
+        DelimitedReader reader = new DelimitedReader();
+        reader.setDelimiter('|');
+        reader.setEscape('\\');
+
+        SingleClassList o = reader.read(new FileInputStream(file), SingleClassList.class);
+
+        //Vai ler somente a primeira linha
+        //It will read only the first line
+        SingleClass sc = reader.read(new FileInputStream(file), SingleClass.class);
+
+        Assert.assertNotNull(o);
+        //TODO: check field values
+    }
+
+    @Test
+    public void read2() throws Exception {
+
+        List<Read2> list = new ArrayList<>();
+
+        Read2 r;
+
+        r = new Read2();
+        r.setLine1("a");
+        r.setLine2(new Read2.Test(1));
+        list.add(r);
+
+        r = new Read2();
+        r.setLine1("b");
+        r.setLine2(new Read2.Test(2));
+        list.add(r);
+
+        r = new Read2();
+        r.setLine1("c");
+        r.setLine2(new Read2.Test(3));
+        list.add(r);
+
+        r = new Read2();
+        r.setLine1("d");
+        r.setLine2(new Read2.Test(4));
+        list.add(r);
+
+
+
+        File file = new File("read2.tmp");
+        try (Writer w = new FileWriter(file)) {
+
+            DelimitedWriter delimitedWriter = new DelimitedWriter(w);
+            delimitedWriter.setDelimiter('|');
+            delimitedWriter.setRecordTerminator("|\r\n");
+
+            for (Read2 sc : list) {
+                delimitedWriter.write(sc);
+            }
+
+            w.flush();
+            w.close();
+        }
+
+        DelimitedReader reader = new DelimitedReader();
+        reader.setDelimiter('|');
+        reader.setEscape('\\');
+
+        Read2List o = reader.read(new FileInputStream(file), Read2List.class);
+
+        Assert.assertNotNull(o);
+        //TODO: check field values
+    }
+
+    static class Read2List extends ArrayList<Read2>{}
+
+    @Test
+    public void unidentifiedObjWithListTest() throws Exception {
+
+        UnidentifiedObjWithList u;
+
+        u = new UnidentifiedObjWithList();
+        u.setField1("111111");
+        u.setField2("222222");
+        u.setList(new ArrayList<UnidentifiedObjWithList.Name>());
+        u.getList().add(new UnidentifiedObjWithList.Name("a"));
+        u.getList().add(new UnidentifiedObjWithList.Name("b"));
+        u.getList().add(new UnidentifiedObjWithList.Name("c"));
+        u.getList().add(new UnidentifiedObjWithList.Name("d"));
+        u.getList().add(new UnidentifiedObjWithList.Name("e"));
+        u.getList().add(new UnidentifiedObjWithList.Name("f"));
+
+
+        File file = new File("unidentifiedObjWithList.tmp");
+        try (Writer w = new FileWriter(file)) {
+
+            DelimitedWriter delimitedWriter = new DelimitedWriter(w);
+            delimitedWriter.setDelimiter('|');
+            delimitedWriter.setRecordTerminator("|\r\n");
+
+            delimitedWriter.write(u);
+
+            w.flush();
+            w.close();
+        }
+
+        DelimitedReader reader = new DelimitedReader();
+        reader.setDelimiter('|');
+        reader.setEscape('\\');
+
+        UnidentifiedObjWithList o = reader.read(new FileInputStream(file), UnidentifiedObjWithList.class);
+
+        assertNotNull(o);
+        assertEquals("111111", o.getField1());
+        assertEquals("222222", o.getField2());
+        assertEquals(6, o.getList().size());
+        assertEquals("a", o.getList().get(0).getName());
+        assertEquals("b", o.getList().get(1).getName());
+        assertEquals("c", o.getList().get(2).getName());
+        assertEquals("d", o.getList().get(3).getName());
+        assertEquals("e", o.getList().get(4).getName());
+        assertEquals("f", o.getList().get(5).getName());
+
+    }
+
+    static class SingleClassList extends ArrayList<SingleClass> {
     }
 }

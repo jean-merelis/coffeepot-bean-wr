@@ -77,17 +77,13 @@ public final class ObjectMapperFactory {
     }
 
     public ObjectMapper create(Class<?> clazz, String recordGroupId) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
-        return create(clazz, recordGroupId, null);
-    }
-    
-    public ObjectMapper create(Class<?> clazz, String recordGroupId, ObjectMapper parent) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
         ObjectMapper objectMapper = parsers.get(clazz);
         if (objectMapper != null) {
             return objectMapper;
         }
 
         try {
-            objectMapper = new ObjectMapper(clazz, recordGroupId, this, parent);
+            objectMapper = new ObjectMapper(clazz, recordGroupId, this);
             parsers.put(clazz, objectMapper);
             noResolved.remove(clazz);
             while (!noResolved.isEmpty()) {
@@ -108,7 +104,7 @@ public final class ObjectMapperFactory {
             return;
         }
 
-        objectMapper = new ObjectMapper(clazz, recordGroupId, this, null);
+        objectMapper = new ObjectMapper(clazz, recordGroupId, this);
         parsers.put(clazz, objectMapper);
         noResolved.remove(clazz);
     }

@@ -237,14 +237,27 @@ public abstract class AbstractWriter implements ObjectWriter {
                 }
 
                 if (f.getTypeHandlerImpl() == null) {
+                    if (f.isNestedObject()) {
+                        writeRecord(fieldsValue);
+                        fieldsValue = null;
+                    }
                     ObjectParser parser = getObjectParserFactory().getParsers().get(f.getClassType());
                     if (parser != null) {
                         fieldsValue = marshal(o, fieldsValue, parser);
+                        if (f.isNestedObject()) {
+                            writeRecord(fieldsValue);
+                            fieldsValue = null;
+                        }
                     } else {
                         throw new RuntimeException("Parser not found for class: " + f.getClassType().getName());
                     }
                     return fieldsValue;
                 }
+            }
+
+            if (f.isNestedObject()) {
+                writeRecord(fieldsValue);
+                fieldsValue = null;
             }
 
             String s = process(f.getTypeHandlerImpl().toString(o), f);
