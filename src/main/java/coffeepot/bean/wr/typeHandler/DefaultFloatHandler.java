@@ -22,8 +22,6 @@ package coffeepot.bean.wr.typeHandler;
  * limitations under the License.
  * #L%
  */
-
-
 import java.text.DecimalFormat;
 
 /**
@@ -36,6 +34,10 @@ public class DefaultFloatHandler implements TypeHandler<Float> {
     private String pattern;
     private char decimalSeparator;
     private char groupingSeparator;
+
+    protected static String patternDefault = "#0.##########";
+    protected static char decimalSeparatorDefault = ((DecimalFormat) DecimalFormat.getInstance()).getDecimalFormatSymbols().getDecimalSeparator();
+    protected static char groupingSeparatorDefault = ((DecimalFormat) DecimalFormat.getInstance()).getDecimalFormatSymbols().getGroupingSeparator();
 
     public DefaultFloatHandler() {
         setDefaultValues();
@@ -104,9 +106,36 @@ public class DefaultFloatHandler implements TypeHandler<Float> {
     }
 
     private void setDefaultValues() {
-        pattern = "#0.##########";
+        pattern = patternDefault;
         decimalFormat = new DecimalFormat(pattern);
-        decimalSeparator = decimalFormat.getDecimalFormatSymbols().getDecimalSeparator();
-        groupingSeparator = decimalFormat.getDecimalFormatSymbols().getGroupingSeparator();
+        decimalSeparator = decimalSeparatorDefault;
+        groupingSeparator = groupingSeparatorDefault;
+        decimalFormat.getDecimalFormatSymbols().setDecimalSeparator(decimalSeparator);
+        decimalFormat.getDecimalFormatSymbols().setGroupingSeparator(groupingSeparator);
     }
+
+    public static String getPatternDefault() {
+        return patternDefault;
+    }
+
+    public static void setPatternDefault(String patternDefault) {
+        DefaultFloatHandler.patternDefault = patternDefault;
+    }
+
+    public static char getDecimalSeparatorDefault() {
+        return decimalSeparatorDefault;
+    }
+
+    public static void setDecimalSeparatorDefault(char decimalSeparatorDefault) {
+        DefaultFloatHandler.decimalSeparatorDefault = decimalSeparatorDefault;
+    }
+
+    public static char getGroupingSeparatorDefault() {
+        return groupingSeparatorDefault;
+    }
+
+    public static void setGroupingSeparatorDefault(char groupingSeparatorDefault) {
+        DefaultFloatHandler.groupingSeparatorDefault = groupingSeparatorDefault;
+    }
+
 }

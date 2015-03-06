@@ -22,8 +22,6 @@ package coffeepot.bean.wr.typeHandler;
  * limitations under the License.
  * #L%
  */
-
-
 /**
  *
  * @author Jeandeson O. Merelis
@@ -46,4 +44,13 @@ public class HandlerParseException extends Exception {
     public HandlerParseException(String msg) {
         super(msg);
     }
+
+    public HandlerParseException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public HandlerParseException(Throwable cause) {
+        super(cause);
+    }
+
 }

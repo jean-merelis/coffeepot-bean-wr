@@ -22,10 +22,6 @@ package coffeepot.bean.wr.typeHandler;
  * limitations under the License.
  * #L%
  */
-
-
-import java.util.Map;
-
 /**
  *
  * @author Jeandeson O. Merelis

@@ -22,8 +22,6 @@ package coffeepot.bean.wr.typeHandler;
  * limitations under the License.
  * #L%
  */
-
-
 import coffeepot.bean.wr.types.CharCase;
 
 /**

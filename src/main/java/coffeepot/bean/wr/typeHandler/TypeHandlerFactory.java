@@ -22,8 +22,6 @@ package coffeepot.bean.wr.typeHandler;
  * limitations under the License.
  * #L%
  */
-
-
 /**
  *
  * @author Jeandeson O. Merelis
@@ -36,12 +34,13 @@ public interface TypeHandlerFactory {
 
     /**
      * Registers a instance of handler (previously configured) as default to a type.
+     *
      * @param forClass
-     * @param handlerInstance 
+     * @param handlerInstance
      */
     @Deprecated
     void registerTypeHandlerInstanceAsDefaultFor(Class<?> forClass, TypeHandler handlerInstance);
-    
+
     void registerTypeHandlerClassFor(Class<?> forClass, Class<? extends TypeHandler> handlerClass);
 
     TypeHandler create(Class<?> forClass, String[] params) throws InstantiationException, IllegalAccessException;

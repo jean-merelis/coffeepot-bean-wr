@@ -38,15 +38,15 @@ public class DefaultDateHandler implements TypeHandler<Date> {
     protected String pattern;
 
     protected static String patternDefault;
-    protected static String patternForDateDefault;
-    protected static String patternForTimeDefault;
-    protected static String patternForDateTimeDefault;
+    protected static String patternDefaultForDate;
+    protected static String patternDefaultForTime;
+    protected static String patternDefaultForDateTime;
 
     static {
         patternDefault = "yyyy-MM-dd'T'HH:mm:ss";
-        patternForDateDefault = "yyyy-MM-dd";
-        patternForTimeDefault = "HH:mm:ss";
-        patternForDateTimeDefault = patternDefault;
+        patternDefaultForDate = "yyyy-MM-dd";
+        patternDefaultForTime = "HH:mm:ss";
+        patternDefaultForDateTime = patternDefault;
     }
 
     public DefaultDateHandler() {
@@ -93,13 +93,13 @@ public class DefaultDateHandler implements TypeHandler<Date> {
             }
             switch (key) {
                 case "date":
-                    pattern = patternForDateDefault;
+                    pattern = patternDefaultForDate;
                     break;
                 case "time":
-                    pattern = patternForTimeDefault;
+                    pattern = patternDefaultForTime;
                     break;
                 case "datetime":
-                    pattern = patternForDateTimeDefault;
+                    pattern = patternDefaultForDateTime;
                     break;
                 case "pattern":
                     pattern = value;
@@ -124,28 +124,28 @@ public class DefaultDateHandler implements TypeHandler<Date> {
         DefaultDateHandler.patternDefault = patternDefault;
     }
 
-    public static String getPatternForDateDefault() {
-        return patternForDateDefault;
+    public static String getPatternDefaultForDate() {
+        return patternDefaultForDate;
     }
 
-    public static void setPatternForDateDefault(String patternForDateDefault) {
-        DefaultDateHandler.patternForDateDefault = patternForDateDefault;
+    public static void setPatternDefaultForDate(String patternDefaultForDate) {
+        DefaultDateHandler.patternDefaultForDate = patternDefaultForDate;
     }
 
-    public static String getPatternForTimeDefault() {
-        return patternForTimeDefault;
+    public static String getPatternDefaultForTime() {
+        return patternDefaultForTime;
     }
 
-    public static void setPatternForTimeDefault(String patternForTimeDefault) {
-        DefaultDateHandler.patternForTimeDefault = patternForTimeDefault;
+    public static void setPatternDefaultForTime(String patternDefaultForTime) {
+        DefaultDateHandler.patternDefaultForTime = patternDefaultForTime;
     }
 
-    public static String getPatternForDateTimeDefault() {
-        return patternForDateTimeDefault;
+    public static String getPatternDefaultForDateTime() {
+        return patternDefaultForDateTime;
     }
 
-    public static void setPatternForDateTimeDefault(String patternForDateTimeDefault) {
-        DefaultDateHandler.patternForDateTimeDefault = patternForDateTimeDefault;
+    public static void setPatternDefaultForDateTime(String patternDefaultForDateTime) {
+        DefaultDateHandler.patternDefaultForDateTime = patternDefaultForDateTime;
     }
-
+    
 }

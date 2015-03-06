@@ -37,6 +37,7 @@ package coffeepot.bean.wr.reader;
 import coffeepot.bean.wr.parser.FieldImpl;
 import coffeepot.bean.wr.parser.ObjectMapper;
 import coffeepot.bean.wr.parser.ObjectMapperFactory;
+import coffeepot.bean.wr.typeHandler.HandlerParseException;
 import coffeepot.bean.wr.types.FormatType;
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -83,6 +84,10 @@ public class DelimitedReader implements ObjectReader {
     public <T> T read(InputStream src, Class<T> clazz, String recordGroupId) {
         getObjectMapperFactory().getIdsMap().clear();
         getObjectMapperFactory().getParsers().clear();
+        currentRecord = null;
+        nextRecord = null;
+        actualLine = 0;
+        config();
         try {
             ObjectMapper om = getObjectMapperFactory().create(clazz, recordGroupId);
             if (getObjectMapperFactory().getIdsMap().isEmpty()) {
@@ -158,11 +163,6 @@ public class DelimitedReader implements ObjectReader {
     }
 
     private <T> T unmarshal(InputStream src, Class<T> clazz) throws Exception {
-        currentRecord = null;
-        nextRecord = null;
-
-        config();
-
         T product;
 
         try (BufferedReader reader = new BufferedReader(createInputStreamReader(src))) {
@@ -213,10 +213,6 @@ public class DelimitedReader implements ObjectReader {
 
     //for single class
     private <T> T unmarshalSingleClass(InputStream src, Class<T> clazz, ObjectMapper om) throws Exception {
-        currentRecord = null;
-        nextRecord = null;
-        config();
-
         T product;
 
         try (BufferedReader reader = new BufferedReader(createInputStreamReader(src))) {
@@ -274,6 +270,7 @@ public class DelimitedReader implements ObjectReader {
         }
     }
 
+    private int actualLine;
     private String[] currentRecord;
     private String[] nextRecord;
     private String regexSplit;
@@ -294,6 +291,9 @@ public class DelimitedReader implements ObjectReader {
             if (line == null) {
                 return null;
             }
+
+            actualLine++;
+
             line = line.trim();
             if (!line.isEmpty()) {
                 break;
@@ -328,7 +328,7 @@ public class DelimitedReader implements ObjectReader {
 
         if (om == null) {
             if (!ignoreUnknownRecords) {
-                throw new UnknownRecordException("The record with ID '" + currentRecord[ID_POSITION] + "' is unknown.");
+                throw new UnknownRecordException("The record with ID '" + currentRecord[ID_POSITION] + "' is unknown. Line:" + actualLine);
             }
             return null;
         }
@@ -343,6 +343,7 @@ public class DelimitedReader implements ObjectReader {
         List<FieldImpl> mappedFields = om.getMappedFields();
 
         int i = 0;
+
         for (FieldImpl f : mappedFields) {
             if (!f.getConstantValue().isEmpty() || f.isIgnoreOnRead()) {
                 i++;
@@ -350,8 +351,12 @@ public class DelimitedReader implements ObjectReader {
             }
 
             if (!f.isCollection() && !f.isNestedObject() && f.getTypeHandlerImpl() != null) {
-                Object value = f.getTypeHandlerImpl().parse(currentRecord[i]);
-                setValue(product, value, f);
+                try {
+                    Object value = f.getTypeHandlerImpl().parse(currentRecord[i]);
+                    setValue(product, value, f);
+                } catch (HandlerParseException ex) {
+                    throw new HandlerParseException("Line: " + actualLine + ", field: " + (i + 1), ex);
+                }
             } else if (f.isCollection()) {
                 if (nextRecord != null) {
                     //se o proximo registro é um objeto desta collection
@@ -399,6 +404,7 @@ public class DelimitedReader implements ObjectReader {
     private void fillSingleClass(Object product, ObjectMapper om, BufferedReader reader) throws Exception {
         List<FieldImpl> mappedFields = om.getMappedFields();
         int i = 0;
+
         for (FieldImpl f : mappedFields) {
             if (!f.getConstantValue().isEmpty() || f.isIgnoreOnRead()) {
                 i++;
@@ -406,8 +412,13 @@ public class DelimitedReader implements ObjectReader {
             }
 
             if (!f.isCollection() && !f.isNestedObject() && f.getTypeHandlerImpl() != null) {
-                Object value = f.getTypeHandlerImpl().parse(currentRecord[i]);
-                setValue(product, value, f);
+
+                try {
+                    Object value = f.getTypeHandlerImpl().parse(currentRecord[i]);
+                    setValue(product, value, f);
+                } catch (HandlerParseException ex) {
+                    throw new HandlerParseException("Line: " + actualLine + ", field: " + (i + 1), ex);
+                }
             } else if (f.isCollection()) {
                 if (nextRecord != null) {
                     //Desde que o root nao seja uma collection, o objeto poderá ter uma collection, mas somente uma e deve ser o último a ser processado

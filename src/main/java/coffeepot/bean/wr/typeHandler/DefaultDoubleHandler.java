@@ -110,6 +110,8 @@ public class DefaultDoubleHandler implements TypeHandler<Double> {
         decimalFormat = new DecimalFormat(pattern);
         decimalSeparator = decimalSeparatorDefault;
         groupingSeparator = groupingSeparatorDefault;
+        decimalFormat.getDecimalFormatSymbols().setDecimalSeparator(decimalSeparator);
+        decimalFormat.getDecimalFormatSymbols().setGroupingSeparator(groupingSeparator);
     }
 
     public static String getPatternDefault() {

@@ -22,8 +22,6 @@ package coffeepot.bean.wr.typeHandler;
  * limitations under the License.
  * #L%
  */
-
-
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -90,7 +88,6 @@ public class TypeHandlerFactoryImpl implements TypeHandlerFactory {
                 throw ex;
             }
         }
-
 
         Class<? extends TypeHandler> defHandler = defaultHandlers.get(forClass);
         if (defHandler != null) {

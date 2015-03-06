@@ -22,8 +22,6 @@ package coffeepot.bean.wr.annotation;
  * limitations under the License.
  * #L%
  */
-
-
 import coffeepot.bean.wr.typeHandler.DefaultHandler;
 import coffeepot.bean.wr.typeHandler.TypeHandler;
 import coffeepot.bean.wr.types.AccessorType;
@@ -41,14 +39,14 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.ANNOTATION_TYPE})
 @Documented
-public @interface Field{
+public @interface Field {
 
     String name();
 
     String constantValue() default "";
 
     boolean id() default false;
-    
+
     int minLength() default 0;
 
     int maxLength() default 0;
@@ -84,6 +82,10 @@ public @interface Field{
     String[] params() default {};
 
     AccessorType accessorType() default AccessorType.DEFAULT;
-    
+
     boolean required() default true;
+
+    boolean ignoreOnRead() default false;
+
+    boolean ignoreOnWrite() default false;
 }

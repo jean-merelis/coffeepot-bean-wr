@@ -32,12 +32,12 @@ import coffeepot.bean.wr.annotation.Field;
  */
 public class Helpful {
 
-   
+
     public static FieldImpl toFieldImpl(Field nf) {
         FieldImpl f = new FieldImpl();
         f.setId(nf.id());
         f.setAccessorType(nf.accessorType());
-        f.setAlign(nf.align());        
+        f.setAlign(nf.align());
         f.setClassType(nf.classType());
         f.setCollection(false);
         f.setConstantValue(nf.constantValue());
@@ -48,17 +48,19 @@ public class Helpful {
         f.setName(nf.name());
         f.setPadding(nf.padding());
         f.setPaddingIfNullOrEmpty(nf.paddingIfNullOrEmpty());
-        f.setParams(nf.params());        
+        f.setParams(nf.params());
         f.setSetter(nf.setter());
         f.setTrim(nf.trim());
         f.setTypeHandler(nf.typeHandler());
         f.setRequired(nf.required());
+        f.setIgnoreOnRead(nf.ignoreOnRead());
+        f.setIgnoreOnWrite(nf.ignoreOnWrite());
         if (nf.length()> 0){
             f.setMinLength(nf.length());
             f.setMaxLength(nf.length());
         }
-        
-        
+
+
         return f;
     }
 
