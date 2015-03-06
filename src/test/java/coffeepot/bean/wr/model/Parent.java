@@ -3,6 +3,9 @@
  */
 package coffeepot.bean.wr.model;
 
+import coffeepot.bean.wr.annotation.Field;
+import coffeepot.bean.wr.annotation.Record;
+
 /*
  * #%L
  * coffeepot-bean-wr
@@ -22,14 +25,23 @@ package coffeepot.bean.wr.model;
  * limitations under the License.
  * #L%
  */
-
-
 /**
  *
  * @author Jeandeson O. Merelis
  */
+@Record(fields = {
+    @Field(name = "lastName")
+})
 public class Parent {
+
     protected String lastName;
+
+    public Parent() {
+    }
+
+    public Parent(String lastName) {
+        this.lastName = lastName;
+    }
 
     public String getLastName() {
         return lastName;

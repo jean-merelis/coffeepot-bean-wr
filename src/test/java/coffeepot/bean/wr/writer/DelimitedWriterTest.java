@@ -27,6 +27,7 @@ import coffeepot.bean.wr.model.Item;
 import coffeepot.bean.wr.model.ItemDet;
 import coffeepot.bean.wr.model.Job;
 import coffeepot.bean.wr.model.Order;
+import coffeepot.bean.wr.model.Parent;
 import coffeepot.bean.wr.model.Person;
 import coffeepot.bean.wr.typeHandler.TypeHandlerFactory;
 import coffeepot.bean.wr.writer.customHandler.LowStringHandler;
@@ -160,6 +161,120 @@ public class DelimitedWriterTest {
 
             line = reader.readLine();
             Assert.assertEquals("PERSON|john|5||0|", line);
+
+            line = reader.readLine();
+            Assert.assertEquals("PERSON|ana|5||0|", line);
+
+            line = reader.readLine();
+            Assert.assertEquals("PERSON|jean|5||2|", line);
+
+            line = reader.readLine();
+            Assert.assertEquals("initial\\\\first job|33|", line);
+
+            line = reader.readLine();
+            Assert.assertEquals("second job\\|escape test|66|", line);
+
+            line = reader.readLine();
+            Assert.assertEquals("3th job|99|", line);
+
+            line = reader.readLine();
+            Assert.assertEquals("4th job|bb|", line);
+
+            line = reader.readLine();
+            Assert.assertNull(line);
+
+        }
+
+    }
+    @Test
+    public void writePersonWithParentField() throws Exception {
+
+        File file = new File("TESTE_.tmp");
+        Writer w = new FileWriter(file);
+
+        DelimitedWriter instance = new DelimitedWriter(w);
+        instance.setDelimiter('|');
+        instance.setEscape('\\');
+        instance.setRecordInitializator("");
+        instance.setRecordTerminator("|\r\n");
+
+        //set new custom TypeHandler as default for a class
+        TypeHandlerFactory handlerFactory = instance.getObjectParserFactory().getHandlerFactory();
+        handlerFactory.registerTypeHandlerClassFor(DateTime.class, DateTimeHandler.class);
+
+        //set new custom TypeHandler as default for the class String
+        handlerFactory.registerTypeHandlerClassFor(String.class, LowStringHandler.class);
+
+        //set new custom TypeHandler as default for Enum
+        handlerFactory.registerTypeHandlerClassFor(Enum.class, Person.EncodedEnumHandler.class);
+
+        //instance.createParser(Person.class);
+        Person obj = new Person();
+        obj.setName("Jean");
+        obj.setAge(37);
+        obj.setLongNumber(Long.MIN_VALUE);
+//        obj.setBirthday(new Date());
+        obj.setJodaDateTime(DateTime.now());
+        obj.setSalary(5999.9);
+        obj.setGender(Person.Gender.MALE);
+
+        instance.write(obj);
+
+        obj = new Person();
+        obj.setName("John");
+        obj.setAge(14);
+        obj.setParent(new Parent("LastName"));
+        instance.write(obj);
+
+        obj = new Person();
+        obj.setName("Ana");
+        obj.setAge(11);
+        instance.write(obj);
+
+        obj = new Person();
+        obj.setName("Jean");
+        obj.setAge(37);
+
+        List<Child> chidren = new LinkedList<>();
+
+        Child child = new Child();
+        child.setName("John");
+        child.setAge(14);
+        chidren.add(child);
+
+        child = new Child();
+        child.setName("Ana");
+        child.setAge(11);
+        chidren.add(child);
+
+        obj.setChildren(chidren);
+
+        List<Job> jobs = new LinkedList<>();
+
+        jobs.add(new Job("initial\\First Job", "11", "22", "33"));
+        jobs.add(new Job("Second job|escape test", "44", "55", "66"));
+        jobs.add(new Job("3th job", "77", "88", "99"));
+        jobs.add(new Job("4th job", "00", "aa", "bb"));
+
+        obj.setJobs(jobs);
+        instance.write(obj);
+
+//        instance.clearParsers();
+//        instance.write(obj, "testGroupRecord");
+        w.flush();
+        w.close();
+
+        FileReader in = new FileReader(file);
+        try (BufferedReader reader = new BufferedReader(in)) {
+            String line;
+
+            line = reader.readLine();
+            Assert.assertEquals("PERSON|jean|5||0|", line);
+
+            line = reader.readLine();
+            Assert.assertEquals("PERSON|john|5||0|", line);
+            line = reader.readLine();
+            Assert.assertEquals("lastname|", line);
 
             line = reader.readLine();
             Assert.assertEquals("PERSON|ana|5||0|", line);

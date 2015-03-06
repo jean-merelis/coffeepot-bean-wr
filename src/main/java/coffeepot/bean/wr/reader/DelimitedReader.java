@@ -81,7 +81,8 @@ public class DelimitedReader implements ObjectReader {
 
     @Override
     public <T> T read(InputStream src, Class<T> clazz, String recordGroupId) {
-
+        getObjectMapperFactory().getIdsMap().clear();
+        getObjectMapperFactory().getParsers().clear();
         try {
             ObjectMapper om = getObjectMapperFactory().create(clazz, recordGroupId);
             if (getObjectMapperFactory().getIdsMap().isEmpty()) {
@@ -149,8 +150,8 @@ public class DelimitedReader implements ObjectReader {
         this.charsetName = charsetName;
     }
 
-    private InputStreamReader createInputStreamReader(InputStream src) throws UnsupportedEncodingException{
-        if (charsetName != null && !charsetName.isEmpty()){
+    private InputStreamReader createInputStreamReader(InputStream src) throws UnsupportedEncodingException {
+        if (charsetName != null && !charsetName.isEmpty()) {
             return new InputStreamReader(src, charsetName);
         }
         return new InputStreamReader(src);
@@ -195,7 +196,7 @@ public class DelimitedReader implements ObjectReader {
 
                 if (omm == null) {
                     if (!ignoreUnknownRecords) {
-                        throw new RuntimeException("The record with ID '" + nextRecord[ID_POSITION] + "' is unknown.");
+                        throw new UnknownRecordException("The record with ID '" + nextRecord[ID_POSITION] + "' is unknown.");
                     }
                 } else if (om.getRootClass().equals(omm.getRootClass())) {
                     readLine(reader);
@@ -327,7 +328,7 @@ public class DelimitedReader implements ObjectReader {
 
         if (om == null) {
             if (!ignoreUnknownRecords) {
-                throw new RuntimeException("The record with ID '" + currentRecord[ID_POSITION] + "' is unknown.");
+                throw new UnknownRecordException("The record with ID '" + currentRecord[ID_POSITION] + "' is unknown.");
             }
             return null;
         }
@@ -343,7 +344,7 @@ public class DelimitedReader implements ObjectReader {
 
         int i = 0;
         for (FieldImpl f : mappedFields) {
-            if (!f.getConstantValue().isEmpty()) {
+            if (!f.getConstantValue().isEmpty() || f.isIgnoreOnRead()) {
                 i++;
                 continue;
             }
@@ -399,7 +400,7 @@ public class DelimitedReader implements ObjectReader {
         List<FieldImpl> mappedFields = om.getMappedFields();
         int i = 0;
         for (FieldImpl f : mappedFields) {
-            if (!f.getConstantValue().isEmpty()) {
+            if (!f.getConstantValue().isEmpty() || f.isIgnoreOnRead()) {
                 i++;
                 continue;
             }

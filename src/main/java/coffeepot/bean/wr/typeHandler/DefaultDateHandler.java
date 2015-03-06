@@ -34,26 +34,23 @@ import java.util.Date;
 public class DefaultDateHandler implements TypeHandler<Date> {
 
     protected SimpleDateFormat dateFormat;
-    protected static final String DEFAULT;
+
+    protected String pattern;
+
     protected static String patternDefault;
-    protected static String patternForDate;
-    protected static String patternForTime;
-    protected static String patternForDateTime;
+    protected static String patternForDateDefault;
+    protected static String patternForTimeDefault;
+    protected static String patternForDateTimeDefault;
 
     static {
-        DEFAULT = "yyyy-MM-dd'T'HH:mm:ss";
-        patternDefault = DEFAULT;
-        patternForDate = "yyyy-MM-dd";
-        patternForTime = "HH:mm:ss";
-        patternForDateTime = DEFAULT;
+        patternDefault = "yyyy-MM-dd'T'HH:mm:ss";
+        patternForDateDefault = "yyyy-MM-dd";
+        patternForTimeDefault = "HH:mm:ss";
+        patternForDateTimeDefault = patternDefault;
     }
 
     public DefaultDateHandler() {
-        if (patternDefault == null) {
-            dateFormat = new SimpleDateFormat(DEFAULT);
-        } else {
-            dateFormat = new SimpleDateFormat(patternDefault);
-        }
+        setDefaultValues();
     }
 
     @Override
@@ -82,7 +79,7 @@ public class DefaultDateHandler implements TypeHandler<Date> {
     @Override
     public void setConfig(String[] params) {
         if (params == null || params.length == 0) {
-            resetPatterns();
+            setDefaultValues();
             return;
         }
         for (String s : params) {
@@ -96,28 +93,27 @@ public class DefaultDateHandler implements TypeHandler<Date> {
             }
             switch (key) {
                 case "date":
-                    dateFormat = new SimpleDateFormat(patternForDate);
+                    pattern = patternForDateDefault;
                     break;
                 case "time":
-                    dateFormat = new SimpleDateFormat(patternForTime);
+                    pattern = patternForTimeDefault;
                     break;
                 case "datetime":
-                    dateFormat = new SimpleDateFormat(patternForDateTime);
+                    pattern = patternForDateTimeDefault;
                     break;
                 case "pattern":
-                    dateFormat = new SimpleDateFormat(value);
+                    pattern = value;
                     break;
                 default:
-                    dateFormat = new SimpleDateFormat(value);
+                    pattern = value;
             }
         }
+        dateFormat = new SimpleDateFormat(pattern);
     }
 
-    public static void resetPatterns() {
-        patternForDate = "yyyy-MM-dd";
-        patternForTime = "HH:mm:ss";
-        patternDefault = "yyyy-MM-dd'T'HH:mm:ss";
-        patternForDateTime = DEFAULT;        
+    private void setDefaultValues() {
+        pattern = patternDefault;
+        dateFormat = new SimpleDateFormat(pattern);
     }
 
     public static String getPatternDefault() {
@@ -128,28 +124,28 @@ public class DefaultDateHandler implements TypeHandler<Date> {
         DefaultDateHandler.patternDefault = patternDefault;
     }
 
-    public static String getPatternForDate() {
-        return patternForDate;
+    public static String getPatternForDateDefault() {
+        return patternForDateDefault;
     }
 
-    public static void setPatternForDate(String patternForDate) {
-        DefaultDateHandler.patternForDate = patternForDate;
+    public static void setPatternForDateDefault(String patternForDateDefault) {
+        DefaultDateHandler.patternForDateDefault = patternForDateDefault;
     }
 
-    public static String getPatternForTime() {
-        return patternForTime;
+    public static String getPatternForTimeDefault() {
+        return patternForTimeDefault;
     }
 
-    public static void setPatternForTime(String patternForTime) {
-        DefaultDateHandler.patternForTime = patternForTime;
+    public static void setPatternForTimeDefault(String patternForTimeDefault) {
+        DefaultDateHandler.patternForTimeDefault = patternForTimeDefault;
     }
 
-    public static String getPatternForDateTime() {
-        return patternForDateTime;
+    public static String getPatternForDateTimeDefault() {
+        return patternForDateTimeDefault;
     }
 
-    public static void setPatternForDateTime(String patternForDateTime) {
-        DefaultDateHandler.patternForDateTime = patternForDateTime;
+    public static void setPatternForDateTimeDefault(String patternForDateTimeDefault) {
+        DefaultDateHandler.patternForDateTimeDefault = patternForDateTimeDefault;
     }
 
 }

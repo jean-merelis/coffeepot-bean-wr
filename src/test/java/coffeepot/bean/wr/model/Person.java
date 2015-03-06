@@ -52,9 +52,10 @@ import org.joda.time.DateTime;
         @Field(name = "name"),
         @Field(name = "age"),
         @Field(name = "birthday", params = {"dd/MM/yyyy"}),
-        @Field(name = "", getter = "childrenCount", classType = Integer.class),        
+        @Field(name = "", getter = "childrenCount", classType = Integer.class),
+        @Field(name = "parent"), //<< creates a new record
         //Jobs in list
-        @Field(name = "jobs")
+        @Field(name = "jobs")//<< each item creates a new record
     }),
     @Record(forFormat = FormatType.FIXED_LENGTH,
             accessorType = AccessorType.FIELD,
@@ -93,6 +94,8 @@ public class Person extends Parent {
     private Double salary;
 
     private Gender gender;
+
+    private Parent  parent;
 
     private List<Job> jobs;
 
@@ -179,6 +182,14 @@ public class Person extends Parent {
 
     public void setAge(int age) {
         this.age = age;
+    }
+
+    public Parent getParent() {
+        return parent;
+    }
+
+    public void setParent(Parent parent) {
+        this.parent = parent;
     }
 
     public Integer childrenCount() {
