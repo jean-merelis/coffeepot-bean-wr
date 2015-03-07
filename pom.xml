@@ -4,7 +4,7 @@
 
     <groupId>coffeepot</groupId>
     <artifactId>coffeepot-bean-wr</artifactId>
-    <version>1.1-RC1</version>
+    <version>1.1.0-RC1</version>
     <packaging>jar</packaging>
 
     <name>coffeepot-bean-wr</name>

@@ -152,7 +152,7 @@ public class ObjectMapper {
             mappedField.setClassType(String.class);
             if (f.isId()) {
                 ObjectMapper old = factory.getIdsMap().put(f.getConstantValue().trim(), this);
-                if (old != null) {
+                if (old != null && !old.getRootClass().equals(this.rootClass)) {
                     throw new IllegalStateException("Conflict mapping ids. There is already a class mapped to the id '"
                             + f.getConstantValue() + "' -\n" + old.getRootClass().getName() + "\n-" + clazz.getName());
                 }
