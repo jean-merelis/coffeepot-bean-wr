@@ -1,7 +1,7 @@
 /*
  * Copyright 2013 - Jeandeson O. Merelis
  */
-package coffeepot.bean.wr.parser;
+package coffeepot.bean.wr.mapper;
 
 /*
  * #%L
@@ -151,7 +151,7 @@ public class ObjectMapper {
         if (!"".equals(f.getConstantValue())) {
             mappedField.setClassType(String.class);
             if (f.isId()) {
-                ObjectMapper old = factory.getIdsMap().put(f.getConstantValue(), this);
+                ObjectMapper old = factory.getIdsMap().put(f.getConstantValue().trim(), this);
                 if (old != null) {
                     throw new IllegalStateException("Conflict mapping ids. There is already a class mapped to the id '"
                             + f.getConstantValue() + "' -\n" + old.getRootClass().getName() + "\n-" + clazz.getName());

@@ -34,21 +34,34 @@ package coffeepot.bean.wr.model;
  * limitations under the License.
  * #L%
  */
-
 import coffeepot.bean.wr.annotation.Field;
 import coffeepot.bean.wr.annotation.Record;
+import coffeepot.bean.wr.annotation.Records;
+import coffeepot.bean.wr.types.Align;
+import coffeepot.bean.wr.types.FormatType;
 import java.util.List;
 
 /**
  *
  * @author Jeandeson O. Merelis
  */
-@Record(fields = {
-    @Field(name = "ID", id = true, constantValue = "ITEM"),
-    @Field(name = "number"),
-    @Field(name = "product"),
-    @Field(name = "quantity"),
-    @Field(name = "details"),})
+@Records({
+    @Record(fields = {
+        @Field(name = "ID", id = true, constantValue = "ITEM"),
+        @Field(name = "number"),
+        @Field(name = "product"),
+        @Field(name = "quantity"),
+        @Field(name = "details")
+    }),
+    @Record(forFormat = FormatType.FIXED_LENGTH,
+            fields = {
+                @Field(name = "ID", id = true, constantValue = "ITEM", length = 5),
+                @Field(name = "number", length = 3, align = Align.RIGHT, padding = '0'),
+                @Field(name = "product", length = 20),
+                @Field(name = "quantity", length = 5, align = Align.RIGHT, padding = '0'),
+                @Field(name = "details")
+            })
+})
 public class Item {
 
     private int number;

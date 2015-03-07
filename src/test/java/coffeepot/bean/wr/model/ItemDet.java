@@ -34,19 +34,28 @@ package coffeepot.bean.wr.model;
  * limitations under the License.
  * #L%
  */
-
 import coffeepot.bean.wr.annotation.Field;
 import coffeepot.bean.wr.annotation.Record;
+import coffeepot.bean.wr.annotation.Records;
+import coffeepot.bean.wr.types.FormatType;
 
 /**
  *
  * @author Jeandeson O. Merelis
  */
-@Record(fields={
-    @Field(name="ID", id = true, constantValue = "DET"),
-    @Field(name="note")
+@Records({
+    @Record(fields = {
+        @Field(name = "ID", id = true, constantValue = "DET"),
+        @Field(name = "note")
+    }),
+    @Record(forFormat = FormatType.FIXED_LENGTH,
+            fields = {
+                @Field(name = "ID", id = true, constantValue = "DET", length = 5),
+                @Field(name = "note", length = 40)
+            })
 })
 public class ItemDet {
+
     private String note;
 
     public ItemDet() {
@@ -56,8 +65,6 @@ public class ItemDet {
         this.note = note;
     }
 
-    
-    
     public String getNote() {
         return note;
     }

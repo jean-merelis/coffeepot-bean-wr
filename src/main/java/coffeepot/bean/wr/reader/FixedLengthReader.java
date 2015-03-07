@@ -34,82 +34,84 @@ package coffeepot.bean.wr.reader;
  * limitations under the License.
  * #L%
  */
+import coffeepot.bean.wr.mapper.FieldImpl;
+import coffeepot.bean.wr.mapper.ObjectMapper;
 import coffeepot.bean.wr.mapper.ObjectMapperFactory;
 import coffeepot.bean.wr.types.FormatType;
 import java.io.BufferedReader;
-import java.util.regex.Pattern;
+import java.util.Iterator;
 
 /**
  *
  * @author Jeandeson O. Merelis
  */
-public class DelimitedReader extends AbstractReader {
+public class FixedLengthReader extends AbstractReader {
 
-    protected final static int ID_POSITION = 0;
-    protected char delimiter = ';';
-    private Character escape;
-    private String regexSplit;
-    private String escOld;
-    private String escNew;
-    private String delimOld;
-    private String delimNew;
-
-    protected String[] currentRecord;
-    protected String[] nextRecord;
-
-    private final ObjectMapperFactory mapperFactory = new ObjectMapperFactory(FormatType.DELIMITED);
+    private final ObjectMapperFactory mapperFactory = new ObjectMapperFactory(FormatType.FIXED_LENGTH);
+    private int idStart;
+    private int idLength;
+    private boolean objectById; //
 
     @Override
     public ObjectMapperFactory getObjectMapperFactory() {
         return mapperFactory;
     }
 
-    public char getDelimiter() {
-        return delimiter;
+    @Override
+    protected void beforeUnmarshal() {
+        objectById = !mapperFactory.getIdsMap().isEmpty();
+        if (objectById) {
+            ObjectMapper om = mapperFactory.getIdsMap().values().iterator().next();
+            Iterator<FieldImpl> it = om.getMappedFields().iterator();
+            int pos = 0;
+            while (it.hasNext()) {
+                FieldImpl f = it.next();
+                if (f.isId()) {
+                    idStart = pos;
+                    idLength = f.getLength();
+                    break;
+                }
+                pos = pos + f.getLength();
+            }
+        }
     }
 
-    public void setDelimiter(char delimiter) {
-        this.delimiter = delimiter;
-    }
-
-    public Character getEscape() {
-        return escape;
-    }
-
-    public void setEscape(Character escape) {
-        this.escape = escape;
-    }
+    private String current;
+    private String next;
+    private String[] currentRecord;
 
     @Override
     protected void clear() {
         super.clear();
+        current = null;
+        next = null;
         currentRecord = null;
-        nextRecord = null;
     }
 
     @Override
-    protected void config() {
-        String delim = "" + delimiter;
-        if (escape != null) {
-            String esc = String.valueOf(escape);
-            regexSplit = "(?<!" + Pattern.quote(esc) + ")" + Pattern.quote(delim);
-
-            escOld = esc + esc;
-            escNew = esc;
-
-            delimOld = esc + delim;
-            delimNew = delim;
-        } else {
-            regexSplit = Pattern.quote(delim);
+    protected void beforeFill(ObjectMapper om) {
+        currentRecord = new String[om.getMappedFields().size()];
+        int idx = 0;
+        int pos = 0;
+        int endIdx;
+        Iterator<FieldImpl> it = om.getMappedFields().iterator();
+        while (it.hasNext()){
+            FieldImpl f = it.next();
+            endIdx = pos + f.getLength();
+            currentRecord[idx] = current.substring(pos, endIdx);
+            pos = endIdx;
+            idx++;
         }
     }
 
     @Override
     protected String getIdValue(boolean fromNext) {
-        if (fromNext) {
-            return nextRecord[ID_POSITION].trim();
+        if (objectById) {
+            String s = fromNext ? next.substring(idStart, idStart + idLength) : current.substring(idStart, idStart + idLength);
+            return s.trim();
+        } else {
+            return null;
         }
-        return currentRecord[ID_POSITION].trim();
     }
 
     @Override
@@ -119,21 +121,21 @@ public class DelimitedReader extends AbstractReader {
 
     @Override
     protected void readLine(BufferedReader reader) throws Exception {
-        currentRecord = nextRecord;
-        nextRecord = getNextRecord(reader);
+        current = next;
+        next = getNextRecord(reader);
     }
 
     @Override
     protected boolean currentRecordIsNull() {
-        return currentRecord == null;
+        return current == null;
     }
 
     @Override
     protected boolean hasNext() {
-        return nextRecord != null;
+        return next != null;
     }
 
-    protected String[] getNextRecord(BufferedReader reader) throws Exception {
+    protected String getNextRecord(BufferedReader reader) throws Exception {
         String line = null;
         while (true) {
             line = reader.readLine();
@@ -143,8 +145,8 @@ public class DelimitedReader extends AbstractReader {
 
             actualLine++;
 
-            line = line.trim();
-            if (!line.isEmpty()) {
+            String s = line.trim();
+            if (!s.isEmpty()) {
                 break;
             }
         }
@@ -155,16 +157,7 @@ public class DelimitedReader extends AbstractReader {
             }
         }
 
-        String[] values = line.split(regexSplit);
-
-        if (escape != null) {
-            for (int i = 0; i < values.length; i++) {
-                values[i] = values[i].replace(escOld, escNew);
-                values[i] = values[i].replace(delimOld, delimNew);
-            }
-        }
-
-        return values;
+        return line;
     }
 
 }

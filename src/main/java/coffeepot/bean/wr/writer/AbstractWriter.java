@@ -34,10 +34,10 @@ package coffeepot.bean.wr.writer;
  * limitations under the License.
  * #L%
  */
-import coffeepot.bean.wr.parser.FieldImpl;
-import coffeepot.bean.wr.parser.ObjectMapper;
-import coffeepot.bean.wr.parser.ObjectMapperFactory;
-import coffeepot.bean.wr.parser.UnresolvedObjectMapperException;
+import coffeepot.bean.wr.mapper.FieldImpl;
+import coffeepot.bean.wr.mapper.ObjectMapper;
+import coffeepot.bean.wr.mapper.ObjectMapperFactory;
+import coffeepot.bean.wr.mapper.UnresolvedObjectMapperException;
 import coffeepot.bean.wr.types.Align;
 import java.io.IOException;
 import java.io.Writer;

@@ -34,9 +34,11 @@ package coffeepot.bean.wr.model;
  * limitations under the License.
  * #L%
  */
-
 import coffeepot.bean.wr.annotation.Field;
 import coffeepot.bean.wr.annotation.Record;
+import coffeepot.bean.wr.annotation.Records;
+import coffeepot.bean.wr.types.Align;
+import coffeepot.bean.wr.types.FormatType;
 import java.util.Date;
 import java.util.List;
 
@@ -44,14 +46,25 @@ import java.util.List;
  *
  * @author Jeandeson O. Merelis
  */
-@Record(fields={
-    @Field(name="ID", id=true, constantValue = "ORDER"),
-    @Field(name="id"),
-    @Field(name="date"),
-    @Field(name="customer"),
-    @Field(name="items")
+@Records({
+    @Record(fields = {
+        @Field(name = "ID", id = true, constantValue = "ORDER"),
+        @Field(name = "id"),
+        @Field(name = "date"),
+        @Field(name = "customer"),
+        @Field(name = "items")
+    }),
+    @Record(forFormat = FormatType.FIXED_LENGTH,
+            fields = {
+                @Field(name = "ID", id = true, constantValue = "ORDER", length = 5),
+                @Field(name = "id", length = 5, align = Align.RIGHT, padding = '0'),
+                @Field(name = "date", params = "ddMMyyyy", length = 8),
+                @Field(name = "customer", length = 30),
+                @Field(name = "items")
+            })
 })
 public class Order {
+
     private Integer id;
     private Date date;
     private String customer;

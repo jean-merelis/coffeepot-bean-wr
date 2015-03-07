@@ -1,7 +1,7 @@
 /*
  * Copyright 2013 - Jeandeson O. Merelis
  */
-package coffeepot.bean.wr.parser;
+package coffeepot.bean.wr.mapper;
 
 /*
  * #%L

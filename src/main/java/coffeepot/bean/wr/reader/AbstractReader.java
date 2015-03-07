@@ -34,10 +34,9 @@ package coffeepot.bean.wr.reader;
  * limitations under the License.
  * #L%
  */
-
-import coffeepot.bean.wr.parser.FieldImpl;
-import coffeepot.bean.wr.parser.ObjectMapper;
-import coffeepot.bean.wr.parser.ObjectMapperFactory;
+import coffeepot.bean.wr.mapper.FieldImpl;
+import coffeepot.bean.wr.mapper.ObjectMapper;
+import coffeepot.bean.wr.mapper.ObjectMapperFactory;
 import coffeepot.bean.wr.typeHandler.HandlerParseException;
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -59,14 +58,12 @@ import java.util.logging.Logger;
  */
 public abstract class AbstractReader implements ObjectReader {
 
-    protected final static int ID_POSITION = 0;
     protected String charsetName;
     protected boolean ignoreUnknownRecords;
     protected boolean removeRecordInitializator = true;
+    protected boolean trim = true;
     protected String recordInitializator;
     protected int actualLine;
-    protected String[] currentRecord;
-    protected String[] nextRecord;
 
     public abstract ObjectMapperFactory getObjectMapperFactory();
 
@@ -80,11 +77,7 @@ public abstract class AbstractReader implements ObjectReader {
 
     @Override
     public <T> T read(InputStream src, Class<T> clazz, String recordGroupId) {
-        getObjectMapperFactory().getIdsMap().clear();
-        getObjectMapperFactory().getMappers().clear();
-        currentRecord = null;
-        nextRecord = null;
-        actualLine = 0;
+        clear();
         config();
         try {
             ObjectMapper om = getObjectMapperFactory().create(clazz, recordGroupId);
@@ -92,11 +85,11 @@ public abstract class AbstractReader implements ObjectReader {
                 if (om == null) {
                     throw new RuntimeException("Unable to map the class");
                 }
-                return unmarshalSingleClass(src, clazz, om);
+                return unmarshalWithoutId(src, clazz, om);
             }
             return unmarshal(src, clazz);
         } catch (Exception ex) {
-            Logger.getLogger(DelimitedReader.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DelimitedReader.class.getName()).log(Level.SEVERE, "Line: " + actualLine, ex);
             throw new RuntimeException(ex);
         }
     }
@@ -111,6 +104,12 @@ public abstract class AbstractReader implements ObjectReader {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    protected void clear() {
+        getObjectMapperFactory().getIdsMap().clear();
+        getObjectMapperFactory().getMappers().clear();
+        actualLine = 0;
+    }
+
     protected InputStreamReader createInputStreamReader(InputStream src) throws UnsupportedEncodingException {
         if (charsetName != null && !charsetName.isEmpty()) {
             return new InputStreamReader(src, charsetName);
@@ -118,13 +117,19 @@ public abstract class AbstractReader implements ObjectReader {
         return new InputStreamReader(src);
     }
 
-    private void readLine(BufferedReader reader) throws Exception {
-        currentRecord = nextRecord;
-        nextRecord = getNextRecord(reader);
+    protected abstract void readLine(BufferedReader reader) throws Exception;
+
+//    protected abstract String[] getNextRecord(BufferedReader reader) throws Exception;
+    protected void beforeUnmarshal() {
     }
 
-    protected abstract String[] getNextRecord(BufferedReader reader) throws Exception;
-    protected void beforeUnmarshal(){}
+    protected abstract String getIdValue(boolean fromNext);
+
+    protected abstract String getValueByIndex(int idx);
+
+    protected abstract boolean currentRecordIsNull();
+
+    protected abstract boolean hasNext();
 
     private <T> T unmarshal(InputStream src, Class<T> clazz) throws Exception {
         beforeUnmarshal();
@@ -134,14 +139,14 @@ public abstract class AbstractReader implements ObjectReader {
 
             if (Collection.class.isAssignableFrom(clazz)) {
                 readLine(reader);
-                if (currentRecord == null && nextRecord != null) {
+                if (currentRecordIsNull() && hasNext()) {
                     readLine(reader);
                 }
-                if (currentRecord == null) {
+                if (currentRecordIsNull()) {
                     return null;
                 }
                 product = clazz.newInstance();
-                while (currentRecord != null) {
+                while (!currentRecordIsNull()) {
                     Object o = processRecord(reader);
                     if (o != null) {
                         ((Collection) product).add(o);
@@ -151,17 +156,17 @@ public abstract class AbstractReader implements ObjectReader {
                 return product;
             } else {
                 readLine(reader);
-                if (nextRecord == null) {
+                if (!hasNext()) {
                     return null;
                 }
 
                 //Check if clazz is a wrapper
                 ObjectMapper om = getObjectMapperFactory().getMappers().get(clazz);
-                ObjectMapper omm = getObjectMapperFactory().getIdsMap().get(nextRecord[ID_POSITION]);
+                ObjectMapper omm = getObjectMapperFactory().getIdsMap().get(getIdValue(true));
 
                 if (omm == null) {
                     if (!ignoreUnknownRecords) {
-                        throw new UnknownRecordException("The record with ID '" + nextRecord[ID_POSITION] + "' is unknown.");
+                        throw new UnknownRecordException("The record with ID '" + getIdValue(true) + "' is unknown.");
                     }
                 } else if (om.getRootClass().equals(omm.getRootClass())) {
                     readLine(reader);
@@ -177,7 +182,7 @@ public abstract class AbstractReader implements ObjectReader {
     }
 
     //for single class
-    private <T> T unmarshalSingleClass(InputStream src, Class<T> clazz, ObjectMapper om) throws Exception {
+    private <T> T unmarshalWithoutId(InputStream src, Class<T> clazz, ObjectMapper om) throws Exception {
         beforeUnmarshal();
         T product;
 
@@ -185,15 +190,15 @@ public abstract class AbstractReader implements ObjectReader {
 
             if (Collection.class.isAssignableFrom(clazz)) {
                 readLine(reader);
-                if (currentRecord == null && nextRecord != null) {
+                if (currentRecordIsNull() && hasNext()) {
                     readLine(reader);
                 }
-                if (currentRecord == null) {
+                if (currentRecordIsNull()) {
                     return null;
                 }
                 product = clazz.newInstance();
-                while (currentRecord != null) {
-                    Object o = processRecordForSingleClass(reader, om);
+                while (!currentRecordIsNull()) {
+                    Object o = processRecordWithoutId(reader, om);
                     if (o != null) {
                         ((Collection) product).add(o);
                     }
@@ -202,7 +207,7 @@ public abstract class AbstractReader implements ObjectReader {
                 return product;
             } else {
                 readLine(reader);
-                if (nextRecord == null) {
+                if (!hasNext()) {
                     return null;
                 }
 
@@ -213,15 +218,18 @@ public abstract class AbstractReader implements ObjectReader {
                 //--
 
                 product = clazz.newInstance();
-                fillSingleClass(product, om, reader);
+                fillWithoutId(product, om, reader);
                 return product;
             }
 
         }
     }
 
-    protected void fill(Object product, ObjectMapper om, BufferedReader reader) throws Exception {
+    protected void beforeFill(ObjectMapper om) {
+    }
 
+    protected void fill(Object product, ObjectMapper om, BufferedReader reader) throws Exception {
+        beforeFill(om);
         List<FieldImpl> mappedFields = om.getMappedFields();
 
         int i = 0;
@@ -234,36 +242,50 @@ public abstract class AbstractReader implements ObjectReader {
 
             if (!f.isCollection() && !f.isNestedObject() && f.getTypeHandler() != null) {
                 try {
-                    Object value = f.getTypeHandler().parse(currentRecord[i]);
+                    String v = trim ? getValueByIndex(i).trim() : getValueByIndex(i);
+                    Object value = f.getTypeHandler().parse(v);
                     setValue(product, value, f);
                 } catch (HandlerParseException ex) {
                     throw new HandlerParseException("Line: " + actualLine + ", field: " + (i + 1), ex);
                 }
             } else if (f.isCollection()) {
-                if (nextRecord != null) {
+                if (hasNext()) {
                     //se o proximo registro é um objeto desta collection
-                    String nextId = nextRecord[ID_POSITION];
+                    String nextId = getIdValue(true);
                     ObjectMapper mc = getObjectMapperFactory().getIdsMap().get(nextId);
-                    if (mc.getRootClass().equals(f.getClassType())) {
-                        Collection c = getCollection(product, f);
-                        do {
-                            readLine(reader);
-                            Object r = processRecord(reader);
-                            if (r != null) {
-                                c.add(r);
-                            }
-                        } while (nextRecord != null && nextRecord[ID_POSITION].equals(nextId));
+                    if (mc == null) {
+                        if (!ignoreUnknownRecords) {
+                            throw new UnknownRecordException("The record with ID '" + nextId + "' is unknown. Line:" + actualLine);
+                        }
+                    } else {
+
+                        if (mc.getRootClass().equals(f.getClassType())) {
+                            Collection c = getCollection(product, f);
+                            do {
+                                readLine(reader);
+                                Object r = processRecord(reader);
+                                if (r != null) {
+                                    c.add(r);
+                                }
+                            } while (hasNext() && getIdValue(true).equals(nextId));
+                        }
                     }
                 }
 
-            } else if (f.isNestedObject() && nextRecord != null) {
+            } else if (f.isNestedObject() && hasNext()) {
                 //se o proximo registro é um objeto deste mesmo tipo
-                String nextId = nextRecord[ID_POSITION];
+                String nextId = getIdValue(true);
                 ObjectMapper mc = getObjectMapperFactory().getIdsMap().get(nextId);
-                if (mc.getRootClass().equals(f.getClassType())) {
-                    readLine(reader);
-                    Object r = processRecord(reader);
-                    setValue(product, r, f);
+                if (mc == null) {
+                    if (!ignoreUnknownRecords) {
+                        throw new UnknownRecordException("The record with ID '" + nextId + "' is unknown. Line:" + actualLine);
+                    }
+                } else {
+                    if (mc.getRootClass().equals(f.getClassType())) {
+                        readLine(reader);
+                        Object r = processRecord(reader);
+                        setValue(product, r, f);
+                    }
                 }
             }
 
@@ -272,7 +294,9 @@ public abstract class AbstractReader implements ObjectReader {
 
     }
 
-    protected void fillSingleClass(Object product, ObjectMapper om, BufferedReader reader) throws Exception {
+    protected void fillWithoutId(Object product, ObjectMapper om, BufferedReader reader) throws Exception {
+        beforeFill(om);
+
         List<FieldImpl> mappedFields = om.getMappedFields();
         int i = 0;
 
@@ -285,13 +309,14 @@ public abstract class AbstractReader implements ObjectReader {
             if (!f.isCollection() && !f.isNestedObject() && f.getTypeHandler() != null) {
 
                 try {
-                    Object value = f.getTypeHandler().parse(currentRecord[i]);
+                    String v = trim ? getValueByIndex(i).trim() : getValueByIndex(i);
+                    Object value = f.getTypeHandler().parse(v);
                     setValue(product, value, f);
                 } catch (HandlerParseException ex) {
                     throw new HandlerParseException("Line: " + actualLine + ", field: " + (i + 1), ex);
                 }
             } else if (f.isCollection()) {
-                if (nextRecord != null) {
+                if (hasNext()) {
                     //Desde que o root nao seja uma collection, o objeto poderá ter uma collection, mas somente uma e deve ser o último a ser processado
                     //if the root is not one collection, the object may have a collection, but only one and should be the last to be processed
                     ObjectMapper oc = getObjectMapperFactory().getMappers().get(f.getClassType());
@@ -299,19 +324,19 @@ public abstract class AbstractReader implements ObjectReader {
                         Collection c = getCollection(product, f);
                         do {
                             readLine(reader);
-                            Object r = processRecordForSingleClass(reader, oc);
+                            Object r = processRecordWithoutId(reader, oc);
                             if (r != null) {
                                 c.add(r);
                             }
-                        } while (nextRecord != null);
+                        } while (hasNext());
                     }
                 }
 
-            } else if (f.isNestedObject() && nextRecord != null) {
+            } else if (f.isNestedObject() && hasNext()) {
                 ObjectMapper oc = getObjectMapperFactory().getMappers().get(f.getClassType());
                 if (oc != null) {
                     readLine(reader);
-                    Object r = processRecordForSingleClass(reader, oc);
+                    Object r = processRecordWithoutId(reader, oc);
                     setValue(product, r, f);
                 }
             }
@@ -322,15 +347,15 @@ public abstract class AbstractReader implements ObjectReader {
 
     private Object processRecord(BufferedReader reader) throws Exception {
 
-        if (currentRecord == null) {
+        if (currentRecordIsNull()) {
             return null;
         }
 
-        ObjectMapper om = getObjectMapperFactory().getIdsMap().get(currentRecord[ID_POSITION]);
+        ObjectMapper om = getObjectMapperFactory().getIdsMap().get(getIdValue(false));
 
         if (om == null) {
             if (!ignoreUnknownRecords) {
-                throw new UnknownRecordException("The record with ID '" + currentRecord[ID_POSITION] + "' is unknown. Line:" + actualLine);
+                throw new UnknownRecordException("The record with ID '" + getIdValue(false) + "' is unknown. Line:" + actualLine);
             }
             return null;
         }
@@ -340,14 +365,14 @@ public abstract class AbstractReader implements ObjectReader {
         return product;
     }
 
-    private Object processRecordForSingleClass(BufferedReader reader, ObjectMapper om) throws Exception {
+    private Object processRecordWithoutId(BufferedReader reader, ObjectMapper om) throws Exception {
 
-        if (currentRecord == null) {
+        if (currentRecordIsNull()) {
             return null;
         }
 
         Object product = om.getRootClass().newInstance();
-        fillSingleClass(product, om, reader);
+        fillWithoutId(product, om, reader);
         return product;
     }
 
@@ -497,6 +522,26 @@ public abstract class AbstractReader implements ObjectReader {
 
     public void setRecordInitializator(String recordInitializator) {
         this.recordInitializator = recordInitializator;
+    }
+
+    /**
+     * If {@code true} then the values are trimmed before being analyzed by the handler.
+     * Default is {@code true}.
+     *
+     * @return
+     */
+    public boolean isTrim() {
+        return trim;
+    }
+
+    /**
+     * If {@code true} then the values are trimmed before being analyzed by the handler.
+     * Default is {@code true}.
+     *
+     * @param trim
+     */
+    public void setTrim(boolean trim) {
+        this.trim = trim;
     }
 
 }

@@ -23,7 +23,7 @@ package coffeepot.bean.wr.writer;
  * #L%
  */
 import coffeepot.bean.wr.types.FormatType;
-import coffeepot.bean.wr.parser.ObjectMapperFactory;
+import coffeepot.bean.wr.mapper.ObjectMapperFactory;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Iterator;
