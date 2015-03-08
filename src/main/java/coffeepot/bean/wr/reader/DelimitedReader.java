@@ -155,7 +155,7 @@ public class DelimitedReader extends AbstractReader {
             }
         }
 
-        String[] values = line.split(regexSplit);
+        String[] values = line.split(regexSplit,-1);
 
         if (escape != null) {
             for (int i = 0; i < values.length; i++) {
