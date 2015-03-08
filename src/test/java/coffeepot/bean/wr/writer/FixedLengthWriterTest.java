@@ -141,7 +141,7 @@ public class FixedLengthWriterTest {
 
             line = reader.readLine();
             Assert.assertEquals(128, line.length());
-            Assert.assertEquals("jean                          merelis                       0000372015-03-21432adfd2143758082015-03-2105,999.9001FFFFFFF67890000", line);
+            Assert.assertEquals("jean                          merelis                       0000372015-03-21432adfd2143758082015-03-2105.999,9001FFFFFFF67890000", line);
 
             line = reader.readLine();
             Assert.assertEquals(128, line.length());
