@@ -31,7 +31,6 @@ import coffeepot.bean.wr.typeHandler.HandlerParseException;
 import coffeepot.bean.wr.types.AccessorType;
 import coffeepot.bean.wr.types.Align;
 import coffeepot.bean.wr.types.FormatType;
-import coffeepot.bean.wr.writer.customHandler.CustomDoubleHandler;
 import java.util.Date;
 import java.util.List;
 import org.joda.time.DateTime;
@@ -69,7 +68,7 @@ import org.joda.time.DateTime;
                 @Field(name = "testNumberOnly", length = 8, params = {DefaultStringHandler.PARAM_FILTER_NUMBER_LETTERS_ONLY}),
                 @Field(name = "longNumber", length = 5, align = Align.RIGHT),
                 @Field(name = "jodaDateTime", length = 10),
-                @Field(name = "salary", length = 10, align = Align.RIGHT, padding = '0', typeHandler = CustomDoubleHandler.class),
+                @Field(name = "salary", length = 10, align = Align.RIGHT, padding = '0'),
                 @Field(name = "gender", length = 1),
                 @Field(name = "filler", constantValue = "FFFFFFF"),
                 @Field(name = "filler", constantValue = "1234567890", length = 5, align = Align.RIGHT),

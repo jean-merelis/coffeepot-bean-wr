@@ -24,6 +24,7 @@ package coffeepot.bean.wr.writer;
  */
 import coffeepot.bean.wr.model.Child;
 import coffeepot.bean.wr.model.Person;
+import coffeepot.bean.wr.typeHandler.DefaultDoubleHandler;
 import coffeepot.bean.wr.typeHandler.TypeHandlerFactory;
 import coffeepot.bean.wr.writer.customHandler.DateTimeHandler;
 import coffeepot.bean.wr.writer.customHandler.LowStringHandler;
@@ -68,7 +69,7 @@ public class FixedLengthWriterTest {
     }
 
     //TODO: MORE TESTS
-    
+
     @Test
     public void testWrite() throws Exception {
         System.out.println("write");
@@ -89,6 +90,11 @@ public class FixedLengthWriterTest {
 
         //set new custom TypeHandler as default for Enum
         handlerFactory.registerTypeHandlerClassFor(Enum.class, Person.EncodedEnumHandler.class);
+
+
+        DefaultDoubleHandler.setPatternDefault("#,##0.000");
+        DefaultDoubleHandler.setDecimalSeparatorDefault(',');
+        DefaultDoubleHandler.setGroupingSeparatorDefault('.');
 
         Person obj = new Person();
         obj.setName("Jean");
@@ -141,7 +147,7 @@ public class FixedLengthWriterTest {
 
             line = reader.readLine();
             Assert.assertEquals(128, line.length());
-            Assert.assertEquals("jean                          merelis                       0000372015-03-21432adfd2143758082015-03-2105,999.9001FFFFFFF67890000", line);
+            Assert.assertEquals("jean                          merelis                       0000372015-03-21432adfd2143758082015-03-2105.999,9001FFFFFFF67890000", line);
 
             line = reader.readLine();
             Assert.assertEquals(128, line.length());

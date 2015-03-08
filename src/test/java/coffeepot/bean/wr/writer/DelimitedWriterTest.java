@@ -29,6 +29,7 @@ import coffeepot.bean.wr.model.Job;
 import coffeepot.bean.wr.model.Order;
 import coffeepot.bean.wr.model.Parent;
 import coffeepot.bean.wr.model.Person;
+import coffeepot.bean.wr.typeHandler.DefaultDoubleHandler;
 import coffeepot.bean.wr.typeHandler.TypeHandlerFactory;
 import coffeepot.bean.wr.writer.customHandler.LowStringHandler;
 import coffeepot.bean.wr.writer.customHandler.DateTimeHandler;
@@ -96,6 +97,9 @@ public class DelimitedWriterTest {
 
         //set new custom TypeHandler as default for Enum
         handlerFactory.registerTypeHandlerClassFor(Enum.class, Person.EncodedEnumHandler.class);
+
+        DefaultDoubleHandler.setDecimalSeparatorDefault(',');
+        DefaultDoubleHandler.setGroupingSeparatorDefault('.');
 
         //instance.createParser(Person.class);
         Person obj = new Person();

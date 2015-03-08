@@ -24,6 +24,8 @@ package coffeepot.bean.wr.typeHandler;
  */
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 
 /**
  *
@@ -31,14 +33,15 @@ import java.text.DecimalFormat;
  */
 public class DefaultBigDecimalHandler implements TypeHandler<BigDecimal> {
 
-    private DecimalFormat decimalFormat;
-    private String pattern;
-    private char decimalSeparator;
-    private char groupingSeparator;
+    protected DecimalFormat decimalFormat;
+    protected String pattern;
+    protected char decimalSeparator;
+    protected char groupingSeparator;
 
+    protected static Locale locale = Locale.getDefault();
     protected static String patternDefault = "#0.##########";
-    protected static char decimalSeparatorDefault = ((DecimalFormat) DecimalFormat.getInstance()).getDecimalFormatSymbols().getDecimalSeparator();
-    protected static char groupingSeparatorDefault = ((DecimalFormat) DecimalFormat.getInstance()).getDecimalFormatSymbols().getGroupingSeparator();
+    protected static char decimalSeparatorDefault = DecimalFormatSymbols.getInstance().getDecimalSeparator();
+    protected static char groupingSeparatorDefault = DecimalFormatSymbols.getInstance().getGroupingSeparator();
 
     public DefaultBigDecimalHandler() {
         setDefaultValues();
@@ -49,10 +52,10 @@ public class DefaultBigDecimalHandler implements TypeHandler<BigDecimal> {
         if (text == null || "".equals(text)) {
             return null;
         }
-        BigDecimal d;
+
         try {
             decimalFormat.setParseBigDecimal(true);
-            return  (BigDecimal) decimalFormat.parse(text);
+            return (BigDecimal) decimalFormat.parse(text);
         } catch (Exception ex) {
             throw new HandlerParseException(ex.getMessage());
         }
@@ -101,20 +104,33 @@ public class DefaultBigDecimalHandler implements TypeHandler<BigDecimal> {
                 }
             }
         }
-        decimalFormat = new DecimalFormat(pattern);
-        decimalFormat.setParseBigDecimal(true);
-        decimalFormat.getDecimalFormatSymbols().setDecimalSeparator(decimalSeparator);
-        decimalFormat.getDecimalFormatSymbols().setGroupingSeparator(groupingSeparator);
+
+        DecimalFormatSymbols dfs = new DecimalFormatSymbols(locale);
+        dfs.setDecimalSeparator(decimalSeparator);
+        dfs.setGroupingSeparator(groupingSeparator);
+        decimalFormat = new DecimalFormat(pattern, dfs);
     }
 
     private void setDefaultValues() {
         pattern = patternDefault;
-        decimalFormat = new DecimalFormat(pattern);
-        decimalFormat.setParseBigDecimal(true);
         decimalSeparator = decimalSeparatorDefault;
         groupingSeparator = groupingSeparatorDefault;
-        decimalFormat.getDecimalFormatSymbols().setDecimalSeparator(decimalSeparator);
-        decimalFormat.getDecimalFormatSymbols().setGroupingSeparator(groupingSeparator);
+
+        DecimalFormatSymbols dfs = new DecimalFormatSymbols(locale);
+        dfs.setDecimalSeparator(decimalSeparator);
+        dfs.setGroupingSeparator(groupingSeparator);
+        decimalFormat = new DecimalFormat(pattern, dfs);
+    }
+
+    public static Locale getLocale() {
+        return locale;
+    }
+
+    public void setLocale(Locale locale) {
+        if (locale == null) {
+            locale = Locale.getDefault();
+        }
+        DefaultBigDecimalHandler.locale = locale;
     }
 
     public static String getPatternDefault() {
@@ -140,5 +156,4 @@ public class DefaultBigDecimalHandler implements TypeHandler<BigDecimal> {
     public static void setGroupingSeparatorDefault(char groupingSeparatorDefault) {
         DefaultBigDecimalHandler.groupingSeparatorDefault = groupingSeparatorDefault;
     }
-
 }

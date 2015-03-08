@@ -22,29 +22,19 @@ package coffeepot.bean.wr.reader;
  * limitations under the License.
  * #L%
  */
-import coffeepot.bean.wr.model.Child;
 import coffeepot.bean.wr.writer.*;
 import coffeepot.bean.wr.model.Item;
 import coffeepot.bean.wr.model.ItemDet;
 import coffeepot.bean.wr.model.Order;
-import coffeepot.bean.wr.model.Person;
-import coffeepot.bean.wr.model.Read2;
 import coffeepot.bean.wr.model.SingleClass;
-import coffeepot.bean.wr.model.UnidentifiedObjWithList;
-import coffeepot.bean.wr.typeHandler.TypeHandlerFactory;
-import coffeepot.bean.wr.writer.customHandler.LowStringHandler;
-import coffeepot.bean.wr.writer.customHandler.DateTimeHandler;
-import java.io.BufferedReader;
+import coffeepot.bean.wr.typeHandler.DefaultDoubleHandler;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
-import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -80,6 +70,9 @@ public class FixedLengthReaderTest {
 
     @Test
     public void testRead() throws Exception {
+        DefaultDoubleHandler.setDecimalSeparatorDefault(',');
+        DefaultDoubleHandler.setGroupingSeparatorDefault('.');
+
         Order order = new Order();
         order.setCustomer("John B");
         order.setDate(new Date());
@@ -133,8 +126,11 @@ public class FixedLengthReaderTest {
 
     }
 
-@Test
+    @Test
     public void singleClassTest() throws Exception {
+        DefaultDoubleHandler.setDecimalSeparatorDefault(',');
+        DefaultDoubleHandler.setGroupingSeparatorDefault('.');
+        
         List<SingleClass> list = new ArrayList<>();
 
         SingleClass s;

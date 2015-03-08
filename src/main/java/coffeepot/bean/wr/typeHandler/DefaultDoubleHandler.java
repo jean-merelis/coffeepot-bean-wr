@@ -23,6 +23,8 @@ package coffeepot.bean.wr.typeHandler;
  * #L%
  */
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 
 /**
  *
@@ -35,9 +37,10 @@ public class DefaultDoubleHandler implements TypeHandler<Double> {
     protected char decimalSeparator;
     protected char groupingSeparator;
 
+    protected static Locale locale = Locale.getDefault();
     protected static String patternDefault = "#0.##########";
-    protected static char decimalSeparatorDefault = ((DecimalFormat) DecimalFormat.getInstance()).getDecimalFormatSymbols().getDecimalSeparator();
-    protected static char groupingSeparatorDefault = ((DecimalFormat) DecimalFormat.getInstance()).getDecimalFormatSymbols().getGroupingSeparator();
+    protected static char decimalSeparatorDefault = DecimalFormatSymbols.getInstance().getDecimalSeparator();
+    protected static char groupingSeparatorDefault = DecimalFormatSymbols.getInstance().getGroupingSeparator();
 
     public DefaultDoubleHandler() {
         setDefaultValues();
@@ -100,18 +103,33 @@ public class DefaultDoubleHandler implements TypeHandler<Double> {
                 }
             }
         }
-        decimalFormat = new DecimalFormat(pattern);
-        decimalFormat.getDecimalFormatSymbols().setDecimalSeparator(decimalSeparator);
-        decimalFormat.getDecimalFormatSymbols().setGroupingSeparator(groupingSeparator);
+
+        DecimalFormatSymbols dfs = new DecimalFormatSymbols(locale);
+        dfs.setDecimalSeparator(decimalSeparator);
+        dfs.setGroupingSeparator(groupingSeparator);
+        decimalFormat = new DecimalFormat(pattern, dfs);
     }
 
     private void setDefaultValues() {
         pattern = patternDefault;
-        decimalFormat = new DecimalFormat(pattern);
         decimalSeparator = decimalSeparatorDefault;
         groupingSeparator = groupingSeparatorDefault;
-        decimalFormat.getDecimalFormatSymbols().setDecimalSeparator(decimalSeparator);
-        decimalFormat.getDecimalFormatSymbols().setGroupingSeparator(groupingSeparator);
+
+        DecimalFormatSymbols dfs = new DecimalFormatSymbols(locale);
+        dfs.setDecimalSeparator(decimalSeparator);
+        dfs.setGroupingSeparator(groupingSeparator);
+        decimalFormat = new DecimalFormat(pattern, dfs);
+    }
+
+    public static Locale getLocale() {
+        return locale;
+    }
+
+    public void setLocale(Locale locale) {
+        if (locale == null) {
+            locale = Locale.getDefault();
+        }
+        DefaultDoubleHandler.locale = locale;
     }
 
     public static String getPatternDefault() {
