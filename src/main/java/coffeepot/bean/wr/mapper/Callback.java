@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package coffeepot.bean.wr.reader;
+package coffeepot.bean.wr.mapper;
 
 /*
  * #%L
@@ -34,32 +34,11 @@ package coffeepot.bean.wr.reader;
  * limitations under the License.
  * #L%
  */
-import coffeepot.bean.wr.mapper.Callback;
-import coffeepot.bean.wr.mapper.RecordModel;
-import coffeepot.bean.wr.mapper.UnresolvedObjectMapperException;
-import java.io.InputStream;
 
 /**
  *
  * @author Jeandeson O. Merelis
  */
-public interface ObjectReader {
-
-    public <T> T read(InputStream src, Class<T> clazz);
-
-    public <T> T read(InputStream src, Class<T> clazz, String recordGroupId);
-
-    public <T> T parse(String line, Class<T> clazz);
-
-    public <T> T parse(String line, Class<T> clazz, String recordGroupId);
-
-    public void clearMappers();
-
-    public Callback<Class, RecordModel> getCallback();
-
-    public void setCallback(Callback<Class, RecordModel> callback);
-
-    public void createMapper(Class<?> clazz) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception;
-
-    public void createMapper(Class<?> clazz, String recordGroupId) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception;
+public interface Callback<T,U> {
+    public U call(T t);
 }

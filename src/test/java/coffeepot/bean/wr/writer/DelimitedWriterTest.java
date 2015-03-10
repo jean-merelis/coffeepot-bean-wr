@@ -12,9 +12,9 @@ package coffeepot.bean.wr.writer;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,6 +22,8 @@ package coffeepot.bean.wr.writer;
  * limitations under the License.
  * #L%
  */
+import coffeepot.bean.wr.mapper.Callback;
+import coffeepot.bean.wr.mapper.RecordModel;
 import coffeepot.bean.wr.model.Child;
 import coffeepot.bean.wr.model.Item;
 import coffeepot.bean.wr.model.ItemDet;
@@ -29,10 +31,12 @@ import coffeepot.bean.wr.model.Job;
 import coffeepot.bean.wr.model.Order;
 import coffeepot.bean.wr.model.Parent;
 import coffeepot.bean.wr.model.Person;
+import coffeepot.bean.wr.model.UnannotatedClass;
 import coffeepot.bean.wr.typeHandler.DefaultDoubleHandler;
 import coffeepot.bean.wr.typeHandler.TypeHandlerFactory;
 import coffeepot.bean.wr.writer.customHandler.LowStringHandler;
 import coffeepot.bean.wr.writer.customHandler.DateTimeHandler;
+import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -89,7 +93,7 @@ public class DelimitedWriterTest {
         instance.setRecordTerminator("|\r\n");
 
         //set new custom TypeHandler as default for a class
-        TypeHandlerFactory handlerFactory = instance.getObjectParserFactory().getHandlerFactory();
+        TypeHandlerFactory handlerFactory = instance.getObjectMapperFactory().getHandlerFactory();
         handlerFactory.registerTypeHandlerClassFor(DateTime.class, DateTimeHandler.class);
 
         //set new custom TypeHandler as default for the class String
@@ -190,6 +194,7 @@ public class DelimitedWriterTest {
         }
 
     }
+
     @Test
     public void writePersonWithParentField() throws Exception {
 
@@ -203,7 +208,7 @@ public class DelimitedWriterTest {
         instance.setRecordTerminator("|\r\n");
 
         //set new custom TypeHandler as default for a class
-        TypeHandlerFactory handlerFactory = instance.getObjectParserFactory().getHandlerFactory();
+        TypeHandlerFactory handlerFactory = instance.getObjectMapperFactory().getHandlerFactory();
         handlerFactory.registerTypeHandlerClassFor(DateTime.class, DateTimeHandler.class);
 
         //set new custom TypeHandler as default for the class String
@@ -350,7 +355,7 @@ public class DelimitedWriterTest {
         instance.setRecordTerminator("|\r\n");
 
         //set new custom TypeHandler as default for a class
-        TypeHandlerFactory handlerFactory = instance.getObjectParserFactory().getHandlerFactory();
+        TypeHandlerFactory handlerFactory = instance.getObjectMapperFactory().getHandlerFactory();
         handlerFactory.registerTypeHandlerClassFor(DateTime.class, DateTimeHandler.class);
 
         //set new custom TypeHandler as default for the class String
@@ -360,6 +365,145 @@ public class DelimitedWriterTest {
         handlerFactory.registerTypeHandlerClassFor(Enum.class, Person.EncodedEnumHandler.class);
 
         instance.write(order);
+
+        w.flush();
+        w.close();
+    }
+
+    @Test
+    public void overrideAnnotations() throws Exception {
+        //Load a json or create a RecordModel object directly
+        final String json = "{\"forFormat\":\"DELIMITED\", \"fields\" : [{\"name\" : \"ID\", \"id\" : true, \"constantValue\" : \"ORDER\"},{\"name\": \"date\"},{\"name\":\"items\"}]}";
+        final String jsonItem = "{\"forFormat\":\"DELIMITED\", \"fields\" : [{\"name\" : \"ID\", \"id\" : true, \"constantValue\" : \"IT\"},{\"name\": \"product\"}]}";
+
+        //use a json framework of your choice
+        final Gson gson = new Gson();
+
+        Order order = new Order();
+        order.setCustomer("John B");
+        order.setDate(new Date());
+        order.setId(123);
+        order.setItems(new ArrayList<Item>());
+
+        Item item = new Item();
+        item.setNumber(1);
+        item.setProduct("Product1");
+        item.setQuantity(10);
+        item.setDetails(new ArrayList<ItemDet>());
+        item.getDetails().add(new ItemDet("something"));
+        item.getDetails().add(new ItemDet("another something"));
+        order.getItems().add(item);
+
+        item = new Item();
+        item.setNumber(2);
+        item.setProduct("Product 002");
+        item.setQuantity(5);
+        item.setDetails(new ArrayList<ItemDet>());
+        item.getDetails().add(new ItemDet("blue"));
+        item.getDetails().add(new ItemDet("yellow"));
+        order.getItems().add(item);
+
+        item = new Item();
+        item.setNumber(3);
+        item.setProduct("Product 003");
+        item.setQuantity(2);
+        item.setDetails(new ArrayList<ItemDet>());
+        item.getDetails().add(new ItemDet("red"));
+        item.getDetails().add(new ItemDet("white"));
+        order.getItems().add(item);
+
+        File file = new File("ORDER_override.tmp");
+        Writer w = new FileWriter(file);
+
+        DelimitedWriter instance = new DelimitedWriter(w);
+        instance.setDelimiter('|');
+        instance.setEscape('\\');
+        instance.setRecordInitializator("");
+        instance.setRecordTerminator("|\r\n");
+
+
+        instance.setCallback(new Callback<Class, RecordModel>() {
+
+            @Override
+            public RecordModel call(Class t) {
+                if (Order.class.equals(t))
+                    return gson.fromJson(json, RecordModel.class);
+                if (Item.class.equals(t)){
+                    return gson.fromJson(jsonItem, RecordModel.class);
+                }
+                return null;
+            }
+        });
+
+        instance.write(order);
+
+        w.flush();
+        w.close();
+    }
+
+
+
+    @Test
+    public void unannotatedClassTest() throws Exception {
+        //Load a json or create a RecordModel object directly
+        final String json = "{\"fields\" : [{\"name\" : \"doubleField\"},{\"name\": \"field\"}]}";
+
+        //use a json framework of your choice
+        final Gson gson = new Gson();
+
+
+        List<UnannotatedClass> list = new ArrayList<>();
+
+        UnannotatedClass u = new UnannotatedClass();
+        u.setIntegerField(123);
+        u.setField("it is ok");
+        u.setDoubleField(3.3);
+
+        list.add(u);
+
+        u = new UnannotatedClass();
+        u.setIntegerField(2452);
+        u.setField("it is work");
+        u.setDoubleField(1.1);
+
+        list.add(u);
+
+        u = new UnannotatedClass();
+        u.setIntegerField(2015);
+        u.setField("very nice");
+        u.setDoubleField(555.0);
+
+        list.add(u);
+
+        u = new UnannotatedClass();
+        u.setIntegerField(2016);
+        u.setField("Please! make a decent test");
+        u.setDoubleField(222.0);
+
+        list.add(u);
+
+        File file = new File("unnanotated.tmp");
+        Writer w = new FileWriter(file);
+
+        DelimitedWriter instance = new DelimitedWriter(w);
+        instance.setDelimiter('|');
+        instance.setEscape('\\');
+        instance.setRecordInitializator("");
+        instance.setRecordTerminator("|\r\n");
+
+        instance.setCallback(new Callback<Class, RecordModel>() {
+
+            @Override
+            public RecordModel call(Class t) {
+                if (UnannotatedClass.class.equals(t)){
+                    return gson.fromJson(json, RecordModel.class);
+                }
+                return null;
+            }
+        });
+
+
+        instance.write(list);
 
         w.flush();
         w.close();

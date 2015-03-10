@@ -22,6 +22,7 @@ package coffeepot.bean.wr.mapper;
  * limitations under the License.
  * #L%
  */
+import coffeepot.bean.wr.typeHandler.DefaultHandler;
 import coffeepot.bean.wr.typeHandler.TypeHandler;
 import coffeepot.bean.wr.types.AccessorType;
 import coffeepot.bean.wr.types.Align;
@@ -33,24 +34,23 @@ import java.util.logging.Logger;
  *
  * @author Jeandeson O. Merelis
  */
-public class FieldImpl implements Cloneable {
+public class FieldModel implements Cloneable {
 
     private String name;
     private String constantValue;
     private int minLength;
     private int maxLength;
     private int length;
-    private char padding;
+    private char padding = ' ';
     private boolean paddingIfNullOrEmpty;
-    private boolean trim;
-    private Align align;
+    private boolean trim = true;
+    private Align align = Align.LEFT;
     private String getter;
     private String setter;
-    private Class<? extends TypeHandler> typeHandlerClass;
-    private Class<?> classType;
-    private String[] params;
-    private AccessorType accessorType;
-    private FieldImpl parent;
+    private Class<? extends TypeHandler> typeHandlerClass = DefaultHandler.class;
+    private Class<?> classType = Class.class;
+    private String[] params = new String[]{};
+    private AccessorType accessorType = AccessorType.DEFAULT;
     private boolean nestedObject;
     private TypeHandler typeHandler;
     private Method getterMethod;
@@ -59,15 +59,15 @@ public class FieldImpl implements Cloneable {
     private boolean collection = false;
     private boolean ignoreOnRead = false;
     private boolean ignoreOnWrite = false;
-    private boolean required = false;
+    private boolean required = true;
     private boolean id = false;
 
     @Override
-    public FieldImpl clone() {
+    public FieldModel clone() {
         try {
-            return (FieldImpl) super.clone();
+            return (FieldModel) super.clone();
         } catch (CloneNotSupportedException ex) {
-            Logger.getLogger(FieldImpl.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(FieldModel.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
     }
@@ -256,14 +256,6 @@ public class FieldImpl implements Cloneable {
         this.required = required;
     }
 
-    public FieldImpl getParent() {
-        return parent;
-    }
-
-    public void setParent(FieldImpl parent) {
-        this.parent = parent;
-    }
-
     public Class getCollectionType() {
         return this.collectionType;
     }
@@ -276,7 +268,7 @@ public class FieldImpl implements Cloneable {
         return nestedObject;
     }
 
-    public void setNestedObject(boolean nestedObject) {
+    void setNestedObject(boolean nestedObject) {
         this.nestedObject = nestedObject;
     }
 

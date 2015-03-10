@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package coffeepot.bean.wr.reader;
+package coffeepot.bean.wr.mapper;
 
 /*
  * #%L
@@ -34,32 +34,53 @@ package coffeepot.bean.wr.reader;
  * limitations under the License.
  * #L%
  */
-import coffeepot.bean.wr.mapper.Callback;
-import coffeepot.bean.wr.mapper.RecordModel;
-import coffeepot.bean.wr.mapper.UnresolvedObjectMapperException;
-import java.io.InputStream;
+
+import coffeepot.bean.wr.types.AccessorType;
+import coffeepot.bean.wr.types.FormatType;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  *
  * @author Jeandeson O. Merelis
  */
-public interface ObjectReader {
+public class RecordModel {
 
-    public <T> T read(InputStream src, Class<T> clazz);
+    private FormatType forFormat = FormatType.ANY;
+    private AccessorType accessorType = AccessorType.DEFAULT;
+    private List<FieldModel> fields = new LinkedList<>();
+    private String groupId = "";
 
-    public <T> T read(InputStream src, Class<T> clazz, String recordGroupId);
+    public FormatType getForFormat() {
+        return forFormat;
+    }
 
-    public <T> T parse(String line, Class<T> clazz);
+    public void setForFormat(FormatType forFormat) {
+        this.forFormat = forFormat;
+    }
 
-    public <T> T parse(String line, Class<T> clazz, String recordGroupId);
+    public AccessorType getAccessorType() {
+        return accessorType;
+    }
 
-    public void clearMappers();
+    public void setAccessorType(AccessorType accessorType) {
+        this.accessorType = accessorType;
+    }
 
-    public Callback<Class, RecordModel> getCallback();
+    public List<FieldModel> getFields() {
+        return fields;
+    }
 
-    public void setCallback(Callback<Class, RecordModel> callback);
+    public void setFields(List<FieldModel> fields) {
+        this.fields = fields;
+    }
 
-    public void createMapper(Class<?> clazz) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception;
+    public String getGroupId() {
+        return groupId;
+    }
 
-    public void createMapper(Class<?> clazz, String recordGroupId) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception;
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
+    }
+
 }

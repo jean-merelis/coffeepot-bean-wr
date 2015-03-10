@@ -120,7 +120,7 @@ public class DelimitedReaderTest {
             delimitedWriter.setRecordTerminator("|\r\n");
 
             //set new custom TypeHandler as default for a class
-            TypeHandlerFactory handlerFactory = delimitedWriter.getObjectParserFactory().getHandlerFactory();
+            TypeHandlerFactory handlerFactory = delimitedWriter.getObjectMapperFactory().getHandlerFactory();
             handlerFactory.registerTypeHandlerClassFor(DateTime.class, DateTimeHandler.class);
 
             //set new custom TypeHandler as default for the class String

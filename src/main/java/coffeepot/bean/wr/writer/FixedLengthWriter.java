@@ -94,7 +94,7 @@ public class FixedLengthWriter extends AbstractWriter{
     }
 
     @Override
-    public ObjectMapperFactory getObjectParserFactory() {
+    public ObjectMapperFactory getObjectMapperFactory() {
         return parserFactory;
     }
 

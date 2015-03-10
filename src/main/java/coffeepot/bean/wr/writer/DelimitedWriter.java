@@ -175,7 +175,7 @@ public class DelimitedWriter extends AbstractWriter {
     }
 
     @Override
-    public ObjectMapperFactory getObjectParserFactory() {
+    public ObjectMapperFactory getObjectMapperFactory() {
         return parserFactory;
     }
 

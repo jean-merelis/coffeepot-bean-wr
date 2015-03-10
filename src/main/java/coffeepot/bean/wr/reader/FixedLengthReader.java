@@ -34,7 +34,7 @@ package coffeepot.bean.wr.reader;
  * limitations under the License.
  * #L%
  */
-import coffeepot.bean.wr.mapper.FieldImpl;
+import coffeepot.bean.wr.mapper.FieldModel;
 import coffeepot.bean.wr.mapper.ObjectMapper;
 import coffeepot.bean.wr.mapper.ObjectMapperFactory;
 import coffeepot.bean.wr.types.FormatType;
@@ -62,10 +62,10 @@ public class FixedLengthReader extends AbstractReader {
         objectById = !mapperFactory.getIdsMap().isEmpty();
         if (objectById) {
             ObjectMapper om = mapperFactory.getIdsMap().values().iterator().next();
-            Iterator<FieldImpl> it = om.getMappedFields().iterator();
+            Iterator<FieldModel> it = om.getMappedFields().iterator();
             int pos = 0;
             while (it.hasNext()) {
-                FieldImpl f = it.next();
+                FieldModel f = it.next();
                 if (f.isId()) {
                     idStart = pos;
                     idLength = f.getLength();
@@ -94,9 +94,9 @@ public class FixedLengthReader extends AbstractReader {
         int idx = 0;
         int pos = 0;
         int endIdx;
-        Iterator<FieldImpl> it = om.getMappedFields().iterator();
+        Iterator<FieldModel> it = om.getMappedFields().iterator();
         while (it.hasNext()){
-            FieldImpl f = it.next();
+            FieldModel f = it.next();
             endIdx = pos + f.getLength();
             currentRecord[idx] = current.substring(pos, endIdx);
             pos = endIdx;

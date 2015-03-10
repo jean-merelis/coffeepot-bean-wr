@@ -12,9 +12,9 @@ package coffeepot.bean.wr.mapper;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -45,7 +45,7 @@ import java.util.logging.Logger;
 public class ObjectMapper {
 
     private AccessorType accessorType = AccessorType.DEFAULT;
-    private final List<FieldImpl> mappedFields = new LinkedList<>();
+    private final List<FieldModel> mappedFields = new LinkedList<>();
     private Class<?> rootClass;
 
     /**
@@ -76,6 +76,29 @@ public class ObjectMapper {
             this.rootClass = clazz;
         }
         this.perform(factory, getRecordFromClass(this.rootClass, groupId, factory), groupId);
+    }
+
+    public ObjectMapper(Class<?> clazz, String groupId, ObjectMapperFactory factory, RecordModel record) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
+        if (clazz == null) {
+            throw new IllegalArgumentException("Object to mapped can't be null");
+        }
+        if (record == null) {
+            throw new IllegalArgumentException("Record can't be null");
+        }
+
+        if (factory == null) {
+            throw new IllegalArgumentException("ObjectMapperFactory can't be null");
+        }
+
+        if (Collection.class.isAssignableFrom(clazz)) {
+            if (!List.class.isAssignableFrom(clazz) && !Set.class.isAssignableFrom(clazz)) {
+                throw new RuntimeException("Only classes derived from Set and List are supported");
+            }
+            this.rootClass = (Class<?>) ((ParameterizedType) clazz.getGenericSuperclass()).getActualTypeArguments()[0];
+        } else {
+            this.rootClass = clazz;
+        }
+        this.perform2(factory, record, groupId);
     }
 
     private Record getRecordFromClass(Class<?> clazz, String groupId, ObjectMapperFactory factory) {
@@ -126,13 +149,42 @@ public class ObjectMapper {
         }
     }
 
+    private void perform2(ObjectMapperFactory factory, RecordModel record, String groupId) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
+        if (record != null) {
+            accessorType = record.getAccessorType();
+
+            List<FieldModel> fields = record.getFields();
+            if (fields != null) {
+                try {
+                    mappingFields(fields, factory, groupId);
+                } catch (InstantiationException | IllegalAccessException ex) {
+                    Logger.getLogger(ObjectMapper.class.getName()).log(Level.SEVERE, null, ex);
+                    throw new Exception(ex);
+                }
+            }
+        }
+        if (mappedFields.isEmpty()) {
+            throw new UnresolvedObjectMapperException("Class " + rootClass.getName() + " can't be mapped");
+        }
+    }
+
     private void mappingFields(coffeepot.bean.wr.annotation.Field[] fields, ObjectMapperFactory factory, String groupId) throws Exception {
         for (coffeepot.bean.wr.annotation.Field f : fields) {
             this.mappedFields.add(mappingField(null, Helpful.toFieldImpl(f), factory, rootClass, groupId));
         }
     }
 
-    private FieldImpl mappingField(String fieldName, FieldImpl f, ObjectMapperFactory factory, Class<?> clazz, String groupId) throws Exception {
+    private void mappingFields(List<FieldModel> fields, ObjectMapperFactory factory, String groupId) throws Exception {
+        for (FieldModel f : fields) {
+            if (f.getLength() > 0) {
+                f.setMinLength(f.getLength());
+                f.setMaxLength(f.getLength());
+            }
+            this.mappedFields.add(mappingField(null, f, factory, rootClass, groupId));
+        }
+    }
+
+    private FieldModel mappingField(String fieldName, FieldModel f, ObjectMapperFactory factory, Class<?> clazz, String groupId) throws Exception {
 
         AccessorType at;
         if (f.getAccessorType().equals(AccessorType.DEFAULT)) {
@@ -141,14 +193,14 @@ public class ObjectMapper {
             at = f.getAccessorType();
         }
 
-        FieldImpl mappedField = f.clone();
+        FieldModel mappedField = f.clone();
         mappedField.setAccessorType(at);
 
         if (factory.getFormatType().equals(FormatType.FIXED_LENGTH)) {
             mappedField.setPaddingIfNullOrEmpty(true);
         }
 
-        if (!"".equals(f.getConstantValue())) {
+        if (f.getConstantValue() != null && !"".equals(f.getConstantValue())) {
             mappedField.setClassType(String.class);
             if (f.isId()) {
                 ObjectMapper old = factory.getIdsMap().put(f.getConstantValue().trim(), this);
@@ -182,7 +234,7 @@ public class ObjectMapper {
                             if (actualTypeArguments != null && actualTypeArguments.length > 0) {
                                 //FIXME: support for generics with multiple params.
                                 mappedField.setClassType((Class<?>) actualTypeArguments[0]);
-                                factory.create(mappedField.getClassType(), groupId);
+                                factory.getNoResolved().add(mappedField.getClassType());
                             }
                         }
                     }
@@ -225,9 +277,8 @@ public class ObjectMapper {
                             ParameterizedType pt = (ParameterizedType) genericType;
                             Type[] actualTypeArguments = pt.getActualTypeArguments();
                             if (actualTypeArguments != null && actualTypeArguments.length > 0) {
-                                //FIXME: support for generics with multiple params.
                                 mappedField.setClassType((Class<?>) actualTypeArguments[0]);
-                                factory.create(mappedField.getClassType(), groupId);
+                                factory.getNoResolved().add(mappedField.getClassType());
                             }
                         }
                     }
@@ -351,7 +402,7 @@ public class ObjectMapper {
         return accessorType;
     }
 
-    public List<FieldImpl> getMappedFields() {
+    public List<FieldModel> getMappedFields() {
         return mappedFields;
     }
 }

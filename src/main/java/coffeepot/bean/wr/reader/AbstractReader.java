@@ -34,9 +34,12 @@ package coffeepot.bean.wr.reader;
  * limitations under the License.
  * #L%
  */
-import coffeepot.bean.wr.mapper.FieldImpl;
+import coffeepot.bean.wr.mapper.Callback;
+import coffeepot.bean.wr.mapper.FieldModel;
 import coffeepot.bean.wr.mapper.ObjectMapper;
 import coffeepot.bean.wr.mapper.ObjectMapperFactory;
+import coffeepot.bean.wr.mapper.RecordModel;
+import coffeepot.bean.wr.mapper.UnresolvedObjectMapperException;
 import coffeepot.bean.wr.typeHandler.HandlerParseException;
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -64,6 +67,7 @@ public abstract class AbstractReader implements ObjectReader {
     protected boolean trim = true;
     protected String recordInitializator;
     protected int actualLine;
+    protected Callback<Class, RecordModel> callback;
 
     public abstract ObjectMapperFactory getObjectMapperFactory();
 
@@ -80,7 +84,7 @@ public abstract class AbstractReader implements ObjectReader {
         clear();
         config();
         try {
-            ObjectMapper om = getObjectMapperFactory().create(clazz, recordGroupId);
+            ObjectMapper om = getObjectMapperFactory().create(clazz, recordGroupId, null);
             if (getObjectMapperFactory().getIdsMap().isEmpty()) {
                 if (om == null) {
                     throw new RuntimeException("Unable to map the class");
@@ -92,6 +96,31 @@ public abstract class AbstractReader implements ObjectReader {
             Logger.getLogger(DelimitedReader.class.getName()).log(Level.SEVERE, "Line: " + actualLine, ex);
             throw new RuntimeException(ex);
         }
+    }
+
+    @Override
+    public Callback<Class, RecordModel> getCallback() {
+        return callback;
+    }
+
+    @Override
+    public void setCallback(Callback<Class, RecordModel> callback) {
+        this.callback = callback;
+    }
+
+    @Override
+    public void clearMappers() {
+        getObjectMapperFactory().getMappers().clear();
+    }
+
+    @Override
+    public void createMapper(Class<?> clazz) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
+        getObjectMapperFactory().create(clazz, null, callback);
+    }
+
+    @Override
+    public void createMapper(Class<?> clazz, String recordGroupId) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
+        getObjectMapperFactory().create(clazz, recordGroupId, callback);
     }
 
     @Override
@@ -139,6 +168,7 @@ public abstract class AbstractReader implements ObjectReader {
 
             if (Collection.class.isAssignableFrom(clazz)) {
                 readLine(reader);
+                actualLine = 0;
                 if (currentRecordIsNull() && hasNext()) {
                     readLine(reader);
                 }
@@ -156,6 +186,7 @@ public abstract class AbstractReader implements ObjectReader {
                 return product;
             } else {
                 readLine(reader);
+                actualLine = 0;
                 if (!hasNext()) {
                     return null;
                 }
@@ -170,6 +201,7 @@ public abstract class AbstractReader implements ObjectReader {
                     }
                 } else if (om.getRootClass().equals(omm.getRootClass())) {
                     readLine(reader);
+
                 }
                 //--
 
@@ -230,11 +262,11 @@ public abstract class AbstractReader implements ObjectReader {
 
     protected void fill(Object product, ObjectMapper om, BufferedReader reader) throws Exception {
         beforeFill(om);
-        List<FieldImpl> mappedFields = om.getMappedFields();
+        List<FieldModel> mappedFields = om.getMappedFields();
 
         int i = 0;
 
-        for (FieldImpl f : mappedFields) {
+        for (FieldModel f : mappedFields) {
             if (!f.getConstantValue().isEmpty() || f.isIgnoreOnRead()) {
                 i++;
                 continue;
@@ -297,10 +329,10 @@ public abstract class AbstractReader implements ObjectReader {
     protected void fillWithoutId(Object product, ObjectMapper om, BufferedReader reader) throws Exception {
         beforeFill(om);
 
-        List<FieldImpl> mappedFields = om.getMappedFields();
+        List<FieldModel> mappedFields = om.getMappedFields();
         int i = 0;
 
-        for (FieldImpl f : mappedFields) {
+        for (FieldModel f : mappedFields) {
             if (!f.getConstantValue().isEmpty() || f.isIgnoreOnRead()) {
                 i++;
                 continue;
@@ -376,7 +408,7 @@ public abstract class AbstractReader implements ObjectReader {
         return product;
     }
 
-    protected Collection getCollection(final Object obj, final FieldImpl f) {
+    protected Collection getCollection(final Object obj, final FieldModel f) {
         Object o = null;
         if (f.getGetterMethod() != null) {
             //PROPERTY
@@ -446,7 +478,7 @@ public abstract class AbstractReader implements ObjectReader {
         return (Collection) o;
     }
 
-    protected void setValue(final Object obj, final Object fieldValue, final FieldImpl f) {
+    protected void setValue(final Object obj, final Object fieldValue, final FieldModel f) {
         if (f.getSetterMethod() != null) {
             //PROPERTY
             AccessController.doPrivileged(new PrivilegedAction() {

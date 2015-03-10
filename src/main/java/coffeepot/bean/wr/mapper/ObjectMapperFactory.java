@@ -47,38 +47,79 @@ public final class ObjectMapperFactory {
     }
 
     public ObjectMapper create(Class<?> clazz) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
-        return create(clazz, null);
+        return create(clazz, (String) null, (Callback) null);
     }
 
-    public ObjectMapper create(Class<?> clazz, String recordGroupId) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
+    public ObjectMapper create(Class<?> clazz, String recordGroupId, Callback<Class, RecordModel> callback) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
         ObjectMapper objectMapper = mappers.get(clazz);
         if (objectMapper != null) {
             return objectMapper;
         }
 
-        try {
-            objectMapper = new ObjectMapper(clazz, recordGroupId, this);
-            mappers.put(clazz, objectMapper);
-            noResolved.remove(clazz);
-            while (!noResolved.isEmpty()) {
-                Class next = noResolved.iterator().next();
-                createHelper(next, recordGroupId);
+        if (callback != null) {
+            RecordModel rm = callback.call(clazz);
+            if (rm != null) {
+                objectMapper = new ObjectMapper(clazz, recordGroupId, this, rm);
             }
-            return objectMapper;
-        } catch (UnresolvedObjectMapperException ex) {
-            //Logger.getLogger(ObjectMapperFactory.class.getName()).log(Level.SEVERE, null, ex);
-            throw ex;
         }
+        if (objectMapper == null) {
+            objectMapper = new ObjectMapper(clazz, recordGroupId, this);
+        }
+
+        mappers.put(clazz, objectMapper);
+        noResolved.remove(clazz);
+        while (!noResolved.isEmpty()) {
+            Class next = noResolved.iterator().next();
+            createHelper(next, recordGroupId, callback);
+        }
+        return objectMapper;
     }
 
-    private void createHelper(Class<?> clazz, String recordGroupId) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
+    public ObjectMapper create(Class<?> clazz, RecordModel record) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
+        return create(clazz, record, (String) null, (Callback) null);
+    }
+
+    public ObjectMapper create(Class<?> clazz, RecordModel record, String recordGroupId, Callback<Class, RecordModel> callback) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
+        mappers.remove(clazz);
+
+        ObjectMapper objectMapper = null;
+        if (callback != null) {
+            RecordModel rm = callback.call(clazz);
+            if (rm != null) {
+                objectMapper = new ObjectMapper(clazz, recordGroupId, this, rm);
+            }
+        }
+        if (objectMapper == null) {
+            objectMapper = new ObjectMapper(clazz, recordGroupId, this);
+        }
+
+        mappers.put(clazz, objectMapper);
+        noResolved.remove(clazz);
+        while (!noResolved.isEmpty()) {
+            Class next = noResolved.iterator().next();
+            createHelper(next, recordGroupId, callback);
+        }
+        return objectMapper;
+
+    }
+
+    private void createHelper(Class<?> clazz, String recordGroupId, Callback<Class, RecordModel> callback) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
         ObjectMapper objectMapper = mappers.get(clazz);
         if (objectMapper != null) {
             noResolved.remove(clazz);
             return;
         }
+        objectMapper = null;
+        if (callback != null) {
+            RecordModel rm = callback.call(clazz);
+            if (rm != null) {
+                objectMapper = new ObjectMapper(clazz, recordGroupId, this, rm);
+            }
+        }
+        if (objectMapper == null) {
+            objectMapper = new ObjectMapper(clazz, recordGroupId, this);
+        }
 
-        objectMapper = new ObjectMapper(clazz, recordGroupId, this);
         mappers.put(clazz, objectMapper);
         noResolved.remove(clazz);
     }

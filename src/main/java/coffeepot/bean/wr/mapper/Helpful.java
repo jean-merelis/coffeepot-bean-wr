@@ -33,8 +33,8 @@ import coffeepot.bean.wr.annotation.Field;
 public class Helpful {
 
 
-    public static FieldImpl toFieldImpl(Field nf) {
-        FieldImpl f = new FieldImpl();
+    public static FieldModel toFieldImpl(Field nf) {
+        FieldModel f = new FieldModel();
         f.setId(nf.id());
         f.setAccessorType(nf.accessorType());
         f.setAlign(nf.align());

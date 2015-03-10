@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package coffeepot.bean.wr.reader;
+package coffeepot.bean.wr.model;
 
 /*
  * #%L
@@ -34,32 +34,39 @@ package coffeepot.bean.wr.reader;
  * limitations under the License.
  * #L%
  */
-import coffeepot.bean.wr.mapper.Callback;
-import coffeepot.bean.wr.mapper.RecordModel;
-import coffeepot.bean.wr.mapper.UnresolvedObjectMapperException;
-import java.io.InputStream;
 
 /**
  *
  * @author Jeandeson O. Merelis
  */
-public interface ObjectReader {
+public class UnannotatedClass {
 
-    public <T> T read(InputStream src, Class<T> clazz);
+    private String field;
+    private Integer integerField;
+    private double doubleField;
 
-    public <T> T read(InputStream src, Class<T> clazz, String recordGroupId);
+    public String getField() {
+        return field;
+    }
 
-    public <T> T parse(String line, Class<T> clazz);
+    public void setField(String field) {
+        this.field = field;
+    }
 
-    public <T> T parse(String line, Class<T> clazz, String recordGroupId);
+    public Integer getIntegerField() {
+        return integerField;
+    }
 
-    public void clearMappers();
+    public void setIntegerField(Integer integerField) {
+        this.integerField = integerField;
+    }
 
-    public Callback<Class, RecordModel> getCallback();
+    public double getDoubleField() {
+        return doubleField;
+    }
 
-    public void setCallback(Callback<Class, RecordModel> callback);
+    public void setDoubleField(double doubleField) {
+        this.doubleField = doubleField;
+    }
 
-    public void createMapper(Class<?> clazz) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception;
-
-    public void createMapper(Class<?> clazz, String recordGroupId) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception;
 }

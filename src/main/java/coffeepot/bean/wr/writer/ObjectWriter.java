@@ -22,8 +22,10 @@ package coffeepot.bean.wr.writer;
  * limitations under the License.
  * #L%
  */
+import coffeepot.bean.wr.mapper.Callback;
 import coffeepot.bean.wr.types.FormatType;
 import coffeepot.bean.wr.mapper.ObjectMapperFactory;
+import coffeepot.bean.wr.mapper.RecordModel;
 import coffeepot.bean.wr.mapper.UnresolvedObjectMapperException;
 import java.io.IOException;
 import java.io.Writer;
@@ -34,29 +36,33 @@ import java.io.Writer;
  */
 public interface ObjectWriter {
 
-    FormatType getFormatType();
+    public FormatType getFormatType();
 
-    ObjectMapperFactory getObjectParserFactory();
+    public ObjectMapperFactory getObjectMapperFactory();
 
-    void write(Object obj) throws IOException;
+    public void write(Object obj) throws IOException;
 
-    void write(Object obj, String recordGroupId) throws IOException;
+    public void write(Object obj, String recordGroupId) throws IOException;
 
-    void flush() throws IOException;
+    public void flush() throws IOException;
 
-    void close() throws IOException;
+    public void close() throws IOException;
 
-    int getAutoFlush();
+    public int getAutoFlush();
 
-    void setAutoFlush(int recordCounts);
+    public void setAutoFlush(int recordCounts);
 
-    Writer getWriter();
+    public Writer getWriter();
 
-    void setWriter(Writer w);
+    public void setWriter(Writer w);
 
-    void clearMappers();
+    public void clearMappers();
 
-    void createMapper(Class<?> clazz) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception;
+    public Callback<Class, RecordModel> getCallback();
 
-    void createMapper(Class<?> clazz, String recordGroupId) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception;
+    public void setCallback(Callback<Class, RecordModel> callback);
+
+    public void createMapper(Class<?> clazz) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception;
+
+    public void createMapper(Class<?> clazz, String recordGroupId) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception;
 }
