@@ -205,6 +205,9 @@ public abstract class AbstractReader implements ObjectReader {
     protected String doGetLine() throws IOException {
         if (reader instanceof BufferedReader) {
             String s = ((BufferedReader) reader).readLine();
+            if (s != null) {
+                actualLine++;
+            }
             return s;
         }
 
