@@ -11,6 +11,8 @@ Features:
   - Override annotations dynamically.
   - Custom type handlers are supported.
 
+Real examples of use you will find them in [coffeepot-br-sped-fiscal](https://github.com/jean-merelis/coffeepot-br-sped-fiscal) and [coffeepot-br-sintegra](https://github.com/jean-merelis/coffeepot-br-sintegra) projects. The coffeepot-br-sped-fiscal project uses delimited format, and the sintegra project uses FixedLength format.
+
 Examples
 --------
 
@@ -163,3 +165,4 @@ ITEM 001Product1                      0010,000
 ITEM 002Product 002                   0005,000
 ITEM 003Product 003                   0002,000
 ```
+
