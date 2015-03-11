@@ -24,9 +24,9 @@ package coffeepot.bean.wr.reader;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -60,7 +60,6 @@ import java.util.logging.Logger;
  */
 public abstract class AbstractReader implements ObjectReader {
 
-    protected String charsetName;
     protected boolean ignoreUnknownRecords;
     protected boolean removeRecordInitializator = true;
     protected boolean trim = true;
@@ -87,7 +86,6 @@ public abstract class AbstractReader implements ObjectReader {
         try {
             clear();
             config();
-//        try {
             ObjectMapper om = getObjectMapperFactory().create(clazz, recordGroupId, null);
             if (getObjectMapperFactory().getIdsMap().isEmpty()) {
                 if (om == null) {
@@ -96,15 +94,10 @@ public abstract class AbstractReader implements ObjectReader {
                 return unmarshalWithoutId(clazz, om);
             }
             return unmarshal(clazz);
-            // } catch (Exception ex) {
-//            Logger.getLogger(DelimitedReader.class.getName()).log(Level.SEVERE, "Line: " + actualLine, ex);
-//            throw new RuntimeException(ex);
-//        }
         } catch (Exception ex) {
             Logger.getLogger(AbstractReader.class.getName()).log(Level.SEVERE, null, ex);
             throw ex;
         }
-
     }
 
     protected void config() {
@@ -174,7 +167,7 @@ public abstract class AbstractReader implements ObjectReader {
     @Override
     public void findLineStartsWith(String s) throws IOException {
         foundLine = null;
-        if (s == null || s.isEmpty()){
+        if (s == null || s.isEmpty()) {
             withSearch = false;
             return;
         }
@@ -609,14 +602,6 @@ public abstract class AbstractReader implements ObjectReader {
                 Logger.getLogger(DelimitedReader.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-    }
-
-    public String getCharsetName() {
-        return charsetName;
-    }
-
-    public void setCharsetName(String charsetName) {
-        this.charsetName = charsetName;
     }
 
     public boolean isIgnoreUnknownRecords() {
