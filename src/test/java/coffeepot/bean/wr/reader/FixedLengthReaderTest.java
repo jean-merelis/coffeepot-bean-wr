@@ -30,6 +30,7 @@ import coffeepot.bean.wr.model.SingleClass;
 import coffeepot.bean.wr.typeHandler.DefaultDoubleHandler;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -117,9 +118,9 @@ public class FixedLengthReaderTest {
             w.flush();
             w.close();
         }
-        FixedLengthReader reader = new FixedLengthReader();
+        FixedLengthReader reader = new FixedLengthReader(new FileReader(file));
 
-        Order o = reader.read(new FileInputStream(file), Order.class);
+        Order o = reader.parse(Order.class);
 
         assertNotNull(o);
         //TODO: check field values
@@ -130,7 +131,7 @@ public class FixedLengthReaderTest {
     public void singleClassTest() throws Exception {
         DefaultDoubleHandler.setDecimalSeparatorDefault(',');
         DefaultDoubleHandler.setGroupingSeparatorDefault('.');
-        
+
         List<SingleClass> list = new ArrayList<>();
 
         SingleClass s;
@@ -169,13 +170,14 @@ public class FixedLengthReaderTest {
             w.close();
         }
 
-        FixedLengthReader reader = new FixedLengthReader();
+        FixedLengthReader reader = new FixedLengthReader(new FileReader(file));
 
-        DelimitedReaderTest.SingleClassList o = reader.read(new FileInputStream(file), DelimitedReaderTest.SingleClassList.class);
+        DelimitedReaderTest.SingleClassList o = reader.parse(DelimitedReaderTest.SingleClassList.class);
 
+        reader = new FixedLengthReader(new FileReader(file));
         //Vai ler somente a primeira linha
         //It will read only the first line
-        SingleClass sc = reader.read(new FileInputStream(file), SingleClass.class);
+        SingleClass sc = reader.parse(SingleClass.class);
 
         Assert.assertNotNull(o);
         //TODO: check field values

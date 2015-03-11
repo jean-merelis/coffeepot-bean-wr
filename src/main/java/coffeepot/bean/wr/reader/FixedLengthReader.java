@@ -38,7 +38,8 @@ import coffeepot.bean.wr.mapper.FieldModel;
 import coffeepot.bean.wr.mapper.ObjectMapper;
 import coffeepot.bean.wr.mapper.ObjectMapperFactory;
 import coffeepot.bean.wr.types.FormatType;
-import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.Reader;
 import java.util.Iterator;
 
 /**
@@ -50,7 +51,11 @@ public class FixedLengthReader extends AbstractReader {
     private final ObjectMapperFactory mapperFactory = new ObjectMapperFactory(FormatType.FIXED_LENGTH);
     private int idStart;
     private int idLength;
-    private boolean objectById; //
+    private boolean objectById; 
+
+    public FixedLengthReader(Reader reader) {
+        super(reader);
+    }
 
     @Override
     public ObjectMapperFactory getObjectMapperFactory() {
@@ -95,7 +100,7 @@ public class FixedLengthReader extends AbstractReader {
         int pos = 0;
         int endIdx;
         Iterator<FieldModel> it = om.getMappedFields().iterator();
-        while (it.hasNext()){
+        while (it.hasNext()) {
             FieldModel f = it.next();
             endIdx = pos + f.getLength();
             currentRecord[idx] = current.substring(pos, endIdx);
@@ -120,9 +125,9 @@ public class FixedLengthReader extends AbstractReader {
     }
 
     @Override
-    protected void readLine(BufferedReader reader) throws Exception {
+    protected void readLine() throws IOException {
         current = next;
-        next = getNextRecord(reader);
+        next = getNextRecord();
     }
 
     @Override
@@ -135,15 +140,13 @@ public class FixedLengthReader extends AbstractReader {
         return next != null;
     }
 
-    protected String getNextRecord(BufferedReader reader) throws Exception {
+    protected String getNextRecord() throws IOException {
         String line = null;
         while (true) {
-            line = reader.readLine();
+            line = getLine();
             if (line == null) {
                 return null;
             }
-
-            actualLine++;
 
             String s = line.trim();
             if (!s.isEmpty()) {

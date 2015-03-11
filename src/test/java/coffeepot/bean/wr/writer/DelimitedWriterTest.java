@@ -12,9 +12,9 @@ package coffeepot.bean.wr.writer;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -80,7 +80,7 @@ public class DelimitedWriterTest {
     }
 
     //TODO: MORE TESTS
-    @Test
+    //@Test
     public void testWrite() throws Exception {
 
         File file = new File("TESTE_.tmp");
@@ -195,7 +195,7 @@ public class DelimitedWriterTest {
 
     }
 
-    @Test
+    //@Test
     public void writePersonWithParentField() throws Exception {
 
         File file = new File("TESTE_.tmp");
@@ -310,7 +310,7 @@ public class DelimitedWriterTest {
 
     }
 
-    @Test
+    //@Test
     public void testWrite2() throws Exception {
         Order order = new Order();
         order.setCustomer("John B");
@@ -370,7 +370,7 @@ public class DelimitedWriterTest {
         w.close();
     }
 
-    @Test
+    //@Test
     public void overrideAnnotations() throws Exception {
         //Load a json or create a RecordModel object directly
         final String json = "{\"forFormat\":\"DELIMITED\", \"fields\" : [{\"name\" : \"ID\", \"id\" : true, \"constantValue\" : \"ORDER\"},{\"name\": \"date\"},{\"name\":\"items\"}]}";
@@ -443,7 +443,7 @@ public class DelimitedWriterTest {
 
 
 
-    @Test
+    //@Test
     public void unannotatedClassTest() throws Exception {
         //Load a json or create a RecordModel object directly
         final String json = "{\"fields\" : [{\"name\" : \"doubleField\"},{\"name\": \"field\"}]}";

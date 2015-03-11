@@ -37,7 +37,8 @@ package coffeepot.bean.wr.reader;
 import coffeepot.bean.wr.mapper.Callback;
 import coffeepot.bean.wr.mapper.RecordModel;
 import coffeepot.bean.wr.mapper.UnresolvedObjectMapperException;
-import java.io.InputStream;
+import coffeepot.bean.wr.typeHandler.HandlerParseException;
+import java.io.IOException;
 
 /**
  *
@@ -45,15 +46,17 @@ import java.io.InputStream;
  */
 public interface ObjectReader {
 
-    public <T> T read(InputStream src, Class<T> clazz);
+    public <T> T parse(Class<T> clazz) throws IOException, UnknownRecordException, HandlerParseException, Exception;
 
-    public <T> T read(InputStream src, Class<T> clazz, String recordGroupId);
+    public <T> T parse(Class<T> clazz, String recordGroupId) throws IOException, UnknownRecordException, HandlerParseException, Exception;
 
-    public <T> T parse(String line, Class<T> clazz);
+    public void findLineStartsWith(String s) throws IOException;
 
-    public <T> T parse(String line, Class<T> clazz, String recordGroupId);
+    public void processUpToTheLineStartsWith(String s);
 
     public void clearMappers();
+
+    public int getActualLine();
 
     public Callback<Class, RecordModel> getCallback();
 

@@ -42,9 +42,8 @@ import coffeepot.bean.wr.mapper.RecordModel;
 import coffeepot.bean.wr.mapper.UnresolvedObjectMapperException;
 import coffeepot.bean.wr.typeHandler.HandlerParseException;
 import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
+import java.io.IOException;
+import java.io.Reader;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Collection;
@@ -68,34 +67,47 @@ public abstract class AbstractReader implements ObjectReader {
     protected String recordInitializator;
     protected int actualLine;
     protected Callback<Class, RecordModel> callback;
+    protected Reader reader;
+    protected String stopAfterLineStartsWith;
+    protected boolean stopped;
 
     public abstract ObjectMapperFactory getObjectMapperFactory();
 
-    protected void config() {
+    public AbstractReader(Reader reader) {
+        this.reader = reader;
     }
 
     @Override
-    public <T> T read(InputStream src, Class<T> clazz) {
-        return read(src, clazz, null);
+    public <T> T parse(Class<T> clazz) throws IOException, UnknownRecordException, HandlerParseException, Exception {
+        return parse(clazz, null);
     }
 
     @Override
-    public <T> T read(InputStream src, Class<T> clazz, String recordGroupId) {
-        clear();
-        config();
+    public <T> T parse(Class<T> clazz, String recordGroupId) throws IOException, UnknownRecordException, HandlerParseException, Exception {
         try {
+            clear();
+            config();
+//        try {
             ObjectMapper om = getObjectMapperFactory().create(clazz, recordGroupId, null);
             if (getObjectMapperFactory().getIdsMap().isEmpty()) {
                 if (om == null) {
                     throw new RuntimeException("Unable to map the class");
                 }
-                return unmarshalWithoutId(src, clazz, om);
+                return unmarshalWithoutId(clazz, om);
             }
-            return unmarshal(src, clazz);
+            return unmarshal(clazz);
+            // } catch (Exception ex) {
+//            Logger.getLogger(DelimitedReader.class.getName()).log(Level.SEVERE, "Line: " + actualLine, ex);
+//            throw new RuntimeException(ex);
+//        }
         } catch (Exception ex) {
-            Logger.getLogger(DelimitedReader.class.getName()).log(Level.SEVERE, "Line: " + actualLine, ex);
-            throw new RuntimeException(ex);
+            Logger.getLogger(AbstractReader.class.getName()).log(Level.SEVERE, null, ex);
+            throw ex;
         }
+
+    }
+
+    protected void config() {
     }
 
     @Override
@@ -106,6 +118,11 @@ public abstract class AbstractReader implements ObjectReader {
     @Override
     public void setCallback(Callback<Class, RecordModel> callback) {
         this.callback = callback;
+    }
+
+    @Override
+    public void processUpToTheLineStartsWith(String s) {
+        this.stopAfterLineStartsWith = s;
     }
 
     @Override
@@ -124,31 +141,18 @@ public abstract class AbstractReader implements ObjectReader {
     }
 
     @Override
-    public <T> T parse(String line, Class<T> clazz) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public <T> T parse(String line, Class<T> clazz, String recordGroupId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public int getActualLine() {
+        return actualLine;
     }
 
     protected void clear() {
         getObjectMapperFactory().getIdsMap().clear();
         getObjectMapperFactory().getMappers().clear();
-        actualLine = 0;
+        stopped = false;
     }
 
-    protected InputStreamReader createInputStreamReader(InputStream src) throws UnsupportedEncodingException {
-        if (charsetName != null && !charsetName.isEmpty()) {
-            return new InputStreamReader(src, charsetName);
-        }
-        return new InputStreamReader(src);
-    }
+    protected abstract void readLine() throws IOException;
 
-    protected abstract void readLine(BufferedReader reader) throws Exception;
-
-//    protected abstract String[] getNextRecord(BufferedReader reader) throws Exception;
     protected void beforeUnmarshal() {
     }
 
@@ -160,107 +164,190 @@ public abstract class AbstractReader implements ObjectReader {
 
     protected abstract boolean hasNext();
 
-    private <T> T unmarshal(InputStream src, Class<T> clazz) throws Exception {
-        beforeUnmarshal();
-        T product;
+    private static final int _CR = 13;
+    private static final int _LF = 10;
+    private boolean eof;
 
-        try (BufferedReader reader = new BufferedReader(createInputStreamReader(src))) {
+    protected String foundLine;
+    protected boolean withSearch;
 
-            if (Collection.class.isAssignableFrom(clazz)) {
-                readLine(reader);
-                actualLine = 0;
-                if (currentRecordIsNull() && hasNext()) {
-                    readLine(reader);
-                }
-                if (currentRecordIsNull()) {
-                    return null;
-                }
-                product = clazz.newInstance();
-                while (!currentRecordIsNull()) {
-                    Object o = processRecord(reader);
-                    if (o != null) {
-                        ((Collection) product).add(o);
-                    }
-                    readLine(reader);
-                }
-                return product;
-            } else {
-                readLine(reader);
-                actualLine = 0;
-                if (!hasNext()) {
-                    return null;
-                }
-
-                //Check if clazz is a wrapper
-                ObjectMapper om = getObjectMapperFactory().getMappers().get(clazz);
-                ObjectMapper omm = getObjectMapperFactory().getIdsMap().get(getIdValue(true));
-
-                if (omm == null) {
-                    if (!ignoreUnknownRecords) {
-                        throw new UnknownRecordException("The record with ID '" + getIdValue(true) + "' is unknown.");
-                    }
-                } else if (om.getRootClass().equals(omm.getRootClass())) {
-                    readLine(reader);
-
-                }
-                //--
-
-                product = clazz.newInstance();
-                fill(product, om, reader);
-                return product;
+    @Override
+    public void findLineStartsWith(String s) throws IOException {
+        foundLine = null;
+        if (s == null || s.isEmpty()){
+            withSearch = false;
+            return;
+        }
+        withSearch = true;
+        while (true) {
+            String line = doGetLine();
+            if (line == null) {
+                break;
             }
 
+            if (line.startsWith(s)) {
+                foundLine = line;
+                break;
+            }
         }
     }
 
-    //for single class
-    private <T> T unmarshalWithoutId(InputStream src, Class<T> clazz, ObjectMapper om) throws Exception {
+    protected String getLine() throws IOException {
+        if (withSearch) {
+            withSearch = false;
+            String f = foundLine;
+            foundLine = null;
+            return f;
+        }
+        if (stopped) {
+            return null;
+        }
+        String s = doGetLine();
+        if (stopAfterLineStartsWith != null && !stopAfterLineStartsWith.isEmpty()) {
+            stopped = s.startsWith(stopAfterLineStartsWith);
+        }
+        return s;
+    }
+
+    protected String doGetLine() throws IOException {
+        if (reader instanceof BufferedReader) {
+            String s = ((BufferedReader) reader).readLine();
+            return s;
+        }
+
+        if (eof) {
+            return null;
+        }
+
+        int c = reader.read();
+
+        if (c == -1) {
+            eof = true;
+            return null;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        if (c != _LF && c != _CR) {
+            sb.append((char) c);
+        }
+
+        while (true) {
+            c = reader.read();
+            if (c == -1) {
+                eof = true;
+                break;
+            }
+
+            if (c == _CR) {//ignore
+                continue;
+            }
+
+            if (c == _LF) {
+                break;
+            }
+
+            sb.append((char) c);
+        }
+        actualLine++;
+        return sb.toString();
+    }
+
+    private <T> T unmarshal(Class<T> clazz) throws IOException, InstantiationException, IllegalAccessException, UnknownRecordException, HandlerParseException {
         beforeUnmarshal();
         T product;
 
-        try (BufferedReader reader = new BufferedReader(createInputStreamReader(src))) {
+        if (currentRecordIsNull()) {
+            readLine();
+        }
 
-            if (Collection.class.isAssignableFrom(clazz)) {
-                readLine(reader);
-                if (currentRecordIsNull() && hasNext()) {
-                    readLine(reader);
+        if (Collection.class.isAssignableFrom(clazz)) {
+            if (currentRecordIsNull() && hasNext()) {
+                readLine();
+            }
+            if (currentRecordIsNull()) {
+                return null;
+            }
+            product = clazz.newInstance();
+            while (!currentRecordIsNull()) {
+                Object o = processRecord();
+                if (o != null) {
+                    ((Collection) product).add(o);
                 }
-                if (currentRecordIsNull()) {
-                    return null;
-                }
-                product = clazz.newInstance();
-                while (!currentRecordIsNull()) {
-                    Object o = processRecordWithoutId(reader, om);
-                    if (o != null) {
-                        ((Collection) product).add(o);
-                    }
-                    readLine(reader);
-                }
-                return product;
-            } else {
-                readLine(reader);
-                if (!hasNext()) {
-                    return null;
-                }
-
-                //Check if clazz is not a wrapper
-                if (om.getRootClass().equals(clazz)) {
-                    readLine(reader);
-                }
-                //--
-
-                product = clazz.newInstance();
-                fillWithoutId(product, om, reader);
-                return product;
+                readLine();
+            }
+            return product;
+        } else {
+            if (!hasNext()) {
+                return null;
             }
 
+            //Check if clazz is a wrapper
+            ObjectMapper om = getObjectMapperFactory().getMappers().get(clazz);
+            ObjectMapper omm = getObjectMapperFactory().getIdsMap().get(getIdValue(true));
+
+            if (omm == null) {
+                if (!ignoreUnknownRecords) {
+                    throw new UnknownRecordException("The record with ID '" + getIdValue(true) + "' is unknown. Line: " + actualLine);
+                }
+            } else if (om.getRootClass().equals(omm.getRootClass())) {
+                if (currentRecordIsNull()) {
+                    readLine();
+                }
+            }
+            //--
+
+            product = clazz.newInstance();
+            fill(product, om);
+            return product;
         }
+
+    }
+
+    //for single class
+    private <T> T unmarshalWithoutId(Class<T> clazz, ObjectMapper om) throws IOException, InstantiationException, IllegalAccessException, Exception {
+        beforeUnmarshal();
+        T product;
+
+        if (Collection.class.isAssignableFrom(clazz)) {
+            readLine();
+            if (currentRecordIsNull() && hasNext()) {
+                readLine();
+            }
+            if (currentRecordIsNull()) {
+                return null;
+            }
+            product = clazz.newInstance();
+            while (!currentRecordIsNull()) {
+                Object o = processRecordWithoutId(om);
+                if (o != null) {
+                    ((Collection) product).add(o);
+                }
+                readLine();
+            }
+            return product;
+        } else {
+            readLine();
+            if (!hasNext()) {
+                return null;
+            }
+
+            //Check if clazz is not a wrapper
+            if (om.getRootClass().equals(clazz)) {
+                readLine();
+            }
+            //--
+
+            product = clazz.newInstance();
+            fillWithoutId(product, om);
+            return product;
+        }
+
     }
 
     protected void beforeFill(ObjectMapper om) {
     }
 
-    protected void fill(Object product, ObjectMapper om, BufferedReader reader) throws Exception {
+    protected void fill(Object product, ObjectMapper om) throws IOException, HandlerParseException, UnknownRecordException, InstantiationException, IllegalAccessException {
         beforeFill(om);
         List<FieldModel> mappedFields = om.getMappedFields();
 
@@ -294,8 +381,8 @@ public abstract class AbstractReader implements ObjectReader {
                         if (mc.getRootClass().equals(f.getClassType())) {
                             Collection c = getCollection(product, f);
                             do {
-                                readLine(reader);
-                                Object r = processRecord(reader);
+                                readLine();
+                                Object r = processRecord();
                                 if (r != null) {
                                     c.add(r);
                                 }
@@ -314,8 +401,8 @@ public abstract class AbstractReader implements ObjectReader {
                     }
                 } else {
                     if (mc.getRootClass().equals(f.getClassType())) {
-                        readLine(reader);
-                        Object r = processRecord(reader);
+                        readLine();
+                        Object r = processRecord();
                         setValue(product, r, f);
                     }
                 }
@@ -326,7 +413,7 @@ public abstract class AbstractReader implements ObjectReader {
 
     }
 
-    protected void fillWithoutId(Object product, ObjectMapper om, BufferedReader reader) throws Exception {
+    protected void fillWithoutId(Object product, ObjectMapper om) throws IOException, HandlerParseException, InstantiationException, IllegalAccessException {
         beforeFill(om);
 
         List<FieldModel> mappedFields = om.getMappedFields();
@@ -355,8 +442,8 @@ public abstract class AbstractReader implements ObjectReader {
                     if (oc != null) {
                         Collection c = getCollection(product, f);
                         do {
-                            readLine(reader);
-                            Object r = processRecordWithoutId(reader, oc);
+                            readLine();
+                            Object r = processRecordWithoutId(oc);
                             if (r != null) {
                                 c.add(r);
                             }
@@ -367,8 +454,8 @@ public abstract class AbstractReader implements ObjectReader {
             } else if (f.isNestedObject() && hasNext()) {
                 ObjectMapper oc = getObjectMapperFactory().getMappers().get(f.getClassType());
                 if (oc != null) {
-                    readLine(reader);
-                    Object r = processRecordWithoutId(reader, oc);
+                    readLine();
+                    Object r = processRecordWithoutId(oc);
                     setValue(product, r, f);
                 }
             }
@@ -377,7 +464,7 @@ public abstract class AbstractReader implements ObjectReader {
         }
     }
 
-    private Object processRecord(BufferedReader reader) throws Exception {
+    private Object processRecord() throws UnknownRecordException, IOException, HandlerParseException, InstantiationException, IllegalAccessException {
 
         if (currentRecordIsNull()) {
             return null;
@@ -393,18 +480,18 @@ public abstract class AbstractReader implements ObjectReader {
         }
 
         Object product = om.getRootClass().newInstance();
-        fill(product, om, reader);
+        fill(product, om);
         return product;
     }
 
-    private Object processRecordWithoutId(BufferedReader reader, ObjectMapper om) throws Exception {
+    private Object processRecordWithoutId(ObjectMapper om) throws IOException, HandlerParseException, InstantiationException, IllegalAccessException {
 
         if (currentRecordIsNull()) {
             return null;
         }
 
         Object product = om.getRootClass().newInstance();
-        fillWithoutId(product, om, reader);
+        fillWithoutId(product, om);
         return product;
     }
 

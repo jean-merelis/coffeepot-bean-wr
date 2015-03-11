@@ -35,6 +35,7 @@ import coffeepot.bean.wr.writer.customHandler.LowStringHandler;
 import coffeepot.bean.wr.writer.customHandler.DateTimeHandler;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -134,11 +135,11 @@ public class DelimitedReaderTest {
             w.flush();
             w.close();
         }
-        DelimitedReader reader = new DelimitedReader();
+        DelimitedReader reader = new DelimitedReader(new FileReader(file));
         reader.setDelimiter('|');
         reader.setEscape('\\');
 
-        Order o = reader.read(new FileInputStream(file), Order.class);
+        Order o = reader.parse(Order.class);
 
         assertNotNull(o);
         //TODO: check field values
@@ -185,15 +186,18 @@ public class DelimitedReaderTest {
             w.close();
         }
 
-        DelimitedReader reader = new DelimitedReader();
+        DelimitedReader reader = new DelimitedReader(new FileReader(file));
         reader.setDelimiter('|');
         reader.setEscape('\\');
 
-        SingleClassList o = reader.read(new FileInputStream(file), SingleClassList.class);
+        SingleClassList o = reader.parse(SingleClassList.class);
 
+        reader = new DelimitedReader(new FileReader(file));
+        reader.setDelimiter('|');
+        reader.setEscape('\\');
         //Vai ler somente a primeira linha
         //It will read only the first line
-        SingleClass sc = reader.read(new FileInputStream(file), SingleClass.class);
+        SingleClass sc = reader.parse(SingleClass.class);
 
         Assert.assertNotNull(o);
         //TODO: check field values
@@ -226,8 +230,6 @@ public class DelimitedReaderTest {
         r.setLine2(new Read2.Test(4));
         list.add(r);
 
-
-
         File file = new File("read2.tmp");
         try (Writer w = new FileWriter(file)) {
 
@@ -243,17 +245,18 @@ public class DelimitedReaderTest {
             w.close();
         }
 
-        DelimitedReader reader = new DelimitedReader();
+        DelimitedReader reader = new DelimitedReader(new FileReader(file));
         reader.setDelimiter('|');
         reader.setEscape('\\');
 
-        Read2List o = reader.read(new FileInputStream(file), Read2List.class);
+        Read2List o = reader.parse(Read2List.class);
 
         Assert.assertNotNull(o);
         //TODO: check field values
     }
 
-    static class Read2List extends ArrayList<Read2>{}
+    static class Read2List extends ArrayList<Read2> {
+    }
 
     @Test
     public void unidentifiedObjWithListTest() throws Exception {
@@ -271,7 +274,6 @@ public class DelimitedReaderTest {
         u.getList().add(new UnidentifiedObjWithList.Name("e"));
         u.getList().add(new UnidentifiedObjWithList.Name("f"));
 
-
         File file = new File("unidentifiedObjWithList.tmp");
         try (Writer w = new FileWriter(file)) {
 
@@ -285,11 +287,11 @@ public class DelimitedReaderTest {
             w.close();
         }
 
-        DelimitedReader reader = new DelimitedReader();
+        DelimitedReader reader = new DelimitedReader(new FileReader(file));
         reader.setDelimiter('|');
         reader.setEscape('\\');
 
-        UnidentifiedObjWithList o = reader.read(new FileInputStream(file), UnidentifiedObjWithList.class);
+        UnidentifiedObjWithList o = reader.parse(UnidentifiedObjWithList.class);
 
         assertNotNull(o);
         assertEquals("111111", o.getField1());

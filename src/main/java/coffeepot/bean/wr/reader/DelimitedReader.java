@@ -37,6 +37,8 @@ package coffeepot.bean.wr.reader;
 import coffeepot.bean.wr.mapper.ObjectMapperFactory;
 import coffeepot.bean.wr.types.FormatType;
 import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.Reader;
 import java.util.regex.Pattern;
 
 /**
@@ -58,6 +60,10 @@ public class DelimitedReader extends AbstractReader {
     protected String[] nextRecord;
 
     private final ObjectMapperFactory mapperFactory = new ObjectMapperFactory(FormatType.DELIMITED);
+
+    public DelimitedReader(Reader reader) {
+        super(reader);
+    }
 
     @Override
     public ObjectMapperFactory getObjectMapperFactory() {
@@ -118,9 +124,9 @@ public class DelimitedReader extends AbstractReader {
     }
 
     @Override
-    protected void readLine(BufferedReader reader) throws Exception {
+    protected void readLine() throws IOException{
         currentRecord = nextRecord;
-        nextRecord = getNextRecord(reader);
+        nextRecord = getNextRecord();
     }
 
     @Override
@@ -133,6 +139,38 @@ public class DelimitedReader extends AbstractReader {
         return nextRecord != null;
     }
 
+    protected String[] getNextRecord() throws IOException{
+        String line = null;
+        while (true) {
+            line = getLine();
+            if (line == null) {
+                return null;
+            }
+
+            line = line.trim();
+            if (!line.isEmpty()) {
+                break;
+            }
+        }
+
+        if (recordInitializator != null && removeRecordInitializator) {
+            if (line.startsWith(recordInitializator)) {
+                line = line.substring(recordInitializator.length());
+            }
+        }
+
+        String[] values = line.split(regexSplit,-1);
+
+        if (escape != null) {
+            for (int i = 0; i < values.length; i++) {
+                values[i] = values[i].replace(escOld, escNew);
+                values[i] = values[i].replace(delimOld, delimNew);
+            }
+        }
+
+        return values;
+    }
+
     protected String[] getNextRecord(BufferedReader reader) throws Exception {
         String line = null;
         while (true) {
@@ -141,7 +179,7 @@ public class DelimitedReader extends AbstractReader {
                 return null;
             }
 
-            actualLine++;
+
 
             line = line.trim();
             if (!line.isEmpty()) {
