@@ -66,13 +66,12 @@ public class DefaultBooleanHandler implements TypeHandler<Boolean> {
     /**
      * When keys value are not specified, the sequence of values ​​must be first
      * true text and second false text.
-     * <p/>
-     * Valid params format:<br/>
-     * true=1;false=0 or false=0;true=1<br/>
-     * 1;0<br/>
+     * <p></p>
+     * Valid params format:<br>
+     * true=1;false=0 or false=0;true=1<br>
+     * 1;0<br>
      * newTrueText;newFalseText
      *
-     * @param params
      */
     @Override
     public void setConfig(String[] params) {

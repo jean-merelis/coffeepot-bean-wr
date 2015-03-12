@@ -69,16 +69,9 @@ public @interface Field {
 
     /**
      * Used only when there isn't a field set.
-     *
-     * @return
      */
     Class<?> classType() default Class.class;
 
-    /**
-     * Params to config.
-     *
-     * @return
-     */
     String[] params() default {};
 
     AccessorType accessorType() default AccessorType.DEFAULT;

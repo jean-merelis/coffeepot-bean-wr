@@ -13,6 +13,17 @@ Features:
 
 Real examples of use you will find them in [coffeepot-br-sped-fiscal](https://github.com/jean-merelis/coffeepot-br-sped-fiscal) and [coffeepot-br-sintegra](https://github.com/jean-merelis/coffeepot-br-sintegra) projects. The coffeepot-br-sped-fiscal project uses delimited format, and the sintegra project uses FixedLength format.
 
+
+Download from Maven central
+
+```xml
+        <dependency>
+            <groupId>com.github.jean-merelis</groupId>
+            <artifactId>coffeepot-bean-wr</artifactId>
+            <version>1.2.0-FINAL</version>            
+        </dependency> 
+```
+
 Examples
 --------
 
