@@ -47,6 +47,7 @@ import java.io.Reader;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -63,6 +64,7 @@ public abstract class AbstractReader implements ObjectReader {
     protected boolean ignoreUnknownRecords;
     protected boolean removeRecordInitializator = true;
     protected boolean trim = true;
+    protected boolean deepScan = false;
     protected String recordInitializator;
     protected int actualLine;
     protected Callback<Class, RecordModel> callback;
@@ -364,6 +366,8 @@ public abstract class AbstractReader implements ObjectReader {
                     throw new HandlerParseException("Line: " + actualLine + ", field: " + (i + 1), ex);
                 }
             } else if (f.isCollection()) {
+                Collection c = getCollection(product, f);
+
                 if (hasNext()) {
                     //se o proximo registro é um objeto desta collection
                     String nextId = getIdValue(true);
@@ -372,16 +376,24 @@ public abstract class AbstractReader implements ObjectReader {
                         if (!ignoreUnknownRecords) {
                             throw new UnknownRecordException("The record with ID '" + nextId + "' is unknown. Line:" + actualLine);
                         }
+                    } else if (mc.getRootClass().equals(f.getClassType())) {
+
+                        do {
+                            readLine();
+                            Object r = processRecord();
+                            if (r != null) {
+                                c.add(r);
+                            }
+                        } while (hasNext() && getIdValue(true).equals(nextId));
                     } else {
 
-                        if (mc.getRootClass().equals(f.getClassType())) {
-                            Collection c = getCollection(product, f);
+                        ObjectMapper wrapper = getObjectMapperFactory().getMappers().get(f.getClassType());
+                        if (containsFieldWithClass(wrapper, mc.getRootClass(), null)) {
                             do {
-                                readLine();
-                                Object r = processRecord();
-                                if (r != null) {
-                                    c.add(r);
-                                }
+                                Object o = f.getClassType().newInstance();
+                                fill(o, wrapper);
+                                c.add(o);
+
                             } while (hasNext() && getIdValue(true).equals(nextId));
                         }
                     }
@@ -395,11 +407,16 @@ public abstract class AbstractReader implements ObjectReader {
                     if (!ignoreUnknownRecords) {
                         throw new UnknownRecordException("The record with ID '" + nextId + "' is unknown. Line:" + actualLine);
                     }
+                } else if (mc.getRootClass().equals(f.getClassType())) {
+                    readLine();
+                    Object r = processRecord();
+                    setValue(product, r, f);
                 } else {
-                    if (mc.getRootClass().equals(f.getClassType())) {
-                        readLine();
-                        Object r = processRecord();
-                        setValue(product, r, f);
+                    ObjectMapper wrapper = getObjectMapperFactory().getMappers().get(f.getClassType());
+                    if (containsFieldWithClass(wrapper, mc.getRootClass(), null)) {
+                        Object o = f.getClassType().newInstance();
+                        fill(o, wrapper);
+                        setValue(product, o, f);
                     }
                 }
             }
@@ -458,6 +475,45 @@ public abstract class AbstractReader implements ObjectReader {
 
             i++;
         }
+    }
+
+    /**
+     * Check if mapper contains some field with the class.
+     *
+     * @param om
+     * @param clazz
+     * @param analyzedMappers mappers already analyzed to avoid infinite loop
+     * when in deep scan process
+     * @return
+     */
+    private boolean containsFieldWithClass(ObjectMapper om, Class<?> clazz, Set<ObjectMapper> analyzedMappers) {
+        List<FieldModel> mappedFields = om.getMappedFields();
+        for (FieldModel f : mappedFields) {
+            if (f.getClassType().equals(clazz) || f.getCollectionType().equals(clazz)) {
+                return true;
+            }
+        }
+
+        if (deepScan) {
+            if (analyzedMappers == null) {
+                analyzedMappers = new HashSet<>();
+            }
+
+            if (analyzedMappers.contains(om)) {
+                return false;
+            }
+            analyzedMappers.add(om);
+
+            for (FieldModel f : mappedFields) {
+                ObjectMapper o = getObjectMapperFactory().getMappers().get(f.getClassType());
+                if (o != null) {
+                   if(containsFieldWithClass(o, clazz, analyzedMappers))
+                       return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private Object processRecord() throws UnknownRecordException, IOException, HandlerParseException, InstantiationException, IllegalAccessException {
@@ -632,8 +688,8 @@ public abstract class AbstractReader implements ObjectReader {
     }
 
     /**
-     * If {@code true} then the values are trimmed before being analyzed by the handler.
-     * Default is {@code true}.
+     * If {@code true} then the values are trimmed before being analyzed by the
+     * handler. Default is {@code true}.
      *
      * @return
      */
@@ -642,8 +698,8 @@ public abstract class AbstractReader implements ObjectReader {
     }
 
     /**
-     * If {@code true} then the values are trimmed before being analyzed by the handler.
-     * Default is {@code true}.
+     * If {@code true} then the values are trimmed before being analyzed by the
+     * handler. Default is {@code true}.
      *
      * @param trim
      */
@@ -651,4 +707,11 @@ public abstract class AbstractReader implements ObjectReader {
         this.trim = trim;
     }
 
+    public boolean isDeepScan() {
+        return deepScan;
+    }
+
+    public void setDeepScan(boolean deepScan) {
+        this.deepScan = deepScan;
+    }
 }

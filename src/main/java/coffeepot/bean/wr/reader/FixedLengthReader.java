@@ -40,6 +40,7 @@ import coffeepot.bean.wr.mapper.ObjectMapperFactory;
 import coffeepot.bean.wr.types.FormatType;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
@@ -51,7 +52,7 @@ public class FixedLengthReader extends AbstractReader {
     private final ObjectMapperFactory mapperFactory = new ObjectMapperFactory(FormatType.FIXED_LENGTH);
     private int idStart;
     private int idLength;
-    private boolean objectById; 
+    private boolean objectById;
 
     public FixedLengthReader(Reader reader) {
         super(reader);
@@ -102,6 +103,10 @@ public class FixedLengthReader extends AbstractReader {
         Iterator<FieldModel> it = om.getMappedFields().iterator();
         while (it.hasNext()) {
             FieldModel f = it.next();
+            if (f.isNestedObject()){
+                 idx++;
+                 continue;
+            }
             endIdx = pos + f.getLength();
             currentRecord[idx] = current.substring(pos, endIdx);
             pos = endIdx;

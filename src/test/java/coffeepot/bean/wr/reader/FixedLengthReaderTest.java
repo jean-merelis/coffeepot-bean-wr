@@ -27,9 +27,10 @@ import coffeepot.bean.wr.model.Item;
 import coffeepot.bean.wr.model.ItemDet;
 import coffeepot.bean.wr.model.Order;
 import coffeepot.bean.wr.model.SingleClass;
+import coffeepot.bean.wr.model.file.AFile;
+import coffeepot.bean.wr.model.file.Detail;
 import coffeepot.bean.wr.typeHandler.DefaultDoubleHandler;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.Writer;
@@ -179,8 +180,39 @@ public class FixedLengthReaderTest {
         //It will read only the first line
         SingleClass sc = reader.parse(SingleClass.class);
 
-        Assert.assertNotNull(o);
+        Assert.assertNotNull(sc);
         //TODO: check field values
+    }
+
+    @Test
+    public void readFileWithObjectWrapper() throws Exception {
+        File file = new File("file-to-test-reader.txt");
+
+        try (FileReader fr = new FileReader(file)) {
+            FixedLengthReader reader = new FixedLengthReader(fr);
+
+            AFile aFile = reader.parse(AFile.class);
+
+            assertNotNull(aFile);
+
+            assertNotNull(aFile.getHeader());
+            assertEquals("HEADER OF FILE", aFile.getHeader().getValue());
+
+            assertNotNull(aFile.getTrailer());
+            assertEquals("TRAILER", aFile.getTrailer().getValue());
+
+            assertNotNull(aFile.getDetails());
+            assertEquals(4, aFile.getDetails().size());
+
+            int i = 0;
+            for (Detail d: aFile.getDetails()){
+                i++;
+                assertNotNull( d.getReg01());
+                assertEquals("REG 01-"+i, d.getReg01().getValue());
+                assertNotNull( d.getReg02());
+                assertEquals("REG 02-"+i, d.getReg02().getValue());
+            }
+        }
     }
 
 }
