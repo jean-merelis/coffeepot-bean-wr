@@ -148,9 +148,6 @@ public abstract class AbstractReader implements ObjectReader {
 
     protected abstract void readLine() throws IOException;
 
-    protected void beforeUnmarshal() {
-    }
-
     protected abstract String getIdValue(boolean fromNext);
 
     protected abstract String getValueByIndex(int idx);
@@ -250,6 +247,9 @@ public abstract class AbstractReader implements ObjectReader {
         return sb.toString();
     }
 
+    protected void beforeUnmarshal() {
+    }
+
     private <T> T unmarshal(Class<T> clazz) throws IOException, InstantiationException, IllegalAccessException, UnknownRecordException, HandlerParseException {
         beforeUnmarshal();
         T product;
@@ -280,14 +280,14 @@ public abstract class AbstractReader implements ObjectReader {
             }
 
             //Check if clazz is a wrapper
-            ObjectMapper om = getObjectMapperFactory().getMappers().get(clazz);
-            ObjectMapper omm = getObjectMapperFactory().getIdsMap().get(getIdValue(true));
+            ObjectMapper mapperByClass = getObjectMapperFactory().getMappers().get(clazz);
+            ObjectMapper mapperById = getObjectMapperFactory().getIdsMap().get(getIdValue(true));
 
-            if (omm == null) {
+            if (mapperById == null) {
                 if (!ignoreUnknownRecords) {
                     throw new UnknownRecordException("The record with ID '" + getIdValue(true) + "' is unknown. Line: " + actualLine);
                 }
-            } else if (om.getRootClass().equals(omm.getRootClass())) {
+            } else if (mapperByClass.getRootClass().equals(mapperById.getRootClass())) {
                 if (currentRecordIsNull()) {
                     readLine();
                 }
@@ -295,14 +295,14 @@ public abstract class AbstractReader implements ObjectReader {
             //--
 
             product = clazz.newInstance();
-            fill(product, om);
+            fill(product, mapperByClass);
             return product;
         }
 
     }
 
     //for single class
-    private <T> T unmarshalWithoutId(Class<T> clazz, ObjectMapper om) throws IOException, InstantiationException, IllegalAccessException, Exception {
+    private <T> T unmarshalWithoutId(Class<T> clazz, ObjectMapper mapper) throws IOException, InstantiationException, IllegalAccessException, Exception {
         beforeUnmarshal();
         T product;
 
@@ -316,7 +316,7 @@ public abstract class AbstractReader implements ObjectReader {
             }
             product = clazz.newInstance();
             while (!currentRecordIsNull()) {
-                Object o = processRecordWithoutId(om);
+                Object o = processRecordWithoutId(mapper);
                 if (o != null) {
                     ((Collection) product).add(o);
                 }
@@ -330,93 +330,93 @@ public abstract class AbstractReader implements ObjectReader {
             }
 
             //Check if clazz is not a wrapper
-            if (om.getRootClass().equals(clazz)) {
+            if (mapper.getRootClass().equals(clazz)) {
                 readLine();
             }
             //--
 
             product = clazz.newInstance();
-            fillWithoutId(product, om);
+            fillWithoutId(product, mapper);
             return product;
         }
 
     }
 
-    protected void beforeFill(ObjectMapper om) {
+    protected void beforeFill(ObjectMapper mapper) {
     }
 
-    protected void fill(Object product, ObjectMapper om) throws IOException, HandlerParseException, UnknownRecordException, InstantiationException, IllegalAccessException {
-        beforeFill(om);
-        List<FieldModel> mappedFields = om.getMappedFields();
+    protected void fill(Object product, ObjectMapper mapper) throws IOException, HandlerParseException, UnknownRecordException, InstantiationException, IllegalAccessException {
+        beforeFill(mapper);
+        List<FieldModel> fields = mapper.getFields();
 
         int i = 0;
 
-        for (FieldModel f : mappedFields) {
-            if (!f.getConstantValue().isEmpty() || f.isIgnoreOnRead()) {
+        for (FieldModel field : fields) {
+            if (!field.getConstantValue().isEmpty() || field.isIgnoreOnRead()) {
                 i++;
                 continue;
             }
 
-            if (!f.isCollection() && !f.isNestedObject() && f.getTypeHandler() != null) {
+            if (!field.isCollection() && !field.isNestedObject() && field.getTypeHandler() != null) {
                 try {
                     String v = trim ? getValueByIndex(i).trim() : getValueByIndex(i);
-                    Object value = f.getTypeHandler().parse(v);
-                    setValue(product, value, f);
+                    Object value = field.getTypeHandler().parse(v);
+                    setValue(product, value, field);
                 } catch (HandlerParseException ex) {
                     throw new HandlerParseException("Line: " + actualLine + ", field: " + (i + 1), ex);
                 }
-            } else if (f.isCollection()) {
-                Collection c = getCollection(product, f);
+            } else if (field.isCollection()) {
+                Collection c = getCollection(product, field);
 
                 if (hasNext()) {
                     //se o proximo registro é um objeto desta collection
                     String nextId = getIdValue(true);
-                    ObjectMapper mc = getObjectMapperFactory().getIdsMap().get(nextId);
-                    if (mc == null) {
+                    ObjectMapper mapperById = getObjectMapperFactory().getIdsMap().get(nextId);
+                    if (mapperById == null) {
                         if (!ignoreUnknownRecords) {
                             throw new UnknownRecordException("The record with ID '" + nextId + "' is unknown. Line:" + actualLine);
                         }
-                    } else if (mc.getRootClass().equals(f.getClassType())) {
+                    } else if (mapperById.getRootClass().equals(field.getClassType())) {
 
                         do {
                             readLine();
-                            Object r = processRecord();
-                            if (r != null) {
-                                c.add(r);
+                            Object obj = processRecord();
+                            if (obj != null) {
+                                c.add(obj);
                             }
                         } while (hasNext() && getIdValue(true).equals(nextId));
                     } else {
 
-                        ObjectMapper wrapper = getObjectMapperFactory().getMappers().get(f.getClassType());
-                        if (containsFieldWithClass(wrapper, mc.getRootClass(), null)) {
+                        ObjectMapper mapperByFieldType = getObjectMapperFactory().getMappers().get(field.getClassType());
+                        if (containsFieldWithClass(mapperByFieldType, mapperById.getRootClass(), null)) {
                             do {
-                                Object o = f.getClassType().newInstance();
-                                fill(o, wrapper);
-                                c.add(o);
+                                Object obj = field.getClassType().newInstance();
+                                fill(obj, mapperByFieldType);
+                                c.add(obj);
 
                             } while (hasNext() && getIdValue(true).equals(nextId));
                         }
                     }
                 }
 
-            } else if (f.isNestedObject() && hasNext()) {
+            } else if (field.isNestedObject() && hasNext()) {
                 //se o proximo registro é um objeto deste mesmo tipo
                 String nextId = getIdValue(true);
-                ObjectMapper mc = getObjectMapperFactory().getIdsMap().get(nextId);
-                if (mc == null) {
+                ObjectMapper mapperById = getObjectMapperFactory().getIdsMap().get(nextId);
+                if (mapperById == null) {
                     if (!ignoreUnknownRecords) {
                         throw new UnknownRecordException("The record with ID '" + nextId + "' is unknown. Line:" + actualLine);
                     }
-                } else if (mc.getRootClass().equals(f.getClassType())) {
+                } else if (mapperById.getRootClass().equals(field.getClassType())) {
                     readLine();
-                    Object r = processRecord();
-                    setValue(product, r, f);
+                    Object obj = processRecord();
+                    setValue(product, obj, field);
                 } else {
-                    ObjectMapper wrapper = getObjectMapperFactory().getMappers().get(f.getClassType());
-                    if (containsFieldWithClass(wrapper, mc.getRootClass(), null)) {
-                        Object o = f.getClassType().newInstance();
-                        fill(o, wrapper);
-                        setValue(product, o, f);
+                    ObjectMapper mapperByFieldType = getObjectMapperFactory().getMappers().get(field.getClassType());
+                    if (containsFieldWithClass(mapperByFieldType, mapperById.getRootClass(), null)) {
+                        Object obj = field.getClassType().newInstance();
+                        fill(obj, mapperByFieldType);
+                        setValue(product, obj, field);
                     }
                 }
             }
@@ -426,50 +426,50 @@ public abstract class AbstractReader implements ObjectReader {
 
     }
 
-    protected void fillWithoutId(Object product, ObjectMapper om) throws IOException, HandlerParseException, InstantiationException, IllegalAccessException {
-        beforeFill(om);
+    protected void fillWithoutId(Object product, ObjectMapper mapper) throws IOException, HandlerParseException, InstantiationException, IllegalAccessException {
+        beforeFill(mapper);
 
-        List<FieldModel> mappedFields = om.getMappedFields();
+        List<FieldModel> fields = mapper.getFields();
         int i = 0;
 
-        for (FieldModel f : mappedFields) {
-            if (!f.getConstantValue().isEmpty() || f.isIgnoreOnRead()) {
+        for (FieldModel field : fields) {
+            if (!field.getConstantValue().isEmpty() || field.isIgnoreOnRead()) {
                 i++;
                 continue;
             }
 
-            if (!f.isCollection() && !f.isNestedObject() && f.getTypeHandler() != null) {
+            if (!field.isCollection() && !field.isNestedObject() && field.getTypeHandler() != null) {
 
                 try {
                     String v = trim ? getValueByIndex(i).trim() : getValueByIndex(i);
-                    Object value = f.getTypeHandler().parse(v);
-                    setValue(product, value, f);
+                    Object value = field.getTypeHandler().parse(v);
+                    setValue(product, value, field);
                 } catch (HandlerParseException ex) {
                     throw new HandlerParseException("Line: " + actualLine + ", field: " + (i + 1), ex);
                 }
-            } else if (f.isCollection()) {
+            } else if (field.isCollection()) {
                 if (hasNext()) {
                     //Desde que o root nao seja uma collection, o objeto poderá ter uma collection, mas somente uma e deve ser o último a ser processado
                     //if the root is not one collection, the object may have a collection, but only one and should be the last to be processed
-                    ObjectMapper oc = getObjectMapperFactory().getMappers().get(f.getClassType());
-                    if (oc != null) {
-                        Collection c = getCollection(product, f);
+                    ObjectMapper mapperByFieldType = getObjectMapperFactory().getMappers().get(field.getClassType());
+                    if (mapperByFieldType != null) {
+                        Collection c = getCollection(product, field);
                         do {
                             readLine();
-                            Object r = processRecordWithoutId(oc);
-                            if (r != null) {
-                                c.add(r);
+                            Object obj = processRecordWithoutId(mapperByFieldType);
+                            if (obj != null) {
+                                c.add(obj);
                             }
                         } while (hasNext());
                     }
                 }
 
-            } else if (f.isNestedObject() && hasNext()) {
-                ObjectMapper oc = getObjectMapperFactory().getMappers().get(f.getClassType());
-                if (oc != null) {
+            } else if (field.isNestedObject() && hasNext()) {
+                ObjectMapper mapperByFieldType = getObjectMapperFactory().getMappers().get(field.getClassType());
+                if (mapperByFieldType != null) {
                     readLine();
-                    Object r = processRecordWithoutId(oc);
-                    setValue(product, r, f);
+                    Object obj = processRecordWithoutId(mapperByFieldType);
+                    setValue(product, obj, field);
                 }
             }
 
@@ -480,14 +480,14 @@ public abstract class AbstractReader implements ObjectReader {
     /**
      * Check if mapper contains some field with the class.
      *
-     * @param om
+     * @param mapper
      * @param clazz
      * @param analyzedMappers mappers already analyzed to avoid infinite loop
      * when in deep scan process
      * @return
      */
-    private boolean containsFieldWithClass(ObjectMapper om, Class<?> clazz, Set<ObjectMapper> analyzedMappers) {
-        List<FieldModel> mappedFields = om.getMappedFields();
+    private boolean containsFieldWithClass(ObjectMapper mapper, Class<?> clazz, Set<ObjectMapper> analyzedMappers) {
+        List<FieldModel> mappedFields = mapper.getFields();
         for (FieldModel f : mappedFields) {
             if (f.getClassType().equals(clazz) || f.getCollectionType().equals(clazz)) {
                 return true;
@@ -499,16 +499,17 @@ public abstract class AbstractReader implements ObjectReader {
                 analyzedMappers = new HashSet<>();
             }
 
-            if (analyzedMappers.contains(om)) {
+            if (analyzedMappers.contains(mapper)) {
                 return false;
             }
-            analyzedMappers.add(om);
+            analyzedMappers.add(mapper);
 
             for (FieldModel f : mappedFields) {
                 ObjectMapper o = getObjectMapperFactory().getMappers().get(f.getClassType());
                 if (o != null) {
-                   if(containsFieldWithClass(o, clazz, analyzedMappers))
-                       return true;
+                    if (containsFieldWithClass(o, clazz, analyzedMappers)) {
+                        return true;
+                    }
                 }
             }
         }
@@ -522,57 +523,57 @@ public abstract class AbstractReader implements ObjectReader {
             return null;
         }
 
-        ObjectMapper om = getObjectMapperFactory().getIdsMap().get(getIdValue(false));
+        ObjectMapper mapper = getObjectMapperFactory().getIdsMap().get(getIdValue(false));
 
-        if (om == null) {
+        if (mapper == null) {
             if (!ignoreUnknownRecords) {
                 throw new UnknownRecordException("The record with ID '" + getIdValue(false) + "' is unknown. Line:" + actualLine);
             }
             return null;
         }
 
-        Object product = om.getRootClass().newInstance();
-        fill(product, om);
+        Object product = mapper.getRootClass().newInstance();
+        fill(product, mapper);
         return product;
     }
 
-    private Object processRecordWithoutId(ObjectMapper om) throws IOException, HandlerParseException, InstantiationException, IllegalAccessException {
+    private Object processRecordWithoutId(ObjectMapper mapper) throws IOException, HandlerParseException, InstantiationException, IllegalAccessException {
 
         if (currentRecordIsNull()) {
             return null;
         }
 
-        Object product = om.getRootClass().newInstance();
-        fillWithoutId(product, om);
+        Object product = mapper.getRootClass().newInstance();
+        fillWithoutId(product, mapper);
         return product;
     }
 
-    protected Collection getCollection(final Object obj, final FieldModel f) {
+    protected Collection getCollection(final Object obj, final FieldModel field) {
         Object o = null;
-        if (f.getGetterMethod() != null) {
+        if (field.getGetterMethod() != null) {
             //PROPERTY
             o = AccessController.doPrivileged(new PrivilegedAction() {
                 @Override
                 public Object run() {
-                    boolean wasAccessible = f.getGetterMethod().isAccessible();
+                    boolean wasAccessible = field.getGetterMethod().isAccessible();
                     try {
-                        f.getGetterMethod().setAccessible(true);
-                        Object c = f.getGetterMethod().invoke(obj);
+                        field.getGetterMethod().setAccessible(true);
+                        Object c = field.getGetterMethod().invoke(obj);
                         if (c == null) {
-                            if (List.class.isAssignableFrom(f.getCollectionType())) {
+                            if (List.class.isAssignableFrom(field.getCollectionType())) {
                                 c = new LinkedList();
-                            } else if (Set.class.isAssignableFrom(f.getCollectionType())) {
+                            } else if (Set.class.isAssignableFrom(field.getCollectionType())) {
                                 c = new LinkedHashSet();
                             }
-                            f.getSetterMethod().setAccessible(true);
-                            f.getSetterMethod().invoke(obj, c);
+                            field.getSetterMethod().setAccessible(true);
+                            field.getSetterMethod().invoke(obj, c);
                         }
                         return c;
                     } catch (Exception ex) {
                         throw new IllegalStateException("Cannot invoke method for collection", ex);
                     } finally {
-                        f.getGetterMethod().setAccessible(wasAccessible);
-                        f.getSetterMethod().setAccessible(wasAccessible);
+                        field.getGetterMethod().setAccessible(wasAccessible);
+                        field.getSetterMethod().setAccessible(wasAccessible);
                     }
                 }
             });
@@ -581,7 +582,7 @@ public abstract class AbstractReader implements ObjectReader {
                 //FIELD
                 final java.lang.reflect.Field declaredField;
 
-                declaredField = obj.getClass().getDeclaredField(f.getName());
+                declaredField = obj.getClass().getDeclaredField(field.getName());
                 o = AccessController.doPrivileged(new PrivilegedAction() {
                     @Override
                     public Object run() {
@@ -591,9 +592,9 @@ public abstract class AbstractReader implements ObjectReader {
                             Object c = declaredField.get(obj);
 
                             if (c == null) {
-                                if (List.class.isAssignableFrom(f.getCollectionType())) {
+                                if (List.class.isAssignableFrom(field.getCollectionType())) {
                                     c = new LinkedList();
-                                } else if (Set.class.isAssignableFrom(f.getCollectionType())) {
+                                } else if (Set.class.isAssignableFrom(field.getCollectionType())) {
                                     c = new LinkedHashSet();
                                 }
                                 declaredField.set(obj, c);
@@ -617,20 +618,20 @@ public abstract class AbstractReader implements ObjectReader {
         return (Collection) o;
     }
 
-    protected void setValue(final Object obj, final Object fieldValue, final FieldModel f) {
-        if (f.getSetterMethod() != null) {
+    protected void setValue(final Object obj, final Object fieldValue, final FieldModel field) {
+        if (field.getSetterMethod() != null) {
             //PROPERTY
             AccessController.doPrivileged(new PrivilegedAction() {
                 @Override
                 public Object run() {
-                    boolean wasAccessible = f.getSetterMethod().isAccessible();
+                    boolean wasAccessible = field.getSetterMethod().isAccessible();
                     try {
-                        f.getSetterMethod().setAccessible(true);
-                        return f.getSetterMethod().invoke(obj, fieldValue);
+                        field.getSetterMethod().setAccessible(true);
+                        return field.getSetterMethod().invoke(obj, fieldValue);
                     } catch (Exception ex) {
                         throw new IllegalStateException("Cannot invoke method set", ex);
                     } finally {
-                        f.getSetterMethod().setAccessible(wasAccessible);
+                        field.getSetterMethod().setAccessible(wasAccessible);
                     }
                 }
             });
@@ -639,7 +640,7 @@ public abstract class AbstractReader implements ObjectReader {
                 //FIELD
                 final java.lang.reflect.Field declaredField;
 
-                declaredField = obj.getClass().getDeclaredField(f.getName());
+                declaredField = obj.getClass().getDeclaredField(field.getName());
                 AccessController.doPrivileged(new PrivilegedAction() {
                     @Override
                     public Object run() {

@@ -45,7 +45,7 @@ import java.util.logging.Logger;
 public class ObjectMapper {
 
     private AccessorType accessorType = AccessorType.DEFAULT;
-    private final List<FieldModel> mappedFields = new LinkedList<>();
+    private final List<FieldModel> fields = new LinkedList<>();
     private Class<?> rootClass;
 
     /**
@@ -144,7 +144,7 @@ public class ObjectMapper {
                 }
             }
         }
-        if (mappedFields.isEmpty()) {
+        if (fields.isEmpty()) {
             throw new UnresolvedObjectMapperException("Class " + rootClass.getName() + " can't be mapped");
         }
     }
@@ -163,14 +163,14 @@ public class ObjectMapper {
                 }
             }
         }
-        if (mappedFields.isEmpty()) {
+        if (fields.isEmpty()) {
             throw new UnresolvedObjectMapperException("Class " + rootClass.getName() + " can't be mapped");
         }
     }
 
     private void mappingFields(coffeepot.bean.wr.annotation.Field[] fields, ObjectMapperFactory factory, String groupId) throws Exception {
         for (coffeepot.bean.wr.annotation.Field f : fields) {
-            this.mappedFields.add(mappingField(null, Helpful.toFieldImpl(f), factory, rootClass, groupId));
+            this.fields.add(mappingField(null, Helpful.toFieldImpl(f), factory, rootClass, groupId));
         }
     }
 
@@ -180,7 +180,7 @@ public class ObjectMapper {
                 f.setMinLength(f.getLength());
                 f.setMaxLength(f.getLength());
             }
-            this.mappedFields.add(mappingField(null, f, factory, rootClass, groupId));
+            this.fields.add(mappingField(null, f, factory, rootClass, groupId));
         }
     }
 
@@ -402,7 +402,7 @@ public class ObjectMapper {
         return accessorType;
     }
 
-    public List<FieldModel> getMappedFields() {
-        return mappedFields;
+    public List<FieldModel> getFields() {
+        return fields;
     }
 }

@@ -24,9 +24,9 @@ package coffeepot.bean.wr.reader;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -68,7 +68,7 @@ public class FixedLengthReader extends AbstractReader {
         objectById = !mapperFactory.getIdsMap().isEmpty();
         if (objectById) {
             ObjectMapper om = mapperFactory.getIdsMap().values().iterator().next();
-            Iterator<FieldModel> it = om.getMappedFields().iterator();
+            Iterator<FieldModel> it = om.getFields().iterator();
             int pos = 0;
             while (it.hasNext()) {
                 FieldModel f = it.next();
@@ -95,12 +95,12 @@ public class FixedLengthReader extends AbstractReader {
     }
 
     @Override
-    protected void beforeFill(ObjectMapper om) {
-        currentRecord = new String[om.getMappedFields().size()];
+    protected void beforeFill(ObjectMapper mapper) {
+        currentRecord = new String[mapper.getFields().size()];
         int idx = 0;
         int pos = 0;
         int endIdx;
-        Iterator<FieldModel> it = om.getMappedFields().iterator();
+        Iterator<FieldModel> it = mapper.getFields().iterator();
         while (it.hasNext()) {
             FieldModel f = it.next();
             if (f.isNestedObject()){

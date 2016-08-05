@@ -182,7 +182,7 @@ public abstract class AbstractWriter implements ObjectWriter {
         if (obj == null) {
             return fieldsValue;
         }
-        return marshal(obj, fieldsValue, op.getMappedFields(), op.getRootClass(), op);
+        return marshal(obj, fieldsValue, op.getFields(), op.getRootClass(), op);
     }
 
     private List<String> marshal(Object obj, List<String> fieldsValue, List<FieldModel> fields, Class<?> clazz, ObjectMapper op) throws IOException {
@@ -316,7 +316,7 @@ public abstract class AbstractWriter implements ObjectWriter {
                 Class<?> cl;
                 List<FieldModel> fi;
 
-                fi = parser.getMappedFields();
+                fi = parser.getFields();
                 cl = parser.getRootClass();
 
                 fieldsValue = marshal(it.next(), fieldsValue, fi, cl, parser);
