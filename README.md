@@ -142,7 +142,7 @@ public class Rec01 {
 
 
 @Record(fields = {
-    @Field(name = "", constantValue = "AA", id = true, length = 2), // idenfier field
+    @Field(name = "", constantValue = "AA", id = true, length = 2), // identifier field
     @Field(name = "value", length = 18)
 	// ... more fields
 })
