@@ -94,15 +94,64 @@ Output:
 		ITEM|3|product 3|2|
 
     
-Reader example
+Reading
 --------------
+
+For simple file structure, i.e. where the file has only one type of record, simply map the fields of the class that represents this record and perform the reading. 
+
+If file contains a list of these records is needed a wrapper class for this these records to be passed to the reader.
+
+```java
+	//Example for a file with a list of the records.
+
+    // Declare a wrapper for the record
+	public static class AListOfRecord extends ArrayList<MyRecordClass> {}
+
+    public void read(){
+		File file = new File("file-with-a-list-of-records.txt");
+
+		try (FileReader fr = new FileReader(file)) {
+			FixedLengthReader reader = new FixedLengthReader(fr);
+			AListOfRecord records = reader.parse(AListOfRecord.class);
+			for (MyRecordClass r: records){ 
+			  ...
+			}
+		}
+
+	}
+```
+
+For more complex structures that have various types of records, it is necessary that the records have an identifier field so it can be possible to instantiate the corresponding class of the record.
+The identifier field must have the value that identifies the record in the constantValue property and the id property must be true.
 
 ```java
 
-	File file = new File("file-to-test-reader.txt");
+@Record(fields = {
+    @Field(name = "", constantValue = "01", id = true, length = 2), // idenfier field
+    @Field(name = "value", length = 18)
+	// ... more fields
+})
 
-	try (FileReader fr = new FileReader(file)) {
-		FixedLengthReader reader = new FixedLengthReader(fr);
-		SomeClass instance = reader.parse(SomeClass.class);
-    }
+public class Rec01 {
+
+    private String value;
+		
+	// more fields getters and setters...
+	...
+}
+
+
+@Record(fields = {
+    @Field(name = "", constantValue = "AA", id = true, length = 2), // idenfier field
+    @Field(name = "value", length = 18)
+	// ... more fields
+})
+
+public class RecAA {
+
+    private String value;
+		
+	// more fields getters and setters...
+	...
+}
 ```
