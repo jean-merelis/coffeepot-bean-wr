@@ -127,7 +127,7 @@ The identifier field must have the value that identifies the record in the const
 ```java
 
 @Record(fields = {
-    @Field(name = "", constantValue = "01", id = true, length = 2), // idenfier field
+    @Field(name = "", constantValue = "01", id = true, length = 2), // identifier field
     @Field(name = "value", length = 18)
 	// ... more fields
 })
