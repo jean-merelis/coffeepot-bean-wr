@@ -39,6 +39,7 @@ import coffeepot.bean.wr.mapper.RecordModel;
 import coffeepot.bean.wr.mapper.UnresolvedObjectMapperException;
 import coffeepot.bean.wr.typeHandler.HandlerParseException;
 import java.io.IOException;
+import java.util.List;
 
 /**
  *
@@ -49,6 +50,10 @@ public interface ObjectReader {
     public <T> T parse(Class<T> clazz) throws IOException, UnknownRecordException, HandlerParseException, Exception;
 
     public <T> T parse(Class<T> clazz, String recordGroupId) throws IOException, UnknownRecordException, HandlerParseException, Exception;
+
+    public <T> List<T> parseAsListOf(Class<T> clazz) throws IOException, UnknownRecordException, HandlerParseException, Exception;
+
+    public <T> List<T> parseAsListOf(Class<T> clazz, String recordGroupId) throws IOException, UnknownRecordException, HandlerParseException, Exception;
 
     public void findLineStartsWith(String s) throws IOException;
 

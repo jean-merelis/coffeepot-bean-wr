@@ -183,6 +183,57 @@ public class FixedLengthReaderTest {
         Assert.assertNotNull(sc);
         //TODO: check field values
     }
+    @Test
+    public void shoudlReadAsListOf() throws Exception {
+
+        List<SingleClass> list = new ArrayList<>();
+
+        SingleClass s;
+
+        s = new SingleClass();
+        s.setField1("111111");
+        s.setField2("22222299999999999999999999999999");
+        list.add(s);
+
+        s = new SingleClass();
+        s.setField1("111111");
+        s.setField2("222222");
+        list.add(s);
+
+        s = new SingleClass();
+        s.setField1("111111");
+        s.setField2("222222");
+        list.add(s);
+
+        s = new SingleClass();
+        s.setField1("111111");
+        s.setField2("222222");
+        list.add(s);
+
+        File file = new File("single.tmp");
+        try (Writer w = new FileWriter(file)) {
+
+            FixedLengthWriter writer = new FixedLengthWriter(w);
+            writer.setRecordTerminator("\r\n");
+
+            for (SingleClass sc : list) {
+                writer.write(sc);
+            }
+
+            w.flush();
+            w.close();
+        }
+
+        FixedLengthReader reader = new FixedLengthReader(new FileReader(file));
+
+        List<SingleClass> records = reader.parseAsListOf(SingleClass.class);
+
+
+        Assert.assertNotNull(records);
+        Assert.assertEquals(4, records.size());
+
+        //TODO: check field values
+    }
 
     @Test
     public void readFileWithObjectWrapper() throws Exception {

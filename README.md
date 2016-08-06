@@ -19,7 +19,7 @@ Download from Maven central
         <dependency>
             <groupId>com.github.jean-merelis</groupId>
             <artifactId>coffeepot-bean-wr</artifactId>
-            <version>1.2.1-FINAL</version>            
+            <version>1.2.2-FINAL</version>            
         </dependency> 
 ```
 
@@ -99,21 +99,18 @@ Reading
 
 For simple file structure, i.e. where the file has only one type of record, simply map the fields of the class that represents this record and perform the reading. 
 
-If file contains a list of these records is needed a wrapper class for this these records to be passed to the reader.
+If file contains a list of these records you can read with the parseAsListOf.
 
 ```java
 	//Example for a file with a list of the records.
-
-    // Declare a wrapper for the record
-	public static class AListOfRecord extends ArrayList<MyRecordClass> {}
 
     public void read(){
 		File file = new File("file-with-a-list-of-records.txt");
 
 		try (FileReader fr = new FileReader(file)) {
 			FixedLengthReader reader = new FixedLengthReader(fr);
-			AListOfRecord records = reader.parse(AListOfRecord.class);
-			for (MyRecordClass r: records){ 
+			List<MyRecord> records = reader.parseAsListOf(MyRecord.class);
+			for (MyRecord r: records){ 
 			  ...
 			}
 		}

@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -96,6 +97,30 @@ public abstract class AbstractReader implements ObjectReader {
                 return unmarshalWithoutId(clazz, om);
             }
             return unmarshal(clazz);
+        } catch (Exception ex) {
+            Logger.getLogger(AbstractReader.class.getName()).log(Level.SEVERE, null, ex);
+            throw ex;
+        }
+    }
+
+    @Override
+    public <T> List<T> parseAsListOf(Class<T> clazz) throws IOException, UnknownRecordException, HandlerParseException, Exception {
+      return parseAsListOf(clazz, null);
+    }
+
+    @Override
+    public <T> List<T> parseAsListOf(Class<T> clazz, String recordGroupId) throws IOException, UnknownRecordException, HandlerParseException, Exception {
+        try {
+            clear();
+            config();
+            ObjectMapper om = getObjectMapperFactory().create(clazz, recordGroupId, null);
+            if (getObjectMapperFactory().getIdsMap().isEmpty()) {
+                if (om == null) {
+                    throw new RuntimeException("Unable to map the class");
+                }
+                return unmarshalWithoutIdAsListOf(om);
+            }
+            return unmarshalAsListOf();
         } catch (Exception ex) {
             Logger.getLogger(AbstractReader.class.getName()).log(Level.SEVERE, null, ex);
             throw ex;
@@ -339,6 +364,57 @@ public abstract class AbstractReader implements ObjectReader {
             fillWithoutId(product, mapper);
             return product;
         }
+
+    }
+
+    private <T> List<T> unmarshalAsListOf() throws IOException, InstantiationException, IllegalAccessException, UnknownRecordException, HandlerParseException {
+        beforeUnmarshal();
+        List<T> product;
+
+        if (currentRecordIsNull()) {
+            readLine();
+        }
+
+        if (currentRecordIsNull() && hasNext()) {
+            readLine();
+        }
+        if (currentRecordIsNull()) {
+            return null;
+        }
+
+        product = new ArrayList<>();
+        while (!currentRecordIsNull()) {
+            T o = (T) processRecord();
+            if (o != null) {
+                product.add(o);
+            }
+            readLine();
+        }
+        return product;
+
+    }
+
+    //for single class
+    private <T> List<T> unmarshalWithoutIdAsListOf(ObjectMapper mapper) throws IOException, InstantiationException, IllegalAccessException, Exception {
+        beforeUnmarshal();
+        List<T> product;
+
+        readLine();
+        if (currentRecordIsNull() && hasNext()) {
+            readLine();
+        }
+        if (currentRecordIsNull()) {
+            return null;
+        }
+        product = new ArrayList<>();
+        while (!currentRecordIsNull()) {
+            T o = (T)processRecordWithoutId(mapper);
+            if (o != null) {
+                product.add(o);
+            }
+            readLine();
+        }
+        return product;
 
     }
 
