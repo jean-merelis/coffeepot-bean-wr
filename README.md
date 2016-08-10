@@ -19,7 +19,7 @@ Download from Maven central
         <dependency>
             <groupId>com.github.jean-merelis</groupId>
             <artifactId>coffeepot-bean-wr</artifactId>
-            <version>1.2.2-FINAL</version>            
+            <version>1.2.3-FINAL</version>            
         </dependency> 
 ```
 
