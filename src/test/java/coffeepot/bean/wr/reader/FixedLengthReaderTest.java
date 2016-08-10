@@ -12,9 +12,9 @@ package coffeepot.bean.wr.reader;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -183,6 +183,7 @@ public class FixedLengthReaderTest {
         Assert.assertNotNull(sc);
         //TODO: check field values
     }
+
     @Test
     public void shoudlReadAsListOf() throws Exception {
 
@@ -228,7 +229,6 @@ public class FixedLengthReaderTest {
 
         List<SingleClass> records = reader.parseAsListOf(SingleClass.class);
 
-
         Assert.assertNotNull(records);
         Assert.assertEquals(4, records.size());
 
@@ -256,12 +256,18 @@ public class FixedLengthReaderTest {
             assertEquals(4, aFile.getDetails().size());
 
             int i = 0;
-            for (Detail d: aFile.getDetails()){
+            for (Detail d : aFile.getDetails()) {
                 i++;
-                assertNotNull( d.getReg01());
-                assertEquals("REG 01-"+i, d.getReg01().getValue());
-                assertNotNull( d.getReg02());
-                assertEquals("REG 02-"+i, d.getReg02().getValue());
+                assertNotNull(d.getReg01());
+                assertEquals("REG 01-" + i, d.getReg01().getValue());
+
+                if (i == 1) {
+                    // in first detail reg02 should be null
+                    assertNull(d.getReg02());
+                } else {
+                    assertNotNull(d.getReg02());
+                    assertEquals("REG 02-" + i, d.getReg02().getValue());
+                }
             }
         }
     }

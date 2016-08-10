@@ -1,6 +1,5 @@
 00HEADER OF FILE    
 01REG 01-1          
-02REG 02-1          
 01REG 01-2          
 02REG 02-2          
 01REG 01-3          
