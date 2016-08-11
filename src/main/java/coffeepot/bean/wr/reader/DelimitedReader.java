@@ -59,6 +59,9 @@ public class DelimitedReader extends AbstractReader {
     protected String[] currentRecord;
     protected String[] nextRecord;
 
+    protected String currentStringRecord;
+    protected String nextStringRecord;
+
     private final ObjectMapperFactory mapperFactory = new ObjectMapperFactory(FormatType.DELIMITED);
 
     public DelimitedReader(Reader reader) {
@@ -112,6 +115,12 @@ public class DelimitedReader extends AbstractReader {
 
     @Override
     protected String getIdValue(boolean fromNext) {
+        if (idResolver != null) {
+            String id = idResolver.call(fromNext ? nextStringRecord : currentStringRecord);
+            if (id != null) {
+                return id.trim();
+            }
+        }
         if (fromNext) {
             return nextRecord[ID_POSITION].trim();
         }
@@ -124,8 +133,9 @@ public class DelimitedReader extends AbstractReader {
     }
 
     @Override
-    protected void readLine() throws IOException{
+    protected void readLine() throws IOException {
         currentRecord = nextRecord;
+        currentStringRecord = nextStringRecord;
         nextRecord = getNextRecord();
     }
 
@@ -139,11 +149,12 @@ public class DelimitedReader extends AbstractReader {
         return nextRecord != null;
     }
 
-    protected String[] getNextRecord() throws IOException{
+    protected String[] getNextRecord() throws IOException {
         String line = null;
         while (true) {
             line = getLine();
             if (line == null) {
+                nextStringRecord = null;
                 return null;
             }
 
@@ -158,8 +169,9 @@ public class DelimitedReader extends AbstractReader {
                 line = line.substring(recordInitializator.length());
             }
         }
+        nextStringRecord = line;
 
-        String[] values = line.split(regexSplit,-1);
+        String[] values = line.split(regexSplit, -1);
 
         if (escape != null) {
             for (int i = 0; i < values.length; i++) {
@@ -176,10 +188,9 @@ public class DelimitedReader extends AbstractReader {
         while (true) {
             line = reader.readLine();
             if (line == null) {
+                nextStringRecord = null;
                 return null;
             }
-
-
 
             line = line.trim();
             if (!line.isEmpty()) {
@@ -193,7 +204,8 @@ public class DelimitedReader extends AbstractReader {
             }
         }
 
-        String[] values = line.split(regexSplit,-1);
+        nextStringRecord = line;
+        String[] values = line.split(regexSplit, -1);
 
         if (escape != null) {
             for (int i = 0; i < values.length; i++) {

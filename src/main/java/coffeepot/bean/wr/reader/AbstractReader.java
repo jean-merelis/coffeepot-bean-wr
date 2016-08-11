@@ -69,6 +69,7 @@ public abstract class AbstractReader implements ObjectReader {
     protected String recordInitializator;
     protected int actualLine;
     protected Callback<Class, RecordModel> callback;
+    protected Callback<String, String> idResolver;
     protected Reader reader;
     protected String stopAfterLineStartsWith;
     protected boolean stopped;
@@ -138,6 +139,16 @@ public abstract class AbstractReader implements ObjectReader {
     @Override
     public void setCallback(Callback<Class, RecordModel> callback) {
         this.callback = callback;
+    }
+
+    @Override
+    public Callback<String, String> getIdResolver() {
+        return idResolver;
+    }
+
+    @Override
+    public void setIdResolver(Callback<String, String> idResolver) {
+        this.idResolver = idResolver;
     }
 
     @Override

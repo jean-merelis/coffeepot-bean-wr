@@ -67,6 +67,10 @@ public interface ObjectReader {
 
     public void setCallback(Callback<Class, RecordModel> callback);
 
+    public Callback<String, String> getIdResolver();
+
+    public void setIdResolver(Callback<String, String> resolver);
+
     public void createMapper(Class<?> clazz) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception;
 
     public void createMapper(Class<?> clazz, String recordGroupId) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception;
