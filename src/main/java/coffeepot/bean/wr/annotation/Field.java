@@ -81,4 +81,8 @@ public @interface Field {
     boolean ignoreOnRead() default false;
 
     boolean ignoreOnWrite() default false;
+    
+    int minVersion() default 0;
+    
+    int maxVersion() default Integer.MAX_VALUE;
 }

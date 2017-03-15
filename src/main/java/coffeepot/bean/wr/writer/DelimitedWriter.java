@@ -202,6 +202,11 @@ public class DelimitedWriter extends AbstractWriter {
         setRecordTerminator(recordTerminator);
         return this;
     }
+    
+    public DelimitedWriter withVersion(int version) {
+    	setVersion(version);
+    	return this;
+    }
 
     /**
      * Sets whether to remove delimiter on field values.
