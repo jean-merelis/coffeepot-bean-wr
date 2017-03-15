@@ -26,6 +26,9 @@ import coffeepot.bean.wr.typeHandler.DefaultHandler;
 import coffeepot.bean.wr.typeHandler.TypeHandler;
 import coffeepot.bean.wr.types.AccessorType;
 import coffeepot.bean.wr.types.Align;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.lang.reflect.Method;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,6 +37,8 @@ import java.util.logging.Logger;
  *
  * @author Jeandeson O. Merelis
  */
+@Getter
+@Setter
 public class FieldModel implements Cloneable {
 
     private String name;
@@ -61,6 +66,8 @@ public class FieldModel implements Cloneable {
     private boolean ignoreOnWrite = false;
     private boolean required = true;
     private boolean id = false;
+    private int minVersion;
+    private int maxVersion;
 
     @Override
     public FieldModel clone() {
@@ -70,206 +77,6 @@ public class FieldModel implements Cloneable {
             Logger.getLogger(FieldModel.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public boolean isId() {
-        return id;
-    }
-
-    public void setId(boolean id) {
-        this.id = id;
-    }
-
-    public String getConstantValue() {
-        return constantValue;
-    }
-
-    public void setConstantValue(String constantValue) {
-        this.constantValue = constantValue;
-    }
-
-    public int getMinLength() {
-        return minLength;
-    }
-
-    public void setMinLength(int minLength) {
-        this.minLength = minLength;
-    }
-
-    public int getMaxLength() {
-        return maxLength;
-    }
-
-    public void setMaxLength(int maxLength) {
-        this.maxLength = maxLength;
-    }
-
-    public int getLength() {
-        return length;
-    }
-
-    public void setLength(int length) {
-        this.length = length;
-    }
-
-    public char getPadding() {
-        return padding;
-    }
-
-    public void setPadding(char padding) {
-        this.padding = padding;
-    }
-
-    public boolean isPaddingIfNullOrEmpty() {
-        return paddingIfNullOrEmpty;
-    }
-
-    public void setPaddingIfNullOrEmpty(boolean paddingIfNullOrEmpty) {
-        this.paddingIfNullOrEmpty = paddingIfNullOrEmpty;
-    }
-
-    public boolean isTrim() {
-        return trim;
-    }
-
-    public void setTrim(boolean trim) {
-        this.trim = trim;
-    }
-
-    public Align getAlign() {
-        return align;
-    }
-
-    public void setAlign(Align align) {
-        this.align = align;
-    }
-
-    public String getGetter() {
-        return getter;
-    }
-
-    public void setGetter(String getter) {
-        this.getter = getter;
-    }
-
-    public String getSetter() {
-        return setter;
-    }
-
-    public void setSetter(String setter) {
-        this.setter = setter;
-    }
-
-    public Class<? extends TypeHandler> getTypeHandlerClass() {
-        return typeHandlerClass;
-    }
-
-    public void setTypeHandlerClass(Class<? extends TypeHandler> typeHandlerClass) {
-        this.typeHandlerClass = typeHandlerClass;
-    }
-
-    public Class<?> getClassType() {
-        return classType;
-    }
-
-    public void setClassType(Class<?> classType) {
-        this.classType = classType;
-    }
-
-    public String[] getParams() {
-        return params;
-    }
-
-    public void setParams(String[] params) {
-        this.params = params;
-    }
-
-    public AccessorType getAccessorType() {
-        return accessorType;
-    }
-
-    public void setAccessorType(AccessorType accessorType) {
-        this.accessorType = accessorType;
-    }
-
-    public TypeHandler getTypeHandler() {
-        return typeHandler;
-    }
-
-    public void setTypeHandler(TypeHandler typeHandler) {
-        this.typeHandler = typeHandler;
-    }
-
-    public Method getGetterMethod() {
-        return getterMethod;
-    }
-
-    public void setGetterMethod(Method getterMethod) {
-        this.getterMethod = getterMethod;
-    }
-
-    public Method getSetterMethod() {
-        return setterMethod;
-    }
-
-    public void setSetterMethod(Method setterMethod) {
-        this.setterMethod = setterMethod;
-    }
-
-    public boolean isCollection() {
-        return collection;
-    }
-
-    public void setCollection(boolean collection) {
-        this.collection = collection;
-    }
-
-    public boolean isIgnoreOnRead() {
-        return ignoreOnRead;
-    }
-
-    public void setIgnoreOnRead(boolean ignoreOnRead) {
-        this.ignoreOnRead = ignoreOnRead;
-    }
-
-    public boolean isIgnoreOnWrite() {
-        return ignoreOnWrite;
-    }
-
-    public void setIgnoreOnWrite(boolean ignoreOnWrite) {
-        this.ignoreOnWrite = ignoreOnWrite;
-    }
-
-    public boolean isRequired() {
-        return required;
-    }
-
-    public void setRequired(boolean required) {
-        this.required = required;
-    }
-
-    public Class getCollectionType() {
-        return this.collectionType;
-    }
-
-    public void setCollectionType(Class collectionType) {
-        this.collectionType = collectionType;
-    }
-
-    public boolean isNestedObject() {
-        return nestedObject;
-    }
-
-    void setNestedObject(boolean nestedObject) {
-        this.nestedObject = nestedObject;
     }
 
 }

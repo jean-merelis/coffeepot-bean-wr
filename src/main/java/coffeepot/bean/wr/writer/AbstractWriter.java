@@ -41,6 +41,9 @@ import coffeepot.bean.wr.mapper.ObjectMapperFactory;
 import coffeepot.bean.wr.mapper.RecordModel;
 import coffeepot.bean.wr.mapper.UnresolvedObjectMapperException;
 import coffeepot.bean.wr.types.Align;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.security.AccessController;
@@ -58,25 +61,16 @@ import java.util.logging.Logger;
  */
 public abstract class AbstractWriter implements ObjectWriter {
 
-    protected Writer writer;
-    protected int autoFlush = 0;
-    protected int recordCount = 0;
-    protected Callback<Class, RecordModel> callback;
-
-    protected abstract void writeRecord(List<String> values) throws IOException;
-
+	@Getter	@Setter protected Writer writer;
+	@Getter @Setter protected int autoFlush = 0;
+	@Getter @Setter protected int version = 0;
+	protected int recordCount = 0;
+	@Getter @Setter protected Callback<Class, RecordModel> callback;
+    
+	protected abstract void writeRecord(List<String> values) throws IOException;
+    
     @Override
     public abstract ObjectMapperFactory getObjectMapperFactory();
-
-    @Override
-    public Callback<Class, RecordModel> getCallback() {
-        return callback;
-    }
-
-    @Override
-    public void setCallback(Callback<Class, RecordModel> callback) {
-        this.callback = callback;
-    }
 
     @Override
     public void clearMappers() {
@@ -91,26 +85,6 @@ public abstract class AbstractWriter implements ObjectWriter {
     @Override
     public void createMapper(Class<?> clazz, String recordGroupId) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
         getObjectMapperFactory().create(clazz, recordGroupId, callback);
-    }
-
-    @Override
-    public int getAutoFlush() {
-        return autoFlush;
-    }
-
-    @Override
-    public void setAutoFlush(int autoFlush) {
-        this.autoFlush = autoFlush;
-    }
-
-    @Override
-    public Writer getWriter() {
-        return writer;
-    }
-
-    @Override
-    public void setWriter(Writer writer) {
-        this.writer = writer;
     }
 
     @Override
@@ -187,6 +161,11 @@ public abstract class AbstractWriter implements ObjectWriter {
 
     private List<String> marshal(Object obj, List<String> fieldsValue, List<FieldModel> fields, Class<?> clazz, ObjectMapper op) throws IOException {
         for (FieldModel f : fields) {
+        	
+        	if(version < f.getMinVersion() || version > f.getMaxVersion()){
+        		continue;
+        	}
+        	
             if (f.isIgnoreOnWrite()) {
                 continue;
             }

@@ -32,7 +32,6 @@ import coffeepot.bean.wr.annotation.Field;
  */
 public class Helpful {
 
-
     public static FieldModel toFieldImpl(Field nf) {
         FieldModel f = new FieldModel();
         f.setId(nf.id());
@@ -59,8 +58,8 @@ public class Helpful {
             f.setMinLength(nf.length());
             f.setMaxLength(nf.length());
         }
-
-
+        f.setMinVersion(nf.minVersion());
+        f.setMaxVersion(nf.maxVersion());
         return f;
     }
 
