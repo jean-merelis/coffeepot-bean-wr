@@ -40,6 +40,11 @@ import coffeepot.bean.wr.annotation.Records;
 import coffeepot.bean.wr.types.Align;
 import coffeepot.bean.wr.types.FormatType;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  *
@@ -50,6 +55,7 @@ import java.util.List;
         @Field(name = "ID", id = true, constantValue = "ITEM"),
         @Field(name = "number"),
         @Field(name = "product"),
+        @Field(name = "value", minVersion = 2, maxVersion=5),
         @Field(name = "quantity"),
         @Field(name = "details")
     }),
@@ -58,47 +64,24 @@ import java.util.List;
                 @Field(name = "ID", id = true, constantValue = "ITEM", length = 5),
                 @Field(name = "number", length = 3, align = Align.RIGHT, padding = '0'),
                 @Field(name = "product", length = 20),
+                @Field(name = "value", length=5, align = Align.RIGHT, padding = '0', minVersion=2, maxVersion=5),
                 @Field(name = "quantity", length = 5, align = Align.RIGHT, padding = '0'),
                 @Field(name = "details")
             })
 })
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Item {
 
     private int number;
     private String product;
-    private double quantity;
+    private Double value;
+    private Double quantity;
     private List<ItemDet> details;
 
-    public int getNumber() {
-        return number;
-    }
 
-    public void setNumber(int number) {
-        this.number = number;
-    }
-
-    public String getProduct() {
-        return product;
-    }
-
-    public void setProduct(String product) {
-        this.product = product;
-    }
-
-    public double getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(double quantity) {
-        this.quantity = quantity;
-    }
-
-    public List<ItemDet> getDetails() {
-        return details;
-    }
-
-    public void setDetails(List<ItemDet> details) {
-        this.details = details;
-    }
 
 }

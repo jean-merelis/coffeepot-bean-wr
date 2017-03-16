@@ -49,12 +49,15 @@ import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  *
@@ -73,6 +76,8 @@ public abstract class AbstractReader implements ObjectReader {
     protected Reader reader;
     protected String stopAfterLineStartsWith;
     protected boolean stopped;
+    @Getter @Setter protected int version = 0;
+
 
     public abstract ObjectMapperFactory getObjectMapperFactory();
 
@@ -188,7 +193,7 @@ public abstract class AbstractReader implements ObjectReader {
 
     protected abstract String getValueByIndex(int idx);
 
-    protected abstract boolean currentRecordIsNull();
+    protected abstract boolean isCurrentRecordNull();
 
     protected abstract boolean hasNext();
 
@@ -290,19 +295,19 @@ public abstract class AbstractReader implements ObjectReader {
         beforeUnmarshal();
         T product;
 
-        if (currentRecordIsNull()) {
+        if (isCurrentRecordNull()) {
             readLine();
         }
 
         if (Collection.class.isAssignableFrom(clazz)) {
-            if (currentRecordIsNull() && hasNext()) {
+            if (isCurrentRecordNull() && hasNext()) {
                 readLine();
             }
-            if (currentRecordIsNull()) {
+            if (isCurrentRecordNull()) {
                 return null;
             }
             product = clazz.newInstance();
-            while (!currentRecordIsNull()) {
+            while (!isCurrentRecordNull()) {
                 Object o = processRecord();
                 if (o != null) {
                     ((Collection) product).add(o);
@@ -324,7 +329,7 @@ public abstract class AbstractReader implements ObjectReader {
                     throw new UnknownRecordException("The record with ID '" + getIdValue(true) + "' is unknown. Line: " + actualLine);
                 }
             } else if (mapperByClass.getRootClass().equals(mapperById.getRootClass())) {
-                if (currentRecordIsNull()) {
+                if (isCurrentRecordNull()) {
                     readLine();
                 }
             }
@@ -344,14 +349,14 @@ public abstract class AbstractReader implements ObjectReader {
 
         if (Collection.class.isAssignableFrom(clazz)) {
             readLine();
-            if (currentRecordIsNull() && hasNext()) {
+            if (isCurrentRecordNull() && hasNext()) {
                 readLine();
             }
-            if (currentRecordIsNull()) {
+            if (isCurrentRecordNull()) {
                 return null;
             }
             product = clazz.newInstance();
-            while (!currentRecordIsNull()) {
+            while (!isCurrentRecordNull()) {
                 Object o = processRecordWithoutId(mapper);
                 if (o != null) {
                     ((Collection) product).add(o);
@@ -382,19 +387,19 @@ public abstract class AbstractReader implements ObjectReader {
         beforeUnmarshal();
         List<T> product;
 
-        if (currentRecordIsNull()) {
+        if (isCurrentRecordNull()) {
             readLine();
         }
 
-        if (currentRecordIsNull() && hasNext()) {
+        if (isCurrentRecordNull() && hasNext()) {
             readLine();
         }
-        if (currentRecordIsNull()) {
+        if (isCurrentRecordNull()) {
             return null;
         }
 
         product = new ArrayList<>();
-        while (!currentRecordIsNull()) {
+        while (!isCurrentRecordNull()) {
             T o = (T) processRecord();
             if (o != null) {
                 product.add(o);
@@ -411,14 +416,14 @@ public abstract class AbstractReader implements ObjectReader {
         List<T> product;
 
         readLine();
-        if (currentRecordIsNull() && hasNext()) {
+        if (isCurrentRecordNull() && hasNext()) {
             readLine();
         }
-        if (currentRecordIsNull()) {
+        if (isCurrentRecordNull()) {
             return null;
         }
         product = new ArrayList<>();
-        while (!currentRecordIsNull()) {
+        while (!isCurrentRecordNull()) {
             T o = (T)processRecordWithoutId(mapper);
             if (o != null) {
                 product.add(o);
@@ -429,12 +434,25 @@ public abstract class AbstractReader implements ObjectReader {
 
     }
 
+    protected List<FieldModel> filterFieldsByVersion( ObjectMapper mapper ) {
+        List<FieldModel> result = new ArrayList<>();
+        Iterator<FieldModel> iter = mapper.getFields().iterator();
+        while (iter.hasNext()) {
+            FieldModel field = iter.next();
+            if (version < field.getMinVersion() || version > field.getMaxVersion()) {
+                continue;
+            }
+            result.add( field );
+        }
+        return result;
+    }
+
     protected void beforeFill(ObjectMapper mapper) {
     }
 
     protected void fill(Object product, ObjectMapper mapper) throws IOException, HandlerParseException, UnknownRecordException, InstantiationException, IllegalAccessException {
         beforeFill(mapper);
-        List<FieldModel> fields = mapper.getFields();
+        List<FieldModel> fields = filterFieldsByVersion( mapper );
 
         int i = 0;
 
@@ -607,7 +625,7 @@ public abstract class AbstractReader implements ObjectReader {
 
     private Object processRecord() throws UnknownRecordException, IOException, HandlerParseException, InstantiationException, IllegalAccessException {
 
-        if (currentRecordIsNull()) {
+        if (isCurrentRecordNull()) {
             return null;
         }
 
@@ -627,7 +645,7 @@ public abstract class AbstractReader implements ObjectReader {
 
     private Object processRecordWithoutId(ObjectMapper mapper) throws IOException, HandlerParseException, InstantiationException, IllegalAccessException {
 
-        if (currentRecordIsNull()) {
+        if (isCurrentRecordNull()) {
             return null;
         }
 

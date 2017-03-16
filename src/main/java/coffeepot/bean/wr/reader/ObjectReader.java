@@ -74,4 +74,6 @@ public interface ObjectReader {
     public void createMapper(Class<?> clazz) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception;
 
     public void createMapper(Class<?> clazz, String recordGroupId) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception;
+
+    public int getVersion();
 }
