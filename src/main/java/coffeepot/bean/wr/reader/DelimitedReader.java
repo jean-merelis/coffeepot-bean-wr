@@ -140,7 +140,7 @@ public class DelimitedReader extends AbstractReader {
     }
 
     @Override
-    protected boolean currentRecordIsNull() {
+    protected boolean isCurrentRecordNull() {
         return currentRecord == null;
     }
 

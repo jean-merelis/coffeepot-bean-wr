@@ -41,6 +41,7 @@ import coffeepot.bean.wr.types.FormatType;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  *
@@ -95,11 +96,12 @@ public class FixedLengthReader extends AbstractReader {
 
     @Override
     protected void beforeFill(ObjectMapper mapper) {
-        currentRecord = new String[mapper.getFields().size()];
+        List<FieldModel> fields = filterFieldsByVersion(mapper);
+        currentRecord = new String[fields.size()];
         int idx = 0;
         int pos = 0;
         int endIdx;
-        Iterator<FieldModel> it = mapper.getFields().iterator();
+        Iterator<FieldModel> it = fields.iterator();
         while (it.hasNext()) {
             FieldModel f = it.next();
             if (f.isNestedObject()) {
@@ -143,7 +145,7 @@ public class FixedLengthReader extends AbstractReader {
     }
 
     @Override
-    protected boolean currentRecordIsNull() {
+    protected boolean isCurrentRecordNull() {
         return current == null;
     }
 
