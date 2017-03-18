@@ -236,8 +236,8 @@ public abstract class AbstractReader implements ObjectReader {
             return null;
         }
         String s = doGetLine();
-        if (stopAfterLineStartsWith != null && !stopAfterLineStartsWith.isEmpty()) {
-            stopped = s.startsWith(stopAfterLineStartsWith);
+        if (s != null && stopAfterLineStartsWith != null && !stopAfterLineStartsWith.isEmpty()) {
+            stopped = s.startsWith( stopAfterLineStartsWith );
         }
         return s;
     }
