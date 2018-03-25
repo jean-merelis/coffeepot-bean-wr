@@ -3,6 +3,8 @@
  */
 package coffeepot.bean.wr.typeHandler;
 
+import coffeepot.bean.wr.mapper.Metadata;
+
 /*
  * #%L
  * coffeepot-bean-wr
@@ -29,7 +31,7 @@ package coffeepot.bean.wr.typeHandler;
 public class DefaultIntegerHandler implements TypeHandler<Integer> {
 
     @Override
-    public Integer parse(String text) throws HandlerParseException {
+    public Integer parse(String text, Metadata metadata) throws HandlerParseException {
         if (text == null || "".equals(text)) {
             return null;
         }
@@ -41,7 +43,7 @@ public class DefaultIntegerHandler implements TypeHandler<Integer> {
     }
 
     @Override
-    public String toString(Integer obj) {
+    public String toString(Integer obj, Metadata metadata) {
         if (obj == null) {
             return null;
         }

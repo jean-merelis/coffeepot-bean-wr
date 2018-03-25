@@ -24,6 +24,7 @@ package coffeepot.bean.wr.typeHandler;
  */
 
 
+import coffeepot.bean.wr.mapper.Metadata;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,7 +38,7 @@ public class DefaultEnumHandler implements TypeHandler<Enum> {
     protected Class<? extends Enum> type = Enum.class;;
     
     @Override
-    public Enum parse(String text) throws HandlerParseException {
+    public Enum parse(String text, Metadata metadata) throws HandlerParseException {
         if (text == null || "".equals(text)) {
             return null;
         }
@@ -59,7 +60,7 @@ public class DefaultEnumHandler implements TypeHandler<Enum> {
     }
 
     @Override
-    public String toString(Enum obj) {
+    public String toString(Enum obj, Metadata metadata) {
         if (obj == null) {
             return null;
         }

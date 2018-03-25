@@ -3,6 +3,8 @@
  */
 package coffeepot.bean.wr.typeHandler;
 
+import coffeepot.bean.wr.mapper.Metadata;
+
 /*
  * #%L
  * coffeepot-bean-wr
@@ -29,10 +31,10 @@ package coffeepot.bean.wr.typeHandler;
 public abstract class DefaultHandler implements TypeHandler<Object> {
 
     @Override
-    public abstract Object parse(String text);
+    public abstract Object parse(String text, Metadata metadata);
 
     @Override
-    public abstract String toString(Object obj);
+    public abstract String toString(Object obj, Metadata metadata);
 
     @Override
     public abstract void setConfig(String[] params);

@@ -22,8 +22,6 @@ package coffeepot.bean.wr.mapper;
  * limitations under the License.
  * #L%
  */
-
-
 import coffeepot.bean.wr.annotation.Field;
 
 /**
@@ -51,17 +49,54 @@ public class Helpful {
         f.setSetter(nf.setter());
         f.setTrim(nf.trim());
         f.setTypeHandlerClass(nf.typeHandler());
-        f.setRequired(nf.required());
-        f.setIgnoreOnRead(nf.ignoreOnRead());
-        f.setIgnoreOnWrite(nf.ignoreOnWrite());
-        if (nf.length()> 0){
+        if (nf.length() > 0) {
             f.setMinLength(nf.length());
             f.setMaxLength(nf.length());
         }
         f.setMinVersion(nf.minVersion());
         f.setMaxVersion(nf.maxVersion());
+
+        if (nf.conditionForWriteAs().active()) {
+            f.setWriteAs(nf.writeAs());
+            f.setConditionForWriteAs(FieldConditionModel.builder()
+                    .active(true)
+                    .always(nf.conditionForWriteAs().always())
+                    .minVersion(nf.conditionForWriteAs().minVersion())
+                    .maxVersion(nf.conditionForWriteAs().maxVersion())
+                    .build());
+        }
+        if (nf.writeAsNull().active()) {
+            f.setWriteAsNull(
+                    FieldConditionModel.builder()
+                            .active(true)
+                            .always(nf.writeAsNull().always())
+                            .minVersion(nf.writeAsNull().minVersion())
+                            .maxVersion(nf.writeAsNull().maxVersion())
+                            .build()
+            );
+        }
+
+        if (nf.conditionForReadAs().active()) {
+            f.setReadAs(nf.readAs());
+            f.setConditionForReadAs(FieldConditionModel.builder()
+                    .active(true)
+                    .always(nf.conditionForReadAs().always())
+                    .minVersion(nf.conditionForReadAs().minVersion())
+                    .maxVersion(nf.conditionForReadAs().maxVersion())
+                    .build());
+        }
+        if (nf.readAsNull().active()) {
+            f.setReadAsNull(
+                    FieldConditionModel.builder()
+                            .active(true)
+                            .always(nf.readAsNull().always())
+                            .minVersion(nf.readAsNull().minVersion())
+                            .maxVersion(nf.readAsNull().maxVersion())
+                            .build()
+            );
+        }
+
         return f;
     }
-
 
 }

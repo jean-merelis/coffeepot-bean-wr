@@ -3,6 +3,8 @@
  */
 package coffeepot.bean.wr.typeHandler;
 
+import coffeepot.bean.wr.mapper.Metadata;
+
 /*
  * #%L
  * coffeepot-bean-wr
@@ -39,7 +41,7 @@ public class DefaultBooleanHandler implements TypeHandler<Boolean> {
 
 
     @Override
-    public Boolean parse(String text) throws HandlerParseException {
+    public Boolean parse(String text, Metadata metadata) throws HandlerParseException {
         if (text == null || text.isEmpty()) {
             return null;
         }
@@ -55,7 +57,7 @@ public class DefaultBooleanHandler implements TypeHandler<Boolean> {
     }
 
     @Override
-    public String toString(Boolean obj) {
+    public String toString(Boolean obj, Metadata metadata) {
         if (obj == null) {
             return null;
         }

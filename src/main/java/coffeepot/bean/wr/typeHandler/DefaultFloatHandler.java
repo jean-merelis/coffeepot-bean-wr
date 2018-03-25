@@ -22,6 +22,7 @@ package coffeepot.bean.wr.typeHandler;
  * limitations under the License.
  * #L%
  */
+import coffeepot.bean.wr.mapper.Metadata;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
@@ -47,7 +48,7 @@ public class DefaultFloatHandler implements TypeHandler<Float> {
     }
 
     @Override
-    public Float parse(String text) throws HandlerParseException {
+    public Float parse(String text, Metadata metadata) throws HandlerParseException {
         if (text == null || "".equals(text)) {
             return null;
         }
@@ -61,7 +62,7 @@ public class DefaultFloatHandler implements TypeHandler<Float> {
     }
 
     @Override
-    public String toString(Float obj) {
+    public String toString(Float obj, Metadata metadata) {
         if (obj == null) {
             return null;
         }

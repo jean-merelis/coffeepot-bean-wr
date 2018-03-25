@@ -22,6 +22,7 @@ package coffeepot.bean.wr.typeHandler;
  * limitations under the License.
  * #L%
  */
+import coffeepot.bean.wr.mapper.Metadata;
 import coffeepot.bean.wr.types.CharCase;
 
 /**
@@ -40,12 +41,12 @@ public class DefaultStringHandler implements TypeHandler<String> {
     }
 
     @Override
-    public String parse(String text) throws HandlerParseException {
+    public String parse(String text, Metadata metadata) throws HandlerParseException {
         return text;
     }
 
     @Override
-    public String toString(String obj) {
+    public String toString(String obj, Metadata metadata) {
         if (obj == null) {
             return null;
         }

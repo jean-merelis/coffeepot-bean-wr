@@ -26,6 +26,7 @@ import coffeepot.bean.wr.mapper.Callback;
 import coffeepot.bean.wr.mapper.RecordModel;
 import coffeepot.bean.wr.model.Child;
 import coffeepot.bean.wr.model.Item;
+import coffeepot.bean.wr.model.Item2;
 import coffeepot.bean.wr.model.ItemDet;
 import coffeepot.bean.wr.model.Job;
 import coffeepot.bean.wr.model.Order;
@@ -196,6 +197,55 @@ public class DelimitedWriterTest {
      Assert.assertEquals( "ITEM|1|Product|50|5|\n", result );
 
     }
+    
+    @Test
+    public void write_writerWithVersion1_shouldWriteNormalValueFromConditionalFieldsWithMinVersion5() throws Exception {
+        Item2 item = Item2.builder()
+                .number( 1 )
+                .product( "Product" )
+                .quantity( 5d )
+                .value( 50d )
+                .build();
+
+        StringWriter w = new StringWriter();
+
+        DelimitedWriter writer = new DelimitedWriter( w );
+        writer.setDelimiter( '|' );
+        writer.setEscape( '\\' );
+        writer.setRecordTerminator( "|\n" );
+
+        writer.setVersion( 1 );
+
+        writer.write( item );
+        writer.flush();
+        String result = w.toString();
+        Assert.assertEquals( "ITEM2|1|Product|50|5|\n", result );
+    }    
+    
+    @Test
+    public void write_writerWithVersion5_shouldWriteConditionalValueFromConditionalFieldsWithMinVersion5() throws Exception {
+        Item2 item = Item2.builder()
+                .number( 1 )
+                .product( "Product" )
+                .quantity( 5d )
+                .value( 50d )
+                .build();
+
+        StringWriter w = new StringWriter();
+
+        DelimitedWriter writer = new DelimitedWriter( w );
+        writer.setDelimiter( '|' );
+        writer.setEscape( '\\' );
+        writer.setRecordTerminator( "|\n" );
+
+        writer.setVersion( 5 );
+
+        writer.write( item );
+        writer.flush();
+        String result = w.toString();
+        Assert.assertEquals( "ITEM2||New product name|50|5|\n", result );
+    }    
+    
 
     //TODO: MORE TESTS
     @Test

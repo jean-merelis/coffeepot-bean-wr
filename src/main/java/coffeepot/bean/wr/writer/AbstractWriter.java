@@ -35,7 +35,9 @@ package coffeepot.bean.wr.writer;
  * #L%
  */
 import coffeepot.bean.wr.mapper.Callback;
+import coffeepot.bean.wr.mapper.FieldConditionModel;
 import coffeepot.bean.wr.mapper.FieldModel;
+import coffeepot.bean.wr.mapper.Metadata;
 import coffeepot.bean.wr.mapper.ObjectMapper;
 import coffeepot.bean.wr.mapper.ObjectMapperFactory;
 import coffeepot.bean.wr.mapper.RecordModel;
@@ -61,14 +63,21 @@ import java.util.logging.Logger;
  */
 public abstract class AbstractWriter implements ObjectWriter {
 
-	@Getter	@Setter protected Writer writer;
-	@Getter @Setter protected int autoFlush = 0;
-	@Getter @Setter protected int version = 0;
-	protected int recordCount = 0;
-	@Getter @Setter protected Callback<Class, RecordModel> callback;
+    @Getter @Setter protected Writer writer;
+    @Getter @Setter protected int autoFlush = 0;
+    protected int recordCount = 0;
+    @Getter @Setter protected Callback<Class, RecordModel> callback;
     
-	protected abstract void writeRecord(List<String> values) throws IOException;
-    
+    @Getter protected int version = 0;
+    @Override public void setVersion(int version) {
+        this.version = version;
+        this.metadata.__setVersion(version);
+    }
+    protected final Metadata metadata = new Metadata(0);
+
+
+    protected abstract void writeRecord(List<String> values) throws IOException;
+
     @Override
     public abstract ObjectMapperFactory getObjectMapperFactory();
 
@@ -161,13 +170,38 @@ public abstract class AbstractWriter implements ObjectWriter {
 
     private List<String> marshal(Object obj, List<String> fieldsValue, List<FieldModel> fields, Class<?> clazz, ObjectMapper op) throws IOException {
         for (FieldModel f : fields) {
-        	
-        	if(version < f.getMinVersion() || version > f.getMaxVersion()){
-        		continue;
-        	}
-        	
+
+            if (version < f.getMinVersion() || version > f.getMaxVersion()) {
+                continue;
+            }
+            
             if (f.isIgnoreOnWrite()) {
                 continue;
+            }
+
+            FieldConditionModel condition = f.getWriteAsNull();
+            if (condition != null && condition.isActive()) {
+                if (condition.isAlways() || (version >= condition.getMinVersion() && version <= condition.getMaxVersion())) {
+
+                    if (fieldsValue == null) {
+                        fieldsValue = new LinkedList<>();
+                    }
+                    String s = process(null, f);
+                    fieldsValue.add(s);
+                    continue;
+                }
+            }
+            condition = f.getConditionForWriteAs();
+            if (condition != null && condition.isActive()) {
+                if (condition.isAlways() || (version >= condition.getMinVersion() && version <= condition.getMaxVersion())) {
+
+                    if (fieldsValue == null) {
+                        fieldsValue = new LinkedList<>();
+                    }
+                    String s = process(f.getWriteAs(), f);
+                    fieldsValue.add(s);
+                    continue;
+                }
             }
 
             if (f.getConstantValue() != null && !"".equals(f.getConstantValue())) {
@@ -263,7 +297,7 @@ public abstract class AbstractWriter implements ObjectWriter {
                 fieldsValue = null;
             }
 
-            String s = process(f.getTypeHandler().toString(o), f);
+            String s = process(f.getTypeHandler().toString(o, metadata.__setVersion(version).__setFieldModel(f)), f);
             if (fieldsValue == null) {
                 fieldsValue = new LinkedList<>();
             }

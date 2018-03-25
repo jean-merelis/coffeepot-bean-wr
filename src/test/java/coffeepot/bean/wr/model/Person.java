@@ -25,6 +25,7 @@ package coffeepot.bean.wr.model;
 import coffeepot.bean.wr.annotation.Field;
 import coffeepot.bean.wr.annotation.Record;
 import coffeepot.bean.wr.annotation.Records;
+import coffeepot.bean.wr.mapper.Metadata;
 import coffeepot.bean.wr.typeHandler.DefaultEnumHandler;
 import coffeepot.bean.wr.typeHandler.DefaultStringHandler;
 import coffeepot.bean.wr.typeHandler.HandlerParseException;
@@ -236,7 +237,7 @@ public class Person extends Parent {
     public static class EncodedEnumHandler extends DefaultEnumHandler {
 
         @Override
-        public Enum parse(String text) throws HandlerParseException {
+        public Enum parse(String text, Metadata metadata) throws HandlerParseException {
             if (text == null || "".equals(text)) {
                 return null;
             }
@@ -246,11 +247,11 @@ public class Person extends Parent {
                 return ((EncodedEnum) enumConstants[0]).parse(text);
             }
 
-            return super.parse(text);
+            return super.parse(text, metadata);
         }
 
         @Override
-        public String toString(Enum obj) {
+        public String toString(Enum obj, Metadata metadata) {
             if (obj == null) {
                 return null;
             }
@@ -258,7 +259,7 @@ public class Person extends Parent {
             if (obj instanceof EncodedEnum) {
                 return ((EncodedEnum) obj).getCode();
             }
-            return super.toString(obj);
+            return super.toString(obj, metadata);
         }
     }
 }

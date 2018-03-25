@@ -24,6 +24,7 @@ package coffeepot.bean.wr.writer.customHandler;
  */
 
 
+import coffeepot.bean.wr.mapper.Metadata;
 import coffeepot.bean.wr.typeHandler.DefaultStringHandler;
 
 /**
@@ -33,11 +34,11 @@ import coffeepot.bean.wr.typeHandler.DefaultStringHandler;
 public class LowStringHandler extends DefaultStringHandler {
 
     @Override
-    public String toString(String obj) {
+    public String toString(String obj, Metadata metadata) {
         if (obj == null) {
             return null;
         }
-        String s = super.toString(obj);
+        String s = super.toString(obj, metadata);
         return s.toLowerCase();
     }
 }

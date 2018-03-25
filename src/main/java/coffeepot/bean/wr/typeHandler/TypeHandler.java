@@ -3,6 +3,8 @@
  */
 package coffeepot.bean.wr.typeHandler;
 
+import coffeepot.bean.wr.mapper.Metadata;
+
 /*
  * #%L
  * coffeepot-bean-wr
@@ -28,9 +30,9 @@ package coffeepot.bean.wr.typeHandler;
  */
 public interface TypeHandler<T> {
 
-    T parse(String text) throws HandlerParseException;
+    T parse(String text, Metadata metadata) throws HandlerParseException;
 
-    String toString(T obj);
+    String toString(T obj, Metadata metadata);
 
     void setConfig(String[] params);
 }

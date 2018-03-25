@@ -76,13 +76,56 @@ public @interface Field {
 
     AccessorType accessorType() default AccessorType.DEFAULT;
 
-    boolean required() default true;
+    /**
+     * Ignores field content and writes as null. The conditionForWriteAs
+     * annotation must be active and evaluated as true.
+     *
+     * @return
+     */
+    String writeAs() default "";
 
-    boolean ignoreOnRead() default false;
+    FieldCondition conditionForWriteAs() default @FieldCondition();
 
-    boolean ignoreOnWrite() default false;
-    
+    /**
+     * Ignores field content and writes as null.
+     *
+     * @return
+     */
+//    boolean writeAsNull() default false;
+    /**
+     * Ignores field content and writes as null.
+     *
+     * @return
+     */
+    FieldCondition writeAsNull() default @FieldCondition();
+
+    /**
+     * Ignores the contents of the file's field and reads the value as defined
+     * at this annotation. The conditionForReadAs annotation must be active and
+     * evaluated as true.
+     *
+     * @return
+     */
+    String readAs() default "";
+
+    FieldCondition conditionForReadAs() default @FieldCondition();
+
+    /**
+     * Ignores the contents of the file's field and reads the value as null.
+     *
+     * @return
+     */
+    FieldCondition readAsNull() default @FieldCondition();
+
+    /**
+     * General condition for the field to be written or read.
+     * @return 
+     */
     int minVersion() default 0;
-    
+
+    /**
+     * General condition for the field to be written or read.
+     * @return 
+     */
     int maxVersion() default Integer.MAX_VALUE;
 }

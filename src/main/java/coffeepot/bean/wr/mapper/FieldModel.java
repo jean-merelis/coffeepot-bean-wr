@@ -31,7 +31,10 @@ import lombok.Setter;
 
 import java.lang.reflect.Method;
 import java.util.logging.Level;
-import java.util.logging.Logger;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+import lombok.extern.java.Log;
 
 /**
  *
@@ -39,6 +42,8 @@ import java.util.logging.Logger;
  */
 @Getter
 @Setter
+@Log
+@NoArgsConstructor @AllArgsConstructor @Builder
 public class FieldModel implements Cloneable {
 
     private String name;
@@ -64,17 +69,38 @@ public class FieldModel implements Cloneable {
     private boolean collection = false;
     private boolean ignoreOnRead = false;
     private boolean ignoreOnWrite = false;
-    private boolean required = true;
     private boolean id = false;
     private int minVersion;
     private int maxVersion;
 
+    private String writeAs;
+    private FieldConditionModel conditionForWriteAs;
+    private FieldConditionModel writeAsNull;
+
+    private String readAs;
+    private FieldConditionModel conditionForReadAs;
+    private FieldConditionModel readAsNull;
+
     @Override
     public FieldModel clone() {
         try {
-            return (FieldModel) super.clone();
+            FieldModel cloned = (FieldModel) super.clone();
+            if (this.conditionForWriteAs != null) {
+                cloned.conditionForWriteAs = this.conditionForWriteAs.clone();
+            }
+            if (this.writeAsNull != null) {
+                cloned.writeAsNull = this.writeAsNull.clone();
+            }
+
+            if (this.conditionForReadAs != null) {
+                cloned.conditionForReadAs = this.conditionForReadAs.clone();
+            }
+            if (this.readAsNull != null) {
+                cloned.readAsNull = this.readAsNull.clone();
+            }
+            return cloned;
         } catch (CloneNotSupportedException ex) {
-            Logger.getLogger(FieldModel.class.getName()).log(Level.SEVERE, null, ex);
+            log.log(Level.SEVERE, null, ex);
             return null;
         }
     }

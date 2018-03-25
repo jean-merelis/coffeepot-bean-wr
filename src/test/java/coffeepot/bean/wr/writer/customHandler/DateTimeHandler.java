@@ -24,6 +24,7 @@ package coffeepot.bean.wr.writer.customHandler;
  */
 
 
+import coffeepot.bean.wr.mapper.Metadata;
 import coffeepot.bean.wr.typeHandler.HandlerParseException;
 import coffeepot.bean.wr.typeHandler.TypeHandler;
 import org.joda.time.DateTime;
@@ -35,7 +36,7 @@ import org.joda.time.DateTime;
 public class DateTimeHandler implements TypeHandler<DateTime> {
 
     @Override
-    public DateTime parse(String text) throws HandlerParseException {
+    public DateTime parse(String text, Metadata metadata) throws HandlerParseException {
         if (text == null || text.isEmpty()) {
             return null;
         }
@@ -47,7 +48,7 @@ public class DateTimeHandler implements TypeHandler<DateTime> {
     }
 
     @Override
-    public String toString(DateTime obj) {
+    public String toString(DateTime obj, Metadata metadata) {
         if (obj == null) return null;
         return obj.toString();
     }

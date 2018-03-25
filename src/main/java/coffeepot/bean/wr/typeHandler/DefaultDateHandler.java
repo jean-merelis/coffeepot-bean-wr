@@ -22,6 +22,7 @@ package coffeepot.bean.wr.typeHandler;
  * limitations under the License.
  * #L%
  */
+import coffeepot.bean.wr.mapper.Metadata;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -54,7 +55,7 @@ public class DefaultDateHandler implements TypeHandler<Date> {
     }
 
     @Override
-    public Date parse(String text) throws HandlerParseException {
+    public Date parse(String text, Metadata metadata) throws HandlerParseException {
         if (text == null || "".equals(text)) {
             return null;
         }
@@ -69,7 +70,7 @@ public class DefaultDateHandler implements TypeHandler<Date> {
     }
 
     @Override
-    public String toString(Date obj) {
+    public String toString(Date obj, Metadata metadata) {
         if (obj == null) {
             return null;
         }

@@ -3,6 +3,8 @@
  */
 package coffeepot.bean.wr.typeHandler;
 
+import coffeepot.bean.wr.mapper.Metadata;
+
 /*
  * #%L
  * coffeepot-bean-wr
@@ -29,7 +31,7 @@ package coffeepot.bean.wr.typeHandler;
 public class DefaultLongHandler implements TypeHandler<Long> {
 
     @Override
-    public Long parse(String text) throws HandlerParseException {
+    public Long parse(String text, Metadata metadata) throws HandlerParseException {
         if (text == null || "".equals(text)) {
             return null;
         }
@@ -41,7 +43,7 @@ public class DefaultLongHandler implements TypeHandler<Long> {
     }
 
     @Override
-    public String toString(Long obj) {
+    public String toString(Long obj, Metadata metadata) {
         if (obj == null) {
             return null;
         }

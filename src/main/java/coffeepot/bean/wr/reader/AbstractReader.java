@@ -35,7 +35,9 @@ package coffeepot.bean.wr.reader;
  * #L%
  */
 import coffeepot.bean.wr.mapper.Callback;
+import coffeepot.bean.wr.mapper.FieldConditionModel;
 import coffeepot.bean.wr.mapper.FieldModel;
+import coffeepot.bean.wr.mapper.Metadata;
 import coffeepot.bean.wr.mapper.ObjectMapper;
 import coffeepot.bean.wr.mapper.ObjectMapperFactory;
 import coffeepot.bean.wr.mapper.RecordModel;
@@ -76,8 +78,15 @@ public abstract class AbstractReader implements ObjectReader {
     protected Reader reader;
     protected String stopAfterLineStartsWith;
     protected boolean stopped;
-    @Getter @Setter protected int version = 0;
 
+    @Getter protected int version = 0;
+
+    @Override public void setVersion(int version) {
+        this.version = version;
+        this.metadata.__setVersion(version);
+    }
+
+    protected final Metadata metadata = new Metadata(0);
 
     public abstract ObjectMapperFactory getObjectMapperFactory();
 
@@ -111,7 +120,7 @@ public abstract class AbstractReader implements ObjectReader {
 
     @Override
     public <T> List<T> parseAsListOf(Class<T> clazz) throws IOException, UnknownRecordException, HandlerParseException, Exception {
-      return parseAsListOf(clazz, null);
+        return parseAsListOf(clazz, null);
     }
 
     @Override
@@ -237,7 +246,7 @@ public abstract class AbstractReader implements ObjectReader {
         }
         String s = doGetLine();
         if (s != null && stopAfterLineStartsWith != null && !stopAfterLineStartsWith.isEmpty()) {
-            stopped = s.startsWith( stopAfterLineStartsWith );
+            stopped = s.startsWith(stopAfterLineStartsWith);
         }
         return s;
     }
@@ -424,7 +433,7 @@ public abstract class AbstractReader implements ObjectReader {
         }
         product = new ArrayList<>();
         while (!isCurrentRecordNull()) {
-            T o = (T)processRecordWithoutId(mapper);
+            T o = (T) processRecordWithoutId(mapper);
             if (o != null) {
                 product.add(o);
             }
@@ -434,7 +443,7 @@ public abstract class AbstractReader implements ObjectReader {
 
     }
 
-    protected List<FieldModel> filterFieldsByVersion( ObjectMapper mapper ) {
+    protected List<FieldModel> filterFieldsByVersion(ObjectMapper mapper) {
         List<FieldModel> result = new ArrayList<>();
         Iterator<FieldModel> iter = mapper.getFields().iterator();
         while (iter.hasNext()) {
@@ -442,7 +451,7 @@ public abstract class AbstractReader implements ObjectReader {
             if (version < field.getMinVersion() || version > field.getMaxVersion()) {
                 continue;
             }
-            result.add( field );
+            result.add(field);
         }
         return result;
     }
@@ -452,7 +461,7 @@ public abstract class AbstractReader implements ObjectReader {
 
     protected void fill(Object product, ObjectMapper mapper) throws IOException, HandlerParseException, UnknownRecordException, InstantiationException, IllegalAccessException {
         beforeFill(mapper);
-        List<FieldModel> fields = filterFieldsByVersion( mapper );
+        List<FieldModel> fields = filterFieldsByVersion(mapper);
 
         int i = 0;
 
@@ -462,10 +471,34 @@ public abstract class AbstractReader implements ObjectReader {
                 continue;
             }
 
+            FieldConditionModel condition = field.getReadAsNull();
+            if (condition != null && condition.isActive()) {
+                if (condition.isAlways() || (version >= condition.getMinVersion() && version <= condition.getMaxVersion())) {
+                    setValue(product, null, field);
+                    i++;
+                    continue;
+                }
+            }
+            condition = field.getConditionForReadAs();
+            if (condition != null && condition.isActive()) {
+                if (!field.isCollection() && !field.isNestedObject() && field.getTypeHandler() != null
+                        && (condition.isAlways() || (version >= condition.getMinVersion() && version <= condition.getMaxVersion()))) {
+                    try {
+                        Object value = field.getTypeHandler().parse(field.getReadAs(), metadata.__setVersion(version).__setFieldModel(field));
+                        setValue(product, value, field);
+                        i++;
+                        continue;
+                    } catch (HandlerParseException ex) {
+                        throw new HandlerParseException("Line: " + actualLine + ", field: " + (i + 1), ex);
+                    }
+                }
+            }
+
+
             if (!field.isCollection() && !field.isNestedObject() && field.getTypeHandler() != null) {
                 try {
                     String v = trim ? getValueByIndex(i).trim() : getValueByIndex(i);
-                    Object value = field.getTypeHandler().parse(v);
+                    Object value = field.getTypeHandler().parse(v, metadata.__setVersion(version).__setFieldModel(field));
                     setValue(product, value, field);
                 } catch (HandlerParseException ex) {
                     throw new HandlerParseException("Line: " + actualLine + ", field: " + (i + 1), ex);
@@ -538,16 +571,40 @@ public abstract class AbstractReader implements ObjectReader {
         int i = 0;
 
         for (FieldModel field : fields) {
+           
             if (!field.getConstantValue().isEmpty() || field.isIgnoreOnRead()) {
                 i++;
                 continue;
+            }
+
+            FieldConditionModel condition = field.getReadAsNull();
+            if (condition != null && condition.isActive()) {
+                if (condition.isAlways() || (version >= condition.getMinVersion() || version <= condition.getMaxVersion())) {
+                    setValue(product, null, field);
+                    i++;
+                    continue;
+                }
+            }
+            condition = field.getConditionForReadAs();
+            if (condition != null && condition.isActive()) {
+                if (!field.isCollection() && !field.isNestedObject() && field.getTypeHandler() != null
+                        && (condition.isAlways() || (version >= condition.getMinVersion() || version <= condition.getMaxVersion()))) {
+                    try {
+                        Object value = field.getTypeHandler().parse(field.getReadAs(), metadata.__setVersion(version).__setFieldModel(field));
+                        setValue(product, value, field);
+                        i++;
+                        continue;
+                    } catch (HandlerParseException ex) {
+                        throw new HandlerParseException("Line: " + actualLine + ", field: " + (i + 1), ex);
+                    }
+                }
             }
 
             if (!field.isCollection() && !field.isNestedObject() && field.getTypeHandler() != null) {
 
                 try {
                     String v = trim ? getValueByIndex(i).trim() : getValueByIndex(i);
-                    Object value = field.getTypeHandler().parse(v);
+                    Object value = field.getTypeHandler().parse(v, metadata.__setVersion(version).__setFieldModel(field));
                     setValue(product, value, field);
                 } catch (HandlerParseException ex) {
                     throw new HandlerParseException("Line: " + actualLine + ", field: " + (i + 1), ex);
@@ -594,7 +651,9 @@ public abstract class AbstractReader implements ObjectReader {
     private boolean containsFieldWithClass(ObjectMapper mapper, Class<?> clazz, Set<ObjectMapper> analyzedMappers) {
         List<FieldModel> mappedFields = mapper.getFields();
         for (FieldModel f : mappedFields) {
-            if (f.getClassType() == null) continue;
+            if (f.getClassType() == null) {
+                continue;
+            }
             if (f.getClassType().equals(clazz)) {
                 return true;
             }

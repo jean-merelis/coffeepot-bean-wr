@@ -67,4 +67,6 @@ public interface ObjectWriter {
     public void createMapper(Class<?> clazz, String recordGroupId) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception;
     
     public int getVersion();
+    
+    public void setVersion(int version);
 }

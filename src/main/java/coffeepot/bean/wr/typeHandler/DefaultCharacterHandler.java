@@ -3,6 +3,8 @@
  */
 package coffeepot.bean.wr.typeHandler;
 
+import coffeepot.bean.wr.mapper.Metadata;
+
 /*
  * #%L
  * coffeepot-bean-wr
@@ -31,7 +33,7 @@ package coffeepot.bean.wr.typeHandler;
 public class DefaultCharacterHandler implements TypeHandler<Character> {
 
     @Override
-    public Character parse(String text) throws HandlerParseException {
+    public Character parse(String text, Metadata metadata) throws HandlerParseException {
         if (text == null || "".equals(text)) {
             return null;
         }
@@ -43,7 +45,7 @@ public class DefaultCharacterHandler implements TypeHandler<Character> {
     }
 
     @Override
-    public String toString(Character obj) {
+    public String toString(Character obj, Metadata metadata) {
         if (obj == null) {
             return null;
         }
