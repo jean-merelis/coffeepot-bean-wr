@@ -22,7 +22,6 @@ package coffeepot.bean.wr.mapper;
  * limitations under the License.
  * #L%
  */
-
 import lombok.Getter;
 
 /**
@@ -31,11 +30,13 @@ import lombok.Getter;
  */
 public class Metadata {
 
-    @Getter
-    private int version;
+    @Getter private int version;
+    @Getter private ImmutableFieldModel fieldModel;
 
-    @Getter
-    private ImmutableFieldModel fieldModel;
+    /**
+     * This field is filled with the current raw line on reading process.
+     */
+    @Getter private String currentRawLine;
 
     public Metadata(int version) {
         this.version = version;
@@ -50,7 +51,7 @@ public class Metadata {
      * For internal use only.
      *
      * @param version
-     * @return 
+     * @return
      * @deprecated
      */
     public Metadata __setVersion(int version) {
@@ -62,12 +63,25 @@ public class Metadata {
      * For internal use only.
      *
      * @param fm
-     * @return 
+     * @return
      * @deprecated
      */
     @Deprecated
     public Metadata __setFieldModel(FieldModel fm) {
         this.fieldModel = new ImmutableFieldModel(fm);
+        return this;
+    }
+
+    /**
+     * For internal use only.
+     *
+     * @param s
+     * @return
+     * @deprecated
+     */
+    @Deprecated
+    public Metadata __setCurrentRawLine(String s) {
+        this.currentRawLine = s;
         return this;
     }
 

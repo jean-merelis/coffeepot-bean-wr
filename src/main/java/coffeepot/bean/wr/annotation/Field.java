@@ -91,12 +91,6 @@ public @interface Field {
      *
      * @return
      */
-//    boolean writeAsNull() default false;
-    /**
-     * Ignores field content and writes as null.
-     *
-     * @return
-     */
     FieldCondition writeAsNull() default @FieldCondition();
 
     /**
@@ -119,13 +113,15 @@ public @interface Field {
 
     /**
      * General condition for the field to be written or read.
-     * @return 
+     *
+     * @return
      */
     int minVersion() default 0;
 
     /**
      * General condition for the field to be written or read.
-     * @return 
+     *
+     * @return
      */
     int maxVersion() default Integer.MAX_VALUE;
 }

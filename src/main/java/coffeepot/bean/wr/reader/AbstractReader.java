@@ -59,7 +59,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import lombok.Getter;
-import lombok.Setter;
 
 /**
  *
@@ -212,6 +211,8 @@ public abstract class AbstractReader implements ObjectReader {
 
     protected String foundLine;
     protected boolean withSearch;
+    protected String currentLine;
+    protected String nextLine;
 
     @Override
     public void findLineStartsWith(String s) throws IOException {
@@ -484,7 +485,7 @@ public abstract class AbstractReader implements ObjectReader {
                 if (!field.isCollection() && !field.isNestedObject() && field.getTypeHandler() != null
                         && (condition.isAlways() || (version >= condition.getMinVersion() && version <= condition.getMaxVersion()))) {
                     try {
-                        Object value = field.getTypeHandler().parse(field.getReadAs(), metadata.__setVersion(version).__setFieldModel(field));
+                        Object value = field.getTypeHandler().parse(field.getReadAs(), metadata.__setVersion(version).__setFieldModel(field).__setCurrentRawLine(currentLine));
                         setValue(product, value, field);
                         i++;
                         continue;
@@ -498,7 +499,7 @@ public abstract class AbstractReader implements ObjectReader {
             if (!field.isCollection() && !field.isNestedObject() && field.getTypeHandler() != null) {
                 try {
                     String v = trim ? getValueByIndex(i).trim() : getValueByIndex(i);
-                    Object value = field.getTypeHandler().parse(v, metadata.__setVersion(version).__setFieldModel(field));
+                    Object value = field.getTypeHandler().parse(v, metadata.__setVersion(version).__setFieldModel(field).__setCurrentRawLine(currentLine));
                     setValue(product, value, field);
                 } catch (HandlerParseException ex) {
                     throw new HandlerParseException("Line: " + actualLine + ", field: " + (i + 1), ex);
@@ -571,7 +572,7 @@ public abstract class AbstractReader implements ObjectReader {
         int i = 0;
 
         for (FieldModel field : fields) {
-           
+
             if (!field.getConstantValue().isEmpty() || field.isIgnoreOnRead()) {
                 i++;
                 continue;
@@ -590,7 +591,7 @@ public abstract class AbstractReader implements ObjectReader {
                 if (!field.isCollection() && !field.isNestedObject() && field.getTypeHandler() != null
                         && (condition.isAlways() || (version >= condition.getMinVersion() || version <= condition.getMaxVersion()))) {
                     try {
-                        Object value = field.getTypeHandler().parse(field.getReadAs(), metadata.__setVersion(version).__setFieldModel(field));
+                        Object value = field.getTypeHandler().parse(field.getReadAs(), metadata.__setVersion(version).__setFieldModel(field).__setCurrentRawLine(currentLine));
                         setValue(product, value, field);
                         i++;
                         continue;
@@ -604,7 +605,7 @@ public abstract class AbstractReader implements ObjectReader {
 
                 try {
                     String v = trim ? getValueByIndex(i).trim() : getValueByIndex(i);
-                    Object value = field.getTypeHandler().parse(v, metadata.__setVersion(version).__setFieldModel(field));
+                    Object value = field.getTypeHandler().parse(v, metadata.__setVersion(version).__setFieldModel(field).__setCurrentRawLine(currentLine));
                     setValue(product, value, field);
                 } catch (HandlerParseException ex) {
                     throw new HandlerParseException("Line: " + actualLine + ", field: " + (i + 1), ex);

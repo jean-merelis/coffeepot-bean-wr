@@ -59,9 +59,6 @@ public class DelimitedReader extends AbstractReader {
     protected String[] currentRecord;
     protected String[] nextRecord;
 
-    protected String currentStringRecord;
-    protected String nextStringRecord;
-
     private final ObjectMapperFactory mapperFactory = new ObjectMapperFactory(FormatType.DELIMITED);
 
     public DelimitedReader(Reader reader) {
@@ -115,7 +112,7 @@ public class DelimitedReader extends AbstractReader {
     @Override
     protected String getIdValue(boolean fromNext) {
         if (idResolver != null) {
-            String id = idResolver.call(fromNext ? nextStringRecord : currentStringRecord);
+            String id = idResolver.call(fromNext ? nextLine : currentLine);
             if (id != null) {
                 return id.trim();
             }
@@ -134,7 +131,7 @@ public class DelimitedReader extends AbstractReader {
     @Override
     protected void readLine() throws IOException {
         currentRecord = nextRecord;
-        currentStringRecord = nextStringRecord;
+        currentLine = nextLine;
         nextRecord = getNextRecord();
     }
 
@@ -153,7 +150,7 @@ public class DelimitedReader extends AbstractReader {
         while (true) {
             line = getLine();
             if (line == null) {
-                nextStringRecord = null;
+                nextLine = null;
                 return null;
             }
 
@@ -168,7 +165,7 @@ public class DelimitedReader extends AbstractReader {
                 line = line.substring(recordInitializator.length());
             }
         }
-        nextStringRecord = line;
+        nextLine = line;
 
         String[] values = line.split(regexSplit, -1);
 
@@ -187,7 +184,7 @@ public class DelimitedReader extends AbstractReader {
         while (true) {
             line = reader.readLine();
             if (line == null) {
-                nextStringRecord = null;
+                nextLine = null;
                 return null;
             }
 
@@ -203,7 +200,7 @@ public class DelimitedReader extends AbstractReader {
             }
         }
 
-        nextStringRecord = line;
+        nextLine = line;
         String[] values = line.split(regexSplit, -1);
 
         if (escape != null) {

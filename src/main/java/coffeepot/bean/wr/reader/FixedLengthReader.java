@@ -82,14 +82,12 @@ public class FixedLengthReader extends AbstractReader {
         }
     }
 
-    private String current;
-    private String next;
     private String[] currentRecord;
 
     @Override
     protected void clear() {
         super.clear();
-        current = null;
+        currentLine = null;
     }
 
     @Override
@@ -107,7 +105,7 @@ public class FixedLengthReader extends AbstractReader {
                 continue;
             }
             endIdx = pos + f.getLength();
-            currentRecord[idx] = current.substring(pos, endIdx);
+            currentRecord[idx] = currentLine.substring(pos, endIdx);
             pos = endIdx;
             idx++;
         }
@@ -117,13 +115,13 @@ public class FixedLengthReader extends AbstractReader {
     protected String getIdValue(boolean fromNext) {
         if (objectById) {
             if (idResolver != null) {
-                String id = idResolver.call(fromNext ? next : current);
+                String id = idResolver.call(fromNext ? nextLine : currentLine);
                 if (id != null) {
                     return id.trim();
                 }
             }
 
-            String s = fromNext ? next.substring(idStart, idStart + idLength) : current.substring(idStart, idStart + idLength);
+            String s = fromNext ? nextLine.substring(idStart, idStart + idLength) : currentLine.substring(idStart, idStart + idLength);
             return s.trim();
 
         } else {
@@ -138,21 +136,21 @@ public class FixedLengthReader extends AbstractReader {
 
     @Override
     protected void readLine() throws IOException {
-        current = next;
-        next = getNextRecord();
+        currentLine = nextLine;
+        nextLine = readNextLine();
     }
 
     @Override
     protected boolean isCurrentRecordNull() {
-        return current == null;
+        return currentLine == null;
     }
 
     @Override
     protected boolean hasNext() {
-        return next != null;
+        return nextLine != null;
     }
 
-    protected String getNextRecord() throws IOException {
+    protected String readNextLine() throws IOException {
         String line = null;
         while (true) {
             line = getLine();
