@@ -31,7 +31,7 @@ import lombok.Getter;
 public class Metadata {
 
     @Getter private int version;
-    @Getter private ImmutableFieldModel fieldModel;
+    @Getter private final ImmutableFieldModel fieldModel = new ImmutableFieldModel(null);
 
     /**
      * This field is filled with the current raw line on reading process.
@@ -40,11 +40,6 @@ public class Metadata {
 
     public Metadata(int version) {
         this.version = version;
-    }
-
-    public Metadata(int version, ImmutableFieldModel fieldModel) {
-        this.version = version;
-        this.fieldModel = fieldModel;
     }
 
     /**
@@ -68,7 +63,8 @@ public class Metadata {
      */
     @Deprecated
     public Metadata __setFieldModel(FieldModel fm) {
-        this.fieldModel = new ImmutableFieldModel(fm);
+        // to avoid recreate immutableFieldModel ever time.
+        this.fieldModel.__setFieldModel(fm);
         return this;
     }
 

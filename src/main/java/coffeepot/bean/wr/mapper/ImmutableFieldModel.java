@@ -1,7 +1,6 @@
 /*
  * Copyright 2017 - Jeandeson O. Merelis
  */
-
 package coffeepot.bean.wr.mapper;
 
 /*
@@ -23,7 +22,6 @@ package coffeepot.bean.wr.mapper;
  * limitations under the License.
  * #L%
  */
-
 import coffeepot.bean.wr.typeHandler.TypeHandler;
 import coffeepot.bean.wr.types.AccessorType;
 import coffeepot.bean.wr.types.Align;
@@ -34,9 +32,15 @@ import coffeepot.bean.wr.types.Align;
  */
 public class ImmutableFieldModel {
 
-    private final FieldModel fieldModel;
+    private FieldModel fieldModel;
 
     public ImmutableFieldModel(FieldModel fieldModel) {
+        this.fieldModel = fieldModel;
+    }
+
+    // to avoid recreate immutableFieldModel ever time.
+    @Deprecated
+    void __setFieldModel(FieldModel fieldModel) {
         this.fieldModel = fieldModel;
     }
 
@@ -115,6 +119,5 @@ public class ImmutableFieldModel {
     public int getMaxVersion() {
         return fieldModel.getMaxVersion();
     }
-    
-    
+
 }
