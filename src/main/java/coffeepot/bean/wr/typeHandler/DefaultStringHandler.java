@@ -12,9 +12,9 @@ package coffeepot.bean.wr.typeHandler;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -95,6 +95,10 @@ public class DefaultStringHandler implements TypeHandler<String> {
     public static final String CMD_REPLACE_ONLY_ON_WRITE = "replace onlyOnWrite";
     public static final String CMD_REPLACE_FIRST_ONLY_ON_WRITE = "replaceFirst onlyOnWrite";
     public static final String CMD_REPLACE_ALL_ONLY_ON_WRITE = "replaceAll onlyOnWrite";
+
+    public static final String CHARCASE_UPPER = "CharCase.UPPER";
+    public static final String CHARCASE_LOW = "CharCase.LOW";
+    public static final String CHARCASE_NORMAL = "CharCase.NORMAL";
 
     private CharCase charCase;
     private String filter;
@@ -252,13 +256,13 @@ public class DefaultStringHandler implements TypeHandler<String> {
                         case "charCase":
                             charCase = CharCase.valueOf(value);
                             break;
-                        case "CharCase.UPPER":
+                        case CHARCASE_UPPER:
                             charCase = CharCase.UPPER;
                             break;
-                        case "CharCase.LOW":
+                        case CHARCASE_LOW:
                             charCase = CharCase.LOW;
                             break;
-                        case "CharCase.NORMAL":
+                        case CHARCASE_NORMAL:
                             charCase = CharCase.NORMAL;
                             break;
                         default:
