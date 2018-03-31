@@ -36,7 +36,7 @@ import java.util.Set;
  */
 public final class ObjectMapperFactory {
 
-    private final Set<Class> noResolved = new HashSet<>();
+    private final Set<Class> unresolved = new HashSet<>();
     private final Map<Class, ObjectMapper> mappers = new HashMap<>();
     private final Map<String, ObjectMapper> idsMap = new HashMap<>();
     private final FormatType formatType;
@@ -67,9 +67,9 @@ public final class ObjectMapperFactory {
         }
 
         mappers.put(clazz, objectMapper);
-        noResolved.remove(clazz);
-        while (!noResolved.isEmpty()) {
-            Class next = noResolved.iterator().next();
+        unresolved.remove(clazz);
+        while (!unresolved.isEmpty()) {
+            Class next = unresolved.iterator().next();
             createHelper(next, recordGroupId, callback);
         }
         return objectMapper;
@@ -94,9 +94,9 @@ public final class ObjectMapperFactory {
         }
 
         mappers.put(clazz, objectMapper);
-        noResolved.remove(clazz);
-        while (!noResolved.isEmpty()) {
-            Class next = noResolved.iterator().next();
+        unresolved.remove(clazz);
+        while (!unresolved.isEmpty()) {
+            Class next = unresolved.iterator().next();
             createHelper(next, recordGroupId, callback);
         }
         return objectMapper;
@@ -106,7 +106,7 @@ public final class ObjectMapperFactory {
     private void createHelper(Class<?> clazz, String recordGroupId, Callback<Class, RecordModel> callback) throws UnresolvedObjectMapperException, NoSuchFieldException, Exception {
         ObjectMapper objectMapper = mappers.get(clazz);
         if (objectMapper != null) {
-            noResolved.remove(clazz);
+            unresolved.remove(clazz);
             return;
         }
         objectMapper = null;
@@ -121,11 +121,11 @@ public final class ObjectMapperFactory {
         }
 
         mappers.put(clazz, objectMapper);
-        noResolved.remove(clazz);
+        unresolved.remove(clazz);
     }
 
-    public Set<Class> getNoResolved() {
-        return noResolved;
+    public Set<Class> getUnresolved() {
+        return unresolved;
     }
 
     public Map<Class, ObjectMapper> getMappers() {
