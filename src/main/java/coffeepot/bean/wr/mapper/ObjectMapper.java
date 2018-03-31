@@ -234,7 +234,7 @@ public class ObjectMapper {
                             if (actualTypeArguments != null && actualTypeArguments.length > 0) {
                                 //FIXME: support for generics with multiple params.
                                 mappedField.setClassType((Class<?>) actualTypeArguments[0]);
-                                factory.getNoResolved().add(mappedField.getClassType());
+                                factory.getUnresolved().add(mappedField.getClassType());
                             }
                         }
                     }
@@ -278,7 +278,7 @@ public class ObjectMapper {
                             Type[] actualTypeArguments = pt.getActualTypeArguments();
                             if (actualTypeArguments != null && actualTypeArguments.length > 0) {
                                 mappedField.setClassType((Class<?>) actualTypeArguments[0]);
-                                factory.getNoResolved().add(mappedField.getClassType());
+                                factory.getUnresolved().add(mappedField.getClassType());
                             }
                         }
                     }
@@ -389,7 +389,7 @@ public class ObjectMapper {
 
         if (mappedField.getTypeHandler() == null) {
             mappedField.setNestedObject(true);
-            factory.getNoResolved().add(mappedField.getClassType());
+            factory.getUnresolved().add(mappedField.getClassType());
         }
         return mappedField;
     }
