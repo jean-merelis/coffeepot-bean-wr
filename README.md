@@ -34,7 +34,7 @@ Mapping
 				@Field(name = "", id = true, constantValue = "ORDER"),
 				@Field(name = "id"),
 				@Field(name = "date"),
-				@Field(name = "customer"),
+				@Field(name = "customer", params = {DefaultStringHandler.CMD_REPLACE, "Sr.", "", "CharCase.UPPER"}),
 				@Field(name = "items")
 			})
 		public class Order {
@@ -69,6 +69,7 @@ Using...
 
 	public void test() throws Exception{
 		Order order = new Order();
+		order.setCustomer("Sr. John B.");
 		//add some data
 
         File file = new File("ORDER.tmp");
@@ -88,7 +89,7 @@ Using...
 
 Output: 
 
-		ORDER|123|2015-03-10T00:04:15|john b|
+		ORDER|123|2015-03-10T00:04:15|JOHN B.|
 		ITEM|1|product 1|10|
 		ITEM|2|product 2|5|
 		ITEM|3|product 3|2|

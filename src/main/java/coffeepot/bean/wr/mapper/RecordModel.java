@@ -34,7 +34,6 @@ package coffeepot.bean.wr.mapper;
  * limitations under the License.
  * #L%
  */
-
 import coffeepot.bean.wr.types.AccessorType;
 import coffeepot.bean.wr.types.FormatType;
 import java.util.LinkedList;
