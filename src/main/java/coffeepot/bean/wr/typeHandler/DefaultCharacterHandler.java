@@ -3,6 +3,7 @@
  */
 package coffeepot.bean.wr.typeHandler;
 
+import coffeepot.bean.wr.mapper.Command;
 import coffeepot.bean.wr.mapper.Metadata;
 
 /*
@@ -24,8 +25,6 @@ import coffeepot.bean.wr.mapper.Metadata;
  * limitations under the License.
  * #L%
  */
-
-
 /**
  *
  * @author Jeandeson O. Merelis
@@ -53,6 +52,6 @@ public class DefaultCharacterHandler implements TypeHandler<Character> {
     }
 
     @Override
-    public void setConfig(String[] params) {
+    public void config(Command[] commands) {
     }
 }

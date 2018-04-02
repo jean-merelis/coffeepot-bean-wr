@@ -34,6 +34,7 @@ package coffeepot.bean.wr.typeHandler;
  * limitations under the License.
  * #L%
  */
+import coffeepot.bean.wr.mapper.Command;
 import coffeepot.bean.wr.mapper.Metadata;
 import static org.junit.Assert.*;
 import org.junit.Test;
@@ -50,7 +51,9 @@ public class DefaultStringHandlerTest {
         String text = "Test1235 ok";
         Metadata metadata = null;
         DefaultStringHandler instance = new DefaultStringHandler();
-        instance.setConfig(new String[]{DefaultStringHandler.FILTER_NUMBER_ONLY});
+        instance.config(new Command[]{
+            Command.builder().name(DefaultStringHandler.CMD_FILTER).args(new String[]{DefaultStringHandler.FILTER_NUMBER_ONLY}).build()
+        });
         String expResult = "1235";
         String result = instance.parse(text, metadata);
         assertEquals(expResult, result);
@@ -62,7 +65,10 @@ public class DefaultStringHandlerTest {
         String text = " abcd()!@#$%¨&*()12345xyz, . : ;/?ABC ";
         Metadata metadata = null;
         DefaultStringHandler instance = new DefaultStringHandler();
-        instance.setConfig(new String[]{DefaultStringHandler.FILTER_NUMBER_LETTERS_ONLY});
+        instance.config(new Command[]{
+            Command.builder().name(DefaultStringHandler.CMD_FILTER).args(new String[]{DefaultStringHandler.FILTER_NUMBER_LETTERS_ONLY}).build()
+        });
+
         String expResult = "abcd12345xyzABC";
         String result = instance.parse(text, metadata);
         assertEquals(expResult, result);
@@ -74,7 +80,10 @@ public class DefaultStringHandlerTest {
         String text = "test abcd A";
         Metadata metadata = null;
         DefaultStringHandler instance = new DefaultStringHandler();
-        instance.setConfig(new String[]{DefaultStringHandler.CHARCASE_UPPER});
+        instance.config(new Command[]{
+            Command.builder().name(DefaultStringHandler.CMD_CHARCASE).args(new String[]{DefaultStringHandler.CHARCASE_UPPER}).build()
+        });
+
         String expResult = "TEST ABCD A";
         String result = instance.parse(text, metadata);
         assertEquals(expResult, result);
@@ -86,7 +95,11 @@ public class DefaultStringHandlerTest {
         String text = "test abcd A";
         Metadata metadata = null;
         DefaultStringHandler instance = new DefaultStringHandler();
-        instance.setConfig(new String[]{DefaultStringHandler.CMD_REPLACE, "abcd", "dcba"});
+
+        instance.config(new Command[]{
+            Command.builder().name(DefaultStringHandler.CMD_REPLACE).args(new String[]{"abcd", "dcba"}).build()
+        });
+
         String expResult = "test dcba A";
         String result = instance.parse(text, metadata);
         assertEquals(expResult, result);
@@ -98,7 +111,10 @@ public class DefaultStringHandlerTest {
         String text = "test abcd A";
         Metadata metadata = null;
         DefaultStringHandler instance = new DefaultStringHandler();
-        instance.setConfig(new String[]{DefaultStringHandler.CMD_REPLACE_ONLY_ON_READ, "abcd", "dcba"});
+        instance.config(new Command[]{
+            Command.builder().name(DefaultStringHandler.CMD_REPLACE).args(new String[]{"abcd", "dcba", DefaultStringHandler.OPT_ONLY_ON_READ}).build()
+        });
+
         String expResult = "test dcba A";
         String result = instance.parse(text, metadata);
         assertEquals(expResult, result);
@@ -110,7 +126,10 @@ public class DefaultStringHandlerTest {
         String text = "test abcd A";
         Metadata metadata = null;
         DefaultStringHandler instance = new DefaultStringHandler();
-        instance.setConfig(new String[]{DefaultStringHandler.CMD_REPLACE_ONLY_ON_WRITE, "abcd", "dcba"});
+        instance.config(new Command[]{
+            Command.builder().name(DefaultStringHandler.CMD_REPLACE).args(new String[]{"abcd", "dcba", DefaultStringHandler.OPT_ONLY_ON_WRITE}).build()
+        });
+
         String expResult = "test abcd A";
         String result = instance.parse(text, metadata);
         assertEquals(expResult, result);
@@ -122,12 +141,14 @@ public class DefaultStringHandlerTest {
         String text = "test abcd A";
         Metadata metadata = null;
         DefaultStringHandler instance = new DefaultStringHandler();
-        instance.setConfig(new String[]{
-            DefaultStringHandler.CMD_REPLACE, "abcd", "dcba",
-            DefaultStringHandler.CMD_REPLACE, "dcba", "ok",
-            DefaultStringHandler.CMD_REPLACE, "test", "this",
-            DefaultStringHandler.CMD_REPLACE, "this", "this test is",
-            DefaultStringHandler.CMD_REPLACE, " A", ""});
+
+        instance.config(new Command[]{
+            Command.builder().name(DefaultStringHandler.CMD_REPLACE).args(new String[]{"abcd", "dcba"}).build(),
+            Command.builder().name(DefaultStringHandler.CMD_REPLACE).args(new String[]{"dcba", "ok"}).build(),
+            Command.builder().name(DefaultStringHandler.CMD_REPLACE).args(new String[]{"test", "this"}).build(),
+            Command.builder().name(DefaultStringHandler.CMD_REPLACE).args(new String[]{"this", "this test is"}).build(),
+            Command.builder().name(DefaultStringHandler.CMD_REPLACE).args(new String[]{" A", ""}).build()
+        });
         String expResult = "this test is ok";
         String result = instance.parse(text, metadata);
         assertEquals(expResult, result);
@@ -139,7 +160,9 @@ public class DefaultStringHandlerTest {
         String text = "Test1235 ok";
         Metadata metadata = null;
         DefaultStringHandler instance = new DefaultStringHandler();
-        instance.setConfig(new String[]{DefaultStringHandler.FILTER_NUMBER_ONLY});
+        instance.config(new Command[]{
+            Command.builder().name(DefaultStringHandler.CMD_FILTER).args(new String[]{DefaultStringHandler.FILTER_NUMBER_ONLY}).build()
+        });
         String expResult = "1235";
         String result = instance.toString(text, metadata);
         assertEquals(expResult, result);
@@ -151,7 +174,11 @@ public class DefaultStringHandlerTest {
         String text = " abcd()!@#$%¨&*()12345xyz, . : ;/?ABC ";
         Metadata metadata = null;
         DefaultStringHandler instance = new DefaultStringHandler();
-        instance.setConfig(new String[]{DefaultStringHandler.FILTER_NUMBER_LETTERS_ONLY});
+
+        instance.config(new Command[]{
+            Command.builder().name(DefaultStringHandler.CMD_FILTER).args(new String[]{DefaultStringHandler.FILTER_NUMBER_LETTERS_ONLY}).build()
+        });
+
         String expResult = "abcd12345xyzABC";
         String result = instance.toString(text, metadata);
         assertEquals(expResult, result);
@@ -163,7 +190,11 @@ public class DefaultStringHandlerTest {
         String text = "test abcd A";
         Metadata metadata = null;
         DefaultStringHandler instance = new DefaultStringHandler();
-        instance.setConfig(new String[]{DefaultStringHandler.CHARCASE_UPPER});
+
+        instance.config(new Command[]{
+            Command.builder().name(DefaultStringHandler.CMD_CHARCASE).args(new String[]{DefaultStringHandler.CHARCASE_UPPER}).build()
+        });
+
         String expResult = "TEST ABCD A";
         String result = instance.toString(text, metadata);
         assertEquals(expResult, result);
@@ -175,7 +206,11 @@ public class DefaultStringHandlerTest {
         String text = "test abcd A";
         Metadata metadata = null;
         DefaultStringHandler instance = new DefaultStringHandler();
-        instance.setConfig(new String[]{DefaultStringHandler.CMD_REPLACE, "abcd", "dcba"});
+
+        instance.config(new Command[]{
+            Command.builder().name(DefaultStringHandler.CMD_REPLACE).args(new String[]{"abcd", "dcba"}).build()
+        });
+
         String expResult = "test dcba A";
         String result = instance.toString(text, metadata);
         assertEquals(expResult, result);
@@ -187,7 +222,11 @@ public class DefaultStringHandlerTest {
         String text = "test abcd A";
         Metadata metadata = null;
         DefaultStringHandler instance = new DefaultStringHandler();
-        instance.setConfig(new String[]{DefaultStringHandler.CMD_REPLACE_ONLY_ON_WRITE, "abcd", "dcba"});
+
+        instance.config(new Command[]{
+            Command.builder().name(DefaultStringHandler.CMD_REPLACE).args(new String[]{"abcd", "dcba", DefaultStringHandler.OPT_ONLY_ON_WRITE}).build()
+        });
+
         String expResult = "test dcba A";
         String result = instance.toString(text, metadata);
         assertEquals(expResult, result);
@@ -199,7 +238,12 @@ public class DefaultStringHandlerTest {
         String text = "test abcd A";
         Metadata metadata = null;
         DefaultStringHandler instance = new DefaultStringHandler();
-        instance.setConfig(new String[]{DefaultStringHandler.CMD_REPLACE_ONLY_ON_READ, "abcd", "dcba"});
+
+        instance.config(new Command[]{
+            Command.builder().name(DefaultStringHandler.CMD_REPLACE).args(new String[]{"abcd", "dcba", DefaultStringHandler.OPT_ONLY_ON_READ}).build()
+        });
+
+
         String expResult = "test abcd A";
         String result = instance.toString(text, metadata);
         assertEquals(expResult, result);
@@ -211,12 +255,13 @@ public class DefaultStringHandlerTest {
         String text = "test abcd A";
         Metadata metadata = null;
         DefaultStringHandler instance = new DefaultStringHandler();
-        instance.setConfig(new String[]{
-            DefaultStringHandler.CMD_REPLACE, "abcd", "dcba",
-            DefaultStringHandler.CMD_REPLACE, "dcba", "ok",
-            DefaultStringHandler.CMD_REPLACE, "test", "this",
-            DefaultStringHandler.CMD_REPLACE, "this", "this test is",
-            DefaultStringHandler.CMD_REPLACE, " A", ""});
+        instance.config(new Command[]{
+            Command.builder().name(DefaultStringHandler.CMD_REPLACE).args(new String[]{"abcd", "dcba"}).build(),
+            Command.builder().name(DefaultStringHandler.CMD_REPLACE).args(new String[]{"dcba", "ok"}).build(),
+            Command.builder().name(DefaultStringHandler.CMD_REPLACE).args(new String[]{"test", "this"}).build(),
+            Command.builder().name(DefaultStringHandler.CMD_REPLACE).args(new String[]{"this", "this test is"}).build(),
+            Command.builder().name(DefaultStringHandler.CMD_REPLACE).args(new String[]{" A", ""}).build()
+        });
         String expResult = "this test is ok";
         String result = instance.toString(text, metadata);
         assertEquals(expResult, result);
@@ -228,8 +273,11 @@ public class DefaultStringHandlerTest {
         String text = "test Abcd A";
         Metadata metadata = null;
         DefaultStringHandler instance = new DefaultStringHandler();
-        instance.setConfig(new String[]{
-            DefaultStringHandler.CMD_REPLACE_ALL, "\\s+", ""});
+
+        instance.config(new Command[]{
+            Command.builder().name(DefaultStringHandler.CMD_REPLACE_ALL).args(new String[]{"\\s+", ""}).build()
+        });
+
         String expResult = "testAbcdA";
         String result = instance.toString(text, metadata);
         assertEquals(expResult, result);
@@ -241,8 +289,11 @@ public class DefaultStringHandlerTest {
         String text = "test Abcd A";
         Metadata metadata = null;
         DefaultStringHandler instance = new DefaultStringHandler();
-        instance.setConfig(new String[]{
-            DefaultStringHandler.CMD_REPLACE_ALL, "\\s+", "_"});
+
+        instance.config(new Command[]{
+            Command.builder().name(DefaultStringHandler.CMD_REPLACE_ALL).args(new String[]{"\\s+", "_"}).build()
+        });
+
         String expResult = "test_Abcd_A";
         String result = instance.toString(text, metadata);
         assertEquals(expResult, result);
@@ -254,8 +305,11 @@ public class DefaultStringHandlerTest {
         String text = "test  Abcd A";
         Metadata metadata = null;
         DefaultStringHandler instance = new DefaultStringHandler();
-        instance.setConfig(new String[]{
-            DefaultStringHandler.CMD_REPLACE_FIRST, "\\s+", "_"});
+
+        instance.config(new Command[]{
+            Command.builder().name(DefaultStringHandler.CMD_REPLACE_FIRST).args(new String[]{"\\s+", "_"}).build()
+        });
+
         String expResult = "test_Abcd A";
         String result = instance.toString(text, metadata);
         assertEquals(expResult, result);

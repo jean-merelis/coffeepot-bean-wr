@@ -34,9 +34,11 @@ package coffeepot.bean.wr.model;
  * limitations under the License.
  * #L%
  */
+import coffeepot.bean.wr.annotation.Cmd;
 import coffeepot.bean.wr.annotation.Field;
 import coffeepot.bean.wr.annotation.Record;
 import coffeepot.bean.wr.annotation.Records;
+import coffeepot.bean.wr.typeHandler.DefaultDateHandler;
 import coffeepot.bean.wr.types.Align;
 import coffeepot.bean.wr.types.FormatType;
 import java.util.Date;
@@ -58,7 +60,10 @@ import java.util.List;
             fields = {
                 @Field(name = "ID", id = true, constantValue = "ORDER", length = 5),
                 @Field(name = "id", length = 5, align = Align.RIGHT, padding = '0'),
-                @Field(name = "date", params = "ddMMyyyy", length = 8),
+                @Field(name = "date", length = 8,
+                        commands = {
+                            @Cmd(name = DefaultDateHandler.CMD_SET_PATTERN, args = {"ddMMyyyy"})}
+                ),
                 @Field(name = "customer", length = 30),
                 @Field(name = "items")
             })

@@ -3,6 +3,7 @@
  */
 package coffeepot.bean.wr.typeHandler;
 
+import coffeepot.bean.wr.mapper.Command;
 import coffeepot.bean.wr.mapper.Metadata;
 
 /*
@@ -34,5 +35,5 @@ public interface TypeHandler<T> {
 
     String toString(T obj, Metadata metadata);
 
-    void setConfig(String[] params);
+    void config(Command[] commands);
 }

@@ -22,6 +22,7 @@ package coffeepot.bean.wr.typeHandler;
  * limitations under the License.
  * #L%
  */
+import coffeepot.bean.wr.mapper.Command;
 import coffeepot.bean.wr.mapper.Metadata;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -43,6 +44,10 @@ public class DefaultFloatHandler implements TypeHandler<Float> {
     protected static char decimalSeparatorDefault = DecimalFormatSymbols.getInstance().getDecimalSeparator();
     protected static char groupingSeparatorDefault = DecimalFormatSymbols.getInstance().getGroupingSeparator();
 
+    public final static String CMD_SET_PATTERN = "setPattern";
+    public final static String CMD_SET_DECIMAL_SEPARATOR = "setDecimalSeparator";
+    public final static String CMD_SET_GROUPING_SEPARATOR = "setGroupingSeparator";
+
     public DefaultFloatHandler() {
         setDefaultValues();
     }
@@ -52,7 +57,7 @@ public class DefaultFloatHandler implements TypeHandler<Float> {
         if (text == null || "".equals(text)) {
             return null;
         }
-        
+
         try {
             Number d = decimalFormat.parse(text);
             return d.floatValue();
@@ -70,43 +75,35 @@ public class DefaultFloatHandler implements TypeHandler<Float> {
     }
 
     @Override
-    public void setConfig(String[] params) {
-        if (params == null || params.length == 0) {
+    public void config(Command[] commands) {
+        if (commands == null || commands.length == 0) {
             setDefaultValues();
             return;
         }
-        for (String s : params) {
-            String[] keyValue = s.split("=");
-            if (keyValue.length > 0) {
-                String key = keyValue[0].trim();
-                String value;
-                if (keyValue.length > 1) {
-                    value = keyValue[1].trim();
-                } else {
-                    value = "";
+        for (Command cmd : commands) {
+            switch (cmd.getName()) {
+                case CMD_SET_PATTERN: {
+                    pattern = cmd.getArgs()[0];
+                    break;
                 }
-                switch (key) {
-                    case "pattern":
-                        pattern = value;
-                        break;
-                    case "decimalSeparator":
-                        if (value.length() > 0) {
-                            decimalSeparator = value.charAt(0);
-                        }
-                        break;
-                    case "groupingSeparator":
-                        if (value.length() > 0) {
-                            groupingSeparator = value.charAt(0);
-                        }
-                        break;
-                    default:
-                        pattern = key;
+                case CMD_SET_DECIMAL_SEPARATOR: {
+                    decimalSeparator = cmd.getArgs()[0].charAt(0);
+                    break;
+                }
+                case CMD_SET_GROUPING_SEPARATOR: {
+                    groupingSeparator = cmd.getArgs()[0].charAt(0);
+                    break;
+                }
+                default: {
+                    throw new IllegalArgumentException("Unknown command: " + cmd.getName());
                 }
             }
         }
 
         DecimalFormatSymbols dfs = new DecimalFormatSymbols(locale);
+
         dfs.setDecimalSeparator(decimalSeparator);
+
         dfs.setGroupingSeparator(groupingSeparator);
         decimalFormat = new DecimalFormat(pattern, dfs);
     }

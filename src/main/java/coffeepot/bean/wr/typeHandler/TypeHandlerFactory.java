@@ -3,6 +3,8 @@
  */
 package coffeepot.bean.wr.typeHandler;
 
+import coffeepot.bean.wr.mapper.Command;
+
 /*
  * #%L
  * coffeepot-bean-wr
@@ -33,7 +35,8 @@ public interface TypeHandlerFactory {
     void clearRegisterTypeHandlerClass();
 
     /**
-     * Registers a instance of handler (previously configured) as default to a type.
+     * Registers a instance of handler (previously configured) as default to a
+     * type.
      *
      * @param forClass
      * @param handlerInstance
@@ -43,7 +46,7 @@ public interface TypeHandlerFactory {
 
     void registerTypeHandlerClassFor(Class<?> forClass, Class<? extends TypeHandler> handlerClass);
 
-    TypeHandler create(Class<?> forClass, String[] params) throws InstantiationException, IllegalAccessException;
+    TypeHandler create(Class<?> forClass, Command[] commands) throws InstantiationException, IllegalAccessException;
 
-    TypeHandler create(Class<?> forClass, Class<? extends TypeHandler> typeHandler, String[] params) throws InstantiationException, IllegalAccessException;
+    TypeHandler create(Class<?> forClass, Class<? extends TypeHandler> typeHandler, Command[] commands) throws InstantiationException, IllegalAccessException;
 }

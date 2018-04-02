@@ -96,8 +96,8 @@ public class ImmutableFieldModel {
         return fieldModel.getClassType();
     }
 
-    public String[] getParams() {
-        return fieldModel.getParams();
+    public Command[] getCommands() {
+        return fieldModel.getCommands();
     }
 
     public AccessorType getAccessorType() {

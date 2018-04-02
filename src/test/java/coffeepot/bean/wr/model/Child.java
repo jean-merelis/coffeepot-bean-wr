@@ -22,11 +22,11 @@ package coffeepot.bean.wr.model;
  * limitations under the License.
  * #L%
  */
-
-
+import coffeepot.bean.wr.annotation.Cmd;
 import coffeepot.bean.wr.annotation.Field;
 import coffeepot.bean.wr.annotation.Record;
 import coffeepot.bean.wr.annotation.Records;
+import coffeepot.bean.wr.typeHandler.DefaultStringHandler;
 import coffeepot.bean.wr.types.Align;
 import coffeepot.bean.wr.types.FormatType;
 
@@ -35,20 +35,23 @@ import coffeepot.bean.wr.types.FormatType;
  * @author Jeandeson O. Merelis
  */
 @Records({
-    @Record(forFormat = FormatType.DELIMITED ,fields = {
+    @Record(forFormat = FormatType.DELIMITED, fields = {
         @Field(name = "", constantValue = "CHILD"),
-        @Field(name = "name", params = {"CharCase.UPPER"}),
+        @Field(name = "name", commands = {
+            @Cmd(name = DefaultStringHandler.CMD_CHARCASE, args = {DefaultStringHandler.CHARCASE_UPPER})}),
         @Field(name = "age")
     }),
-    @Record(forFormat = FormatType.FIXED_LENGTH ,fields = {
+    @Record(forFormat = FormatType.FIXED_LENGTH, fields = {
         @Field(name = "", constantValue = "CHILD"),
-        @Field(name = "name", length = 30, params = {"CharCase.UPPER"}),
+        @Field(name = "name", length = 30, commands = {
+            @Cmd(name = DefaultStringHandler.CMD_CHARCASE, args = {DefaultStringHandler.CHARCASE_UPPER})}),
         @Field(name = "age", length = 5, align = Align.RIGHT)
     }),
-    @Record( groupId = "testGroupRecord",fields = {
+    @Record(groupId = "testGroupRecord", fields = {
         @Field(name = "", constantValue = "testGroupRecord"),
         @Field(name = "", constantValue = "CHILD"),
-        @Field(name = "name", params = {"CharCase.UPPER"}),
+        @Field(name = "name", commands = {
+            @Cmd(name = DefaultStringHandler.CMD_CHARCASE, args = {DefaultStringHandler.CHARCASE_UPPER})}),
         @Field(name = "age")
     })
 })
