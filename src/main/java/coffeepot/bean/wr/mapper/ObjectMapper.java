@@ -24,6 +24,7 @@ package coffeepot.bean.wr.mapper;
  */
 import coffeepot.bean.wr.annotation.Record;
 import coffeepot.bean.wr.annotation.Records;
+import static coffeepot.bean.wr.typeHandler.DefaultEnumHandler.CMD_SET_ENUM_CLASS;
 import coffeepot.bean.wr.typeHandler.TypeHandler;
 import coffeepot.bean.wr.types.AccessorType;
 import coffeepot.bean.wr.types.FormatType;
@@ -358,30 +359,30 @@ public class ObjectMapper {
 
         TypeHandler handler;
 
-        handler = factory.getHandlerFactory().create(mappedField.getClassType(), f.getTypeHandlerClass(), f.getParams());
+        handler = factory.getHandlerFactory().create(mappedField.getClassType(), f.getTypeHandlerClass(), f.getCommands());
         mappedField.setTypeHandler(handler);
 
         if (mappedField.getTypeHandler() == null && (mappedField.getClassType().isEnum())) {
             //set default EnumTypeHandler
             boolean defEnum = false;
-            if (f.getParams() != null) {
-                for (String s : f.getParams()) {
-                    if (s.startsWith("enum") || s.startsWith("class")) {
+            if (f.getCommands() != null) {
+                for (Command c : f.getCommands()) {
+                    if (c.name.equals(CMD_SET_ENUM_CLASS)) {
                         defEnum = true;
                         break;
                     }
                 }
             }
-            String[] newParams;
+            Command[] newParams;
             if (!defEnum) {
-                if (f.getParams() == null) {
-                    newParams = new String[1];
+                if (f.getCommands() == null) {
+                    newParams = new Command[1];
                 } else {
-                    newParams = Arrays.copyOf(f.getParams(), f.getParams().length + 1);
+                    newParams = Arrays.copyOf(f.getCommands(), f.getCommands().length + 1);
                 }
-                newParams[newParams.length - 1] = "enumClass=" + mappedField.getClassType().getName();
+                newParams[newParams.length - 1] = Command.builder().name(CMD_SET_ENUM_CLASS).args(new String[]{mappedField.getClassType().getName()}).build();
             } else {
-                newParams = f.getParams();
+                newParams = f.getCommands();
             }
             handler = factory.getHandlerFactory().create(Enum.class, f.getTypeHandlerClass(), newParams);
             mappedField.setTypeHandler(handler);

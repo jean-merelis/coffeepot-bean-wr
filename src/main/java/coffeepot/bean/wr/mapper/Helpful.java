@@ -22,6 +22,7 @@ package coffeepot.bean.wr.mapper;
  * limitations under the License.
  * #L%
  */
+import coffeepot.bean.wr.annotation.Cmd;
 import coffeepot.bean.wr.annotation.Field;
 
 /**
@@ -45,7 +46,7 @@ public class Helpful {
         f.setName(nf.name());
         f.setPadding(nf.padding());
         f.setPaddingIfNullOrEmpty(nf.paddingIfNullOrEmpty());
-        f.setParams(nf.params());
+        f.setCommands(toCmdModel(nf.commands()));
         f.setSetter(nf.setter());
         f.setTrim(nf.trim());
         f.setTypeHandlerClass(nf.typeHandler());
@@ -99,4 +100,15 @@ public class Helpful {
         return f;
     }
 
+    public static Command[] toCmdModel(Cmd[] cmds) {
+        Command[] result = new Command[cmds.length];
+        for (int i = 0; i < cmds.length; i++) {
+            Cmd cmd = cmds[i];
+            Command cm = new Command();
+            cm.name = cmd.name();
+            cm.args = cmd.args();
+            result[i] = cm;
+        }
+        return result;
+    }
 }

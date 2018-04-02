@@ -22,8 +22,7 @@ package coffeepot.bean.wr.typeHandler;
  * limitations under the License.
  * #L%
  */
-
-
+import coffeepot.bean.wr.mapper.Command;
 import coffeepot.bean.wr.mapper.Metadata;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,8 +34,11 @@ import java.util.logging.Logger;
 public class DefaultEnumHandler implements TypeHandler<Enum> {
 
     protected boolean ordinalMode = false;
-    protected Class<? extends Enum> type = Enum.class;;
-    
+    protected Class<? extends Enum> type = Enum.class;
+
+    public static final String CMD_SET_ORDINAL_MODE = "setOrdinalMode";
+    public static final String CMD_SET_ENUM_CLASS = "setEnumClass";
+
     @Override
     public Enum parse(String text, Metadata metadata) throws HandlerParseException {
         if (text == null || "".equals(text)) {
@@ -73,44 +75,30 @@ public class DefaultEnumHandler implements TypeHandler<Enum> {
     }
 
     @Override
-    public void setConfig(String[] params) {
-        if (params == null || params.length == 0) {
+    public void config(Command[] commands) {
+        if (commands == null || commands.length == 0) {
             return;
         }
-        for (String s : params) {
-
-            String[] keyValue = s.split("=");
-
-            if (keyValue.length > 0) {
-                String key = keyValue[0].trim();
-                String value;
-                if (keyValue.length > 1) {
-                    value = keyValue[1].trim();
-                } else {
-                    value = "true";
+        for (Command cmd : commands) {
+            switch (cmd.getName()) {
+                case CMD_SET_ORDINAL_MODE: {
+                    ordinalMode = "true".equals(cmd.getArgs()[0]);
+                    break;
                 }
-                switch (key) {
-                    case "ordinalMode":
-                        ordinalMode = "true".equals(value);
-                        break;
-                    case "enum":
-                        ;
-                    case "enumClass":
-                        ;
-                    case "class":
-                        try {
-                            type = (Class<? extends Enum>) Class.forName(value);
-                        } catch (ClassNotFoundException ex) {
-                            Logger.getLogger(DefaultEnumHandler.class.getName()).log(Level.SEVERE, null, ex);
-                            throw new IllegalArgumentException("Class not found: \"" + value + "\"");
-                        } catch (Exception ex) {
-                            Logger.getLogger(DefaultEnumHandler.class.getName()).log(Level.SEVERE, null, ex);
-                            throw new IllegalArgumentException("The Class \"" + value + "\" may not be a Enum class");
-                        }
-                        break;
-
-                    default:
-                        throw new IllegalArgumentException("Unknown parameter: \"" + key + "\"");
+                case CMD_SET_ENUM_CLASS: {
+                    try {
+                        type = (Class<? extends Enum>) Class.forName(cmd.getArgs()[0]);
+                    } catch (ClassNotFoundException ex) {
+                        Logger.getLogger(DefaultEnumHandler.class.getName()).log(Level.SEVERE, null, ex);
+                        throw new IllegalArgumentException("Class not found: \"" + cmd.getArgs()[0] + "\"");
+                    } catch (Exception ex) {
+                        Logger.getLogger(DefaultEnumHandler.class.getName()).log(Level.SEVERE, null, ex);
+                        throw new IllegalArgumentException("The Class \"" + cmd.getArgs()[0] + "\" may not be a Enum class");
+                    }
+                    break;
+                }
+                default: {
+                    throw new IllegalArgumentException("Unknown command: " + cmd.getName());
                 }
             }
         }

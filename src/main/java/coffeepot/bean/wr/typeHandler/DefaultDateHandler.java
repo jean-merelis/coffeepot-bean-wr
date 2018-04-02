@@ -22,14 +22,15 @@ package coffeepot.bean.wr.typeHandler;
  * limitations under the License.
  * #L%
  */
+import coffeepot.bean.wr.mapper.Command;
 import coffeepot.bean.wr.mapper.Metadata;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * Handler default for Date type.
- * Parameters supported by this handler: date, time, datetime, pattern or direct pattern.
- * Multiple params are not supported.
+ * Handler default for Date type. Parameters supported by this handler: date,
+ * time, datetime, pattern or direct pattern. Multiple params are not supported.
+ *
  * @author Jeandeson O. Merelis
  */
 public class DefaultDateHandler implements TypeHandler<Date> {
@@ -42,6 +43,8 @@ public class DefaultDateHandler implements TypeHandler<Date> {
     protected static String patternDefaultForDate;
     protected static String patternDefaultForTime;
     protected static String patternDefaultForDateTime;
+
+    public static final String CMD_SET_PATTERN = "setPattern";
 
     static {
         patternDefault = "yyyy-MM-dd'T'HH:mm:ss";
@@ -78,37 +81,38 @@ public class DefaultDateHandler implements TypeHandler<Date> {
     }
 
     @Override
-    public void setConfig(String[] params) {
-        if (params == null || params.length == 0) {
+    public void config(Command[] commands) {
+        if (commands == null || commands.length == 0) {
             setDefaultValues();
             return;
         }
-        for (String s : params) {
-            String[] param = s.split("=");
-            String key = param[0].trim();
-            String value;
-            if (param.length > 1) {
-                value = param[1];
-            } else {
-                value = key;
-            }
-            switch (key) {
-                case "date":
-                    pattern = patternDefaultForDate;
+
+        for (Command cmd : commands) {
+            switch (cmd.getName()) {
+                case CMD_SET_PATTERN: {
+                    String arg = cmd.getArgs()[0];
+                    switch (arg) {
+                        case "date":
+                            pattern = patternDefaultForDate;
+                            break;
+                        case "time":
+                            pattern = patternDefaultForTime;
+                            break;
+                        case "datetime":
+                            pattern = patternDefaultForDateTime;
+                            break;
+                        default:
+                            pattern = arg;
+                    }
                     break;
-                case "time":
-                    pattern = patternDefaultForTime;
-                    break;
-                case "datetime":
-                    pattern = patternDefaultForDateTime;
-                    break;
-                case "pattern":
-                    pattern = value;
-                    break;
-                default:
-                    pattern = value;
+                }
+
+                default: {
+                    throw new IllegalArgumentException("Unknown command: " + cmd.getName());
+                }
             }
         }
+
         dateFormat = new SimpleDateFormat(pattern);
     }
 
@@ -148,5 +152,5 @@ public class DefaultDateHandler implements TypeHandler<Date> {
     public static void setPatternDefaultForDateTime(String patternDefaultForDateTime) {
         DefaultDateHandler.patternDefaultForDateTime = patternDefaultForDateTime;
     }
-    
+
 }

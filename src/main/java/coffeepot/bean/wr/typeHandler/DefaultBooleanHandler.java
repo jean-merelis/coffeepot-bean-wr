@@ -3,6 +3,7 @@
  */
 package coffeepot.bean.wr.typeHandler;
 
+import coffeepot.bean.wr.mapper.Command;
 import coffeepot.bean.wr.mapper.Metadata;
 
 /*
@@ -24,8 +25,6 @@ import coffeepot.bean.wr.mapper.Metadata;
  * limitations under the License.
  * #L%
  */
-
-
 /**
  *
  * @author Jeandeson O. Merelis
@@ -38,7 +37,12 @@ public class DefaultBooleanHandler implements TypeHandler<Boolean> {
     protected static String trueTextDefault = "true";
     protected static String falseTextDefault = "false";
 
+    public static final String CMD_SET_TRUE_TEXT = "setTrueText";
+    public static final String CMD_SET_FALSE_TEXT = "setFalseText";
 
+    public DefaultBooleanHandler() {
+        setDefaultValues();
+    }
 
     @Override
     public Boolean parse(String text, Metadata metadata) throws HandlerParseException {
@@ -65,68 +69,28 @@ public class DefaultBooleanHandler implements TypeHandler<Boolean> {
         return obj == true ? trueText : falseText;
     }
 
-    /**
-     * When keys value are not specified, the sequence of values ​​must be first
-     * true text and second false text.
-     * <p></p>
-     * Valid params format:<br>
-     * true=1;false=0 or false=0;true=1<br>
-     * 1;0<br>
-     * newTrueText;newFalseText
-     *
-     */
     @Override
-    public void setConfig(String[] params) {
-        if (params == null || params.length == 0) {
+    public void config(Command[] commands) {
+        if (commands == null || commands.length == 0) {
             setDefaultValues();
             return;
         }
-        String trueTxt = null;
-        String falseTxt = null;
 
-        for (String s : params) {
-            String[] keyValue = s.split(";");
-            if (keyValue.length > 0) {
-                String key = keyValue[0].trim();
-                String[] keys = key.split("=");
 
-                if (keys.length > 1) {
-
-                    //format true=1;false=0
-                    String k = keys[0].trim();
-                    if ("true".equals(k)) {
-                        trueTxt = keys[1].trim();
-                    } else if ("false".equals(k)) {
-                        falseTxt = keys[1].trim();
-                    }
-
-                    if (keyValue.length > 1) {
-                        key = keyValue[1].trim();
-                        keys = key.split("=");
-                        if (keys.length > 1) {
-                            k = keys[0].trim();
-                            if ("true".equals(k)) {
-                                trueTxt = keys[1].trim();
-                            } else if ("false".equals(k)) {
-                                falseTxt = keys[1].trim();
-                            }
-                        }
-                    }
-
-                } else {
-
-                    // format trueText;falseText
-                    trueTxt = keyValue[0].trim();
-                    if (keyValue.length > 1) {
-                        falseTxt = keyValue[1].trim();
-                    }
+        for (Command cmd : commands) {
+            switch (cmd.getName()) {
+                case CMD_SET_TRUE_TEXT: {
+                    trueText = cmd.getArgs()[0];
+                    break;
                 }
-
+                case CMD_SET_FALSE_TEXT: {
+                    trueText = cmd.getArgs()[0];
+                    break;
+                }
+                default: {
+                    throw new IllegalArgumentException("Unknown command: " + cmd.getName());
+                }
             }
-        }
-        if (trueTxt != null && falseTxt != null && !trueTxt.equals(falseTxt)) {
-            trueText = trueTxt;
-            falseText = falseTxt;
         }
     }
 
@@ -150,6 +114,5 @@ public class DefaultBooleanHandler implements TypeHandler<Boolean> {
     public static void setFalseTextDefault(String falseTextDefault) {
         DefaultBooleanHandler.falseTextDefault = falseTextDefault;
     }
-
 
 }

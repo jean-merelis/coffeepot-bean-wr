@@ -3,6 +3,7 @@
  */
 package coffeepot.bean.wr.typeHandler;
 
+import coffeepot.bean.wr.mapper.Command;
 import coffeepot.bean.wr.mapper.Metadata;
 
 /*
@@ -51,6 +52,6 @@ public class DefaultIntegerHandler implements TypeHandler<Integer> {
     }
 
     @Override
-    public void setConfig(String[] params) {
+    public void config(Command[] commands) {
     }
 }

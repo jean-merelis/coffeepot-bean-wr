@@ -22,10 +22,12 @@ package coffeepot.bean.wr.model;
  * limitations under the License.
  * #L%
  */
+import coffeepot.bean.wr.annotation.Cmd;
 import coffeepot.bean.wr.annotation.Field;
 import coffeepot.bean.wr.annotation.Record;
 import coffeepot.bean.wr.annotation.Records;
 import coffeepot.bean.wr.mapper.Metadata;
+import coffeepot.bean.wr.typeHandler.DefaultDateHandler;
 import coffeepot.bean.wr.typeHandler.DefaultEnumHandler;
 import coffeepot.bean.wr.typeHandler.DefaultStringHandler;
 import coffeepot.bean.wr.typeHandler.HandlerParseException;
@@ -51,7 +53,8 @@ import org.joda.time.DateTime;
         @Field(name = "", constantValue = "PERSON"),
         @Field(name = "name"),
         @Field(name = "age"),
-        @Field(name = "birthday", params = {"dd/MM/yyyy"}),
+        @Field(name = "birthday", commands = {
+            @Cmd(name = DefaultDateHandler.CMD_SET_PATTERN, args = {"dd/MM/yyyy"})}),
         @Field(name = "", getter = "childrenCount", classType = Integer.class),
         @Field(name = "parent"), //<< creates a new record
         //Jobs in list
@@ -65,8 +68,8 @@ import org.joda.time.DateTime;
                 @Field(name = "lastName", length = 30, accessorType = AccessorType.PROPERTY, classType = String.class),
                 @Field(name = "age", length = 6, align = Align.RIGHT, padding = '0'),
                 @Field(name = "birthday", length = 8, padding = '0'),
-                @Field(name = "testNumberOnly", length = 5, params = {DefaultStringHandler.PARAM_FILTER_NUMBER_ONLY}),
-                @Field(name = "testNumberOnly", length = 8, params = {DefaultStringHandler.PARAM_FILTER_NUMBER_LETTERS_ONLY}),
+                @Field(name = "testNumberOnly", length = 5, commands = @Cmd(name = DefaultStringHandler.CMD_FILTER, args = {DefaultStringHandler.FILTER_NUMBER_ONLY})),
+                @Field(name = "testNumberOnly", length = 8, commands = @Cmd(name = DefaultStringHandler.CMD_FILTER, args = {DefaultStringHandler.FILTER_NUMBER_LETTERS_ONLY})),
                 @Field(name = "longNumber", length = 5, align = Align.RIGHT),
                 @Field(name = "jodaDateTime", length = 10),
                 @Field(name = "salary", length = 10, align = Align.RIGHT, padding = '0'),
@@ -95,7 +98,7 @@ public class Person extends Parent {
 
     private Gender gender;
 
-    private Parent  parent;
+    private Parent parent;
 
     private List<Job> jobs;
 

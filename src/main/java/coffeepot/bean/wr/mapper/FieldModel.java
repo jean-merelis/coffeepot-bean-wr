@@ -26,14 +26,14 @@ import coffeepot.bean.wr.typeHandler.DefaultHandler;
 import coffeepot.bean.wr.typeHandler.TypeHandler;
 import coffeepot.bean.wr.types.AccessorType;
 import coffeepot.bean.wr.types.Align;
-import lombok.Getter;
-import lombok.Setter;
-
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.logging.Level;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.extern.java.Log;
 
 /**
@@ -59,7 +59,7 @@ public class FieldModel implements Cloneable {
     private String setter;
     private Class<? extends TypeHandler> typeHandlerClass = DefaultHandler.class;
     private Class<?> classType = Class.class;
-    private String[] params = new String[]{};
+    private Command[] commands = null;
     private AccessorType accessorType = AccessorType.DEFAULT;
     private boolean nestedObject;
     private TypeHandler typeHandler;
@@ -81,6 +81,7 @@ public class FieldModel implements Cloneable {
     private FieldConditionModel conditionForReadAs;
     private FieldConditionModel readAsNull;
 
+    // TODO: considere avoid clone... https://github.com/EsotericSoftware/kryo#copyingcloning
     @Override
     public FieldModel clone() {
         try {
@@ -97,6 +98,10 @@ public class FieldModel implements Cloneable {
             }
             if (this.readAsNull != null) {
                 cloned.readAsNull = this.readAsNull.clone();
+            }
+
+            if (this.commands != null) {
+                cloned.commands = Arrays.copyOf(this.commands, this.commands.length);
             }
             return cloned;
         } catch (CloneNotSupportedException ex) {

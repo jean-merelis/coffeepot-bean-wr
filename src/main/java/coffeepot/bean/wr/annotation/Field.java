@@ -72,7 +72,7 @@ public @interface Field {
      */
     Class<?> classType() default Class.class;
 
-    String[] params() default {};
+    Cmd[] commands() default {};
 
     AccessorType accessorType() default AccessorType.DEFAULT;
 
