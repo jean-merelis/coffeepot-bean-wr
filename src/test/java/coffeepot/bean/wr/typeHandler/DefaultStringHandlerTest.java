@@ -24,9 +24,9 @@ package coffeepot.bean.wr.typeHandler;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -311,6 +311,36 @@ public class DefaultStringHandlerTest {
         });
 
         String expResult = "test_Abcd A";
+        String result = instance.toString(text, metadata);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void toString_withAddPrefix_shouldReturnProperly() throws Exception {
+        String text = "Jeandeson O. Merelis";
+        Metadata metadata = null;
+        DefaultStringHandler instance = new DefaultStringHandler();
+
+        instance.config(new Command[]{
+            Command.builder().name(DefaultStringHandler.CMD_ADD_PREFIX).args(new String[]{"Sr. "}).build()
+        });
+
+        String expResult = "Sr. Jeandeson O. Merelis";
+        String result = instance.toString(text, metadata);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void toString_withAddSuffix_shouldReturnProperly() throws Exception {
+        String text = "COMPANY";
+        Metadata metadata = null;
+        DefaultStringHandler instance = new DefaultStringHandler();
+
+        instance.config(new Command[]{
+            Command.builder().name(DefaultStringHandler.CMD_ADD_SUFFIX).args(new String[]{" - CO"}).build()
+        });
+
+        String expResult = "COMPANY - CO";
         String result = instance.toString(text, metadata);
         assertEquals(expResult, result);
     }
