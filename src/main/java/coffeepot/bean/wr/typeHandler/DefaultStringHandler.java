@@ -157,10 +157,12 @@ public class DefaultStringHandler implements TypeHandler<String> {
     public static final String FILTER_NUMBER_LETTERS_ONLY = "[^0-9\\p{L}]";
 
     /**
-     * Filter command: "filter".
+     * CharCase command: "charCase".
      * <p>
      * CharCase command require one arg. The options are: "UPPER", "LOW",
-     * "NORMAL".</p>
+     * "NORMAL".. A second optional argument can be provided to determine
+     * whether command is read-only or write-only (--onlyOnRead or
+     * --onlyOnWrite).</p>
      */
     public static final String CMD_CHARCASE = "charCase";
     public static final String CHARCASE_UPPER = "UPPER";
