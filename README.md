@@ -13,6 +13,31 @@ Features:
 
 Real examples of use you will find them in [coffeepot-br-sped-fiscal](https://github.com/jean-merelis/coffeepot-br-sped-fiscal) and [coffeepot-br-sintegra](https://github.com/jean-merelis/coffeepot-br-sintegra) projects. The coffeepot-br-sped-fiscal project uses delimited format, and the sintegra project uses FixedLength format.
 
+
+## Version 2.0.0
+
+In version 2, the type handlers are enhanced with the command feature.
+
+Example:
+
+```java
+	// DefaultStringHandler has the built-in replace command
+	@Field(name="descr", commands={@Cmd(name=DefaultStringHandler.CMD_REPLACE, args={"foo", "bar"} )})
+```
+
+Download from Maven central
+
+```xml
+        <dependency>
+            <groupId>com.github.jean-merelis</groupId>
+            <artifactId>coffeepot-bean-wr</artifactId>
+            <version>2.0.0-rc.1</version>            
+        </dependency> 
+```
+
+
+## Version 1.3.0
+
 Download from Maven central
 
 ```xml

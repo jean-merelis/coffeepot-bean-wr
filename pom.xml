@@ -11,7 +11,7 @@
     <groupId>com.github.jean-merelis</groupId>
     <description>Coffeepot-bean-wr is a simple Java framework for marshalling Java beans to flat file and unmarshal flat file to Java Beans</description>
     <artifactId>coffeepot-bean-wr</artifactId>
-    <version>2.0.0-rc.1</version>
+    <version>2.0.0-rc.2</version>
     <packaging>jar</packaging>
 
     <name>coffeepot-bean-wr</name>
