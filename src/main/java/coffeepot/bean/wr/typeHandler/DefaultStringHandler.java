@@ -12,9 +12,9 @@ package coffeepot.bean.wr.typeHandler;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,6 +26,7 @@ import coffeepot.bean.wr.mapper.Command;
 import coffeepot.bean.wr.mapper.Metadata;
 import coffeepot.bean.wr.types.CharCase;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -169,7 +170,7 @@ public class DefaultStringHandler implements TypeHandler<String> {
     public static final String CHARCASE_LOW = "LOW";
     public static final String CHARCASE_NORMAL = "NORMAL";
 
-    private List<InternalCommnand> commands;
+    protected List<InternalCommand> commands;
 
     public DefaultStringHandler() {
         setDefault();
@@ -183,7 +184,7 @@ public class DefaultStringHandler implements TypeHandler<String> {
         }
 
         if (commands != null) {
-            for (InternalCommnand r : commands) {
+            for (InternalCommand r : commands) {
                 text = r.execOnRead(text);
             }
         }
@@ -199,7 +200,7 @@ public class DefaultStringHandler implements TypeHandler<String> {
 
 
         if (commands != null) {
-            for (InternalCommnand r : commands) {
+            for (InternalCommand r : commands) {
                 text = r.execOnWrite(text);
             }
         }
@@ -223,10 +224,9 @@ public class DefaultStringHandler implements TypeHandler<String> {
                         this.commands = new ArrayList<>();
                     }
 
-                    InternalCommnand r = new InternalCommnand();
-                    r.type = CommandType.REPLACE;
-                    r.arg0 = cmd.getArgs()[0];
-                    r.arg1 = cmd.getArgs()[1];
+                    ICommnand r = new ICommnand();
+                    r.cmd = CMD_REPLACE;
+                    r.args = cmd.getArgs();
                     defReadWriteOnly(r, cmd.getArgs().length > 2 ? cmd.getArgs()[2] : null);
                     this.commands.add(r);
                     break;
@@ -239,10 +239,9 @@ public class DefaultStringHandler implements TypeHandler<String> {
                         this.commands = new ArrayList<>();
                     }
 
-                    InternalCommnand r = new InternalCommnand();
-                    r.type = CommandType.REPLACE_FIRST;
-                    r.arg0 = cmd.getArgs()[0];
-                    r.arg1 = cmd.getArgs()[1];
+                    ICommnand r = new ICommnand();
+                    r.cmd = CMD_REPLACE_FIRST;
+                    r.args = cmd.getArgs();
                     defReadWriteOnly(r, cmd.getArgs().length > 2 ? cmd.getArgs()[2] : null);
                     this.commands.add(r);
                     break;
@@ -255,10 +254,9 @@ public class DefaultStringHandler implements TypeHandler<String> {
                         this.commands = new ArrayList<>();
                     }
 
-                    InternalCommnand r = new InternalCommnand();
-                    r.type = CommandType.REPLACE_ALL;
-                    r.arg0 = cmd.getArgs()[0];
-                    r.arg1 = cmd.getArgs()[1];
+                    ICommnand r = new ICommnand();
+                    r.cmd = CMD_REPLACE_ALL;
+                    r.args = cmd.getArgs();
                     defReadWriteOnly(r, cmd.getArgs().length > 2 ? cmd.getArgs()[2] : null);
                     this.commands.add(r);
                     break;
@@ -271,11 +269,11 @@ public class DefaultStringHandler implements TypeHandler<String> {
                         this.commands = new ArrayList<>();
                     }
 
-                    InternalCommnand r = new InternalCommnand();
-                    r.type = CommandType.REPLACE_ALL;
-                    r.arg0 = cmd.getArgs()[0];
-                    r.arg1 = "";
+                    ICommnand r = new ICommnand();
+                    r.cmd = CMD_REPLACE_ALL;
                     defReadWriteOnly(r, cmd.getArgs().length > 1 ? cmd.getArgs()[1] : null);
+                    r.args = Arrays.copyOf(cmd.getArgs(), 2);
+                    r.args[1] = "";
                     this.commands.add(r);
                     break;
                 }
@@ -286,8 +284,8 @@ public class DefaultStringHandler implements TypeHandler<String> {
                     if (this.commands == null) {
                         this.commands = new ArrayList<>();
                     }
-                    InternalCommnand r = new InternalCommnand();
-                    r.type = CommandType.CHARCASE;
+                    ICommnand r = new ICommnand();
+                    r.cmd = CMD_CHARCASE;
                     r.charCase = CharCase.valueOf(cmd.getArgs()[0]);
                     defReadWriteOnly(r, cmd.getArgs().length > 1 ? cmd.getArgs()[1] : null);
                     this.commands.add(r);
@@ -301,9 +299,9 @@ public class DefaultStringHandler implements TypeHandler<String> {
                         this.commands = new ArrayList<>();
                     }
 
-                    InternalCommnand r = new InternalCommnand();
-                    r.type = CommandType.ADD_PREFIX;
-                    r.arg0 = cmd.getArgs()[0];
+                    ICommnand r = new ICommnand();
+                    r.cmd = CMD_ADD_PREFIX;
+                    r.args = cmd.getArgs();
                     defReadWriteOnly(r, cmd.getArgs().length > 1 ? cmd.getArgs()[1] : null);
                     this.commands.add(r);
                     break;
@@ -316,21 +314,22 @@ public class DefaultStringHandler implements TypeHandler<String> {
                         this.commands = new ArrayList<>();
                     }
 
-                    InternalCommnand r = new InternalCommnand();
-                    r.type = CommandType.ADD_SUFFIX;
-                    r.arg0 = cmd.getArgs()[0];
+                    ICommnand r = new ICommnand();
+                    r.cmd = CMD_ADD_SUFFIX;
+                    r.args = cmd.getArgs();
                     defReadWriteOnly(r, cmd.getArgs().length > 1 ? cmd.getArgs()[1] : null);
                     this.commands.add(r);
                     break;
                 }
-                default: {
-                    throw new IllegalArgumentException("Unknown command: " + cmd.getName());
-                }
+                // default: {
+                // ignore unknown commands to facilitate inheritance
+                // throw new IllegalArgumentException("Unknown command: " + cmd.getName());
+                // }
             }
         }
     }
 
-    private void defReadWriteOnly(InternalCommnand r, String arg) {
+    protected void defReadWriteOnly(InternalCommand r, String arg) {
         r.onRead = true;
         r.onWrite = true;
 
@@ -349,41 +348,23 @@ public class DefaultStringHandler implements TypeHandler<String> {
         commands = null;
     }
 
-    private static class InternalCommnand {
+    public static class ICommnand extends InternalCommand {
 
-        CommandType type;
-        String arg0;
-        String arg1;
         CharCase charCase;
-        boolean onRead;
-        boolean onWrite;
 
-        String execOnRead(String text) {
-            if (!onRead) {
-                return text;
-            }
-            return perform(text);
-        }
-
-        String execOnWrite(String text) {
-            if (!onWrite) {
-                return text;
-            }
-            return perform(text);
-        }
-
-        private String perform(String text) {
-            switch (type) {
-                case REPLACE:
-                    text = text.replace(arg0, arg1);
+        @Override
+        public String perform(String text) {
+            switch (cmd) {
+                case CMD_REPLACE:
+                    text = text.replace(args[0], args[1]);
                     break;
-                case REPLACE_FIRST:
-                    text = text.replaceFirst(arg0, arg1);
+                case CMD_REPLACE_FIRST:
+                    text = text.replaceFirst(args[0], args[1]);
                     break;
-                case REPLACE_ALL:
-                    text = text.replaceAll(arg0, arg1);
+                case CMD_REPLACE_ALL:
+                    text = text.replaceAll(args[0], args[1]);
                     break;
-                case CHARCASE: {
+                case CMD_CHARCASE: {
                     switch (charCase) {
                         case UPPER:
                             text = text.toUpperCase();
@@ -394,25 +375,16 @@ public class DefaultStringHandler implements TypeHandler<String> {
                     }
                     break;
                 }
-                case ADD_PREFIX: {
-                    text = arg0 + text;
+                case CMD_ADD_PREFIX: {
+                    text = args[0] + text;
                     break;
                 }
-                case ADD_SUFFIX: {
-                    text = text + arg0;
+                case CMD_ADD_SUFFIX: {
+                    text = text + args[0];
                     break;
                 }
             }
             return text;
         }
-    }
-
-    private enum CommandType {
-        REPLACE,
-        REPLACE_FIRST,
-        REPLACE_ALL,
-        CHARCASE,
-        ADD_PREFIX,
-        ADD_SUFFIX;
     }
 }

@@ -262,13 +262,13 @@ public class DelimitedWriterTest {
 
         //set new custom TypeHandler as default for a class
         TypeHandlerFactory handlerFactory = instance.getObjectMapperFactory().getHandlerFactory();
-        handlerFactory.registerTypeHandlerClassFor( DateTime.class, DateTimeHandler.class );
+        handlerFactory.registerTypeHandler( DateTime.class, DateTimeHandler.class );
 
         //set new custom TypeHandler as default for the class String
-        handlerFactory.registerTypeHandlerClassFor( String.class, LowStringHandler.class );
+        handlerFactory.registerTypeHandler( String.class, LowStringHandler.class );
 
         //set new custom TypeHandler as default for Enum
-        handlerFactory.registerTypeHandlerClassFor( Enum.class, Person.EncodedEnumHandler.class );
+        handlerFactory.registerTypeHandler( Enum.class, Person.EncodedEnumHandler.class );
 
         DefaultDoubleHandler.setDecimalSeparatorDefault( ',' );
         DefaultDoubleHandler.setGroupingSeparatorDefault( '.' );
@@ -377,13 +377,13 @@ public class DelimitedWriterTest {
 
         //set new custom TypeHandler as default for a class
         TypeHandlerFactory handlerFactory = instance.getObjectMapperFactory().getHandlerFactory();
-        handlerFactory.registerTypeHandlerClassFor( DateTime.class, DateTimeHandler.class );
+        handlerFactory.registerTypeHandler( DateTime.class, DateTimeHandler.class );
 
         //set new custom TypeHandler as default for the class String
-        handlerFactory.registerTypeHandlerClassFor( String.class, LowStringHandler.class );
+        handlerFactory.registerTypeHandler( String.class, LowStringHandler.class );
 
         //set new custom TypeHandler as default for Enum
-        handlerFactory.registerTypeHandlerClassFor( Enum.class, Person.EncodedEnumHandler.class );
+        handlerFactory.registerTypeHandler( Enum.class, Person.EncodedEnumHandler.class );
 
         //instance.createParser(Person.class);
         Person obj = new Person();
@@ -527,13 +527,13 @@ public class DelimitedWriterTest {
 
         //set new custom TypeHandler as default for a class
         TypeHandlerFactory handlerFactory = instance.getObjectMapperFactory().getHandlerFactory();
-        handlerFactory.registerTypeHandlerClassFor( DateTime.class, DateTimeHandler.class );
+        handlerFactory.registerTypeHandler( DateTime.class, DateTimeHandler.class );
 
         //set new custom TypeHandler as default for the class String
-        handlerFactory.registerTypeHandlerClassFor( String.class, LowStringHandler.class );
+        handlerFactory.registerTypeHandler( String.class, LowStringHandler.class );
 
         //set new custom TypeHandler as default for Enum
-        handlerFactory.registerTypeHandlerClassFor( Enum.class, Person.EncodedEnumHandler.class );
+        handlerFactory.registerTypeHandler( Enum.class, Person.EncodedEnumHandler.class );
 
         instance.write( order );
 

@@ -395,13 +395,13 @@ public class DelimitedReaderTest {
 
             //set new custom TypeHandler as default for a class
             TypeHandlerFactory handlerFactory = delimitedWriter.getObjectMapperFactory().getHandlerFactory();
-            handlerFactory.registerTypeHandlerClassFor(DateTime.class, DateTimeHandler.class);
+            handlerFactory.registerTypeHandler(DateTime.class, DateTimeHandler.class);
 
             //set new custom TypeHandler as default for the class String
-            handlerFactory.registerTypeHandlerClassFor(String.class, LowStringHandler.class);
+            handlerFactory.registerTypeHandler(String.class, LowStringHandler.class);
 
             //set new custom TypeHandler as default for Enum
-            handlerFactory.registerTypeHandlerClassFor(Enum.class, Person.EncodedEnumHandler.class);
+            handlerFactory.registerTypeHandler(Enum.class, Person.EncodedEnumHandler.class);
 
             delimitedWriter.write(order);
 

@@ -24,6 +24,12 @@ package coffeepot.bean.wr.typeHandler;
  */
 import coffeepot.bean.wr.mapper.Command;
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -37,8 +43,8 @@ import java.util.logging.Logger;
  */
 public class TypeHandlerFactoryImpl implements TypeHandlerFactory {
 
-    private Map<String, TypeHandler> handlers = new HashMap<>();
-    private Map<Class<?>, Class<? extends TypeHandler>> defaultHandlers = new HashMap<>();
+    private final Map<String, TypeHandler> handlers = new HashMap<>();
+    private final Map<Class<?>, Class<? extends TypeHandler>> defaultHandlers = new HashMap<>();
 
     public TypeHandlerFactoryImpl() {
         registerDefaultHandlers();
@@ -112,40 +118,46 @@ public class TypeHandlerFactoryImpl implements TypeHandlerFactory {
     }
 
     @Override
-    public void registerTypeHandlerClassFor(Class<?> forClass, Class<? extends TypeHandler> handlerClass) {
+    public void registerTypeHandler(Class<?> forClass, Class<? extends TypeHandler> handlerClass) {
         defaultHandlers.put(forClass, handlerClass);
     }
 
     @Override
-    public void registerTypeHandlerInstanceAsDefaultFor(Class<?> forClass, TypeHandler handlerInstance) {
+    public void registerTypeHandlerInstance(Class<?> forClass, TypeHandler handlerInstance) {
         if (forClass == null) {
             throw new IllegalArgumentException("Parameter 'forClass' can not be null");
         }
         if (handlerInstance == null) {
             throw new IllegalArgumentException("Parameter 'handlerInstance' can not be null");
         }
-        registerTypeHandlerClassFor(forClass, handlerInstance.getClass());
+        registerTypeHandler(forClass, handlerInstance.getClass());
         String key = getHandlerKey(handlerInstance.getClass().getName(), null);
         handlers.put(key, handlerInstance);
     }
 
     private void registerDefaultHandlers() {
-        registerTypeHandlerClassFor(String.class, DefaultStringHandler.class);
-        registerTypeHandlerClassFor(Character.class, DefaultCharacterHandler.class);
-        registerTypeHandlerClassFor(char.class, DefaultCharacterHandler.class);
-        registerTypeHandlerClassFor(Integer.class, DefaultIntegerHandler.class);
-        registerTypeHandlerClassFor(int.class, DefaultIntegerHandler.class);
-        registerTypeHandlerClassFor(Long.class, DefaultLongHandler.class);
-        registerTypeHandlerClassFor(long.class, DefaultLongHandler.class);
-        registerTypeHandlerClassFor(Date.class, DefaultDateHandler.class);
-        registerTypeHandlerClassFor(Float.class, DefaultFloatHandler.class);
-        registerTypeHandlerClassFor(float.class, DefaultFloatHandler.class);
-        registerTypeHandlerClassFor(Double.class, DefaultDoubleHandler.class);
-        registerTypeHandlerClassFor(double.class, DefaultDoubleHandler.class);
-        registerTypeHandlerClassFor(BigDecimal.class, DefaultBigDecimalHandler.class);
-        registerTypeHandlerClassFor(Boolean.class, DefaultBooleanHandler.class);
-        registerTypeHandlerClassFor(boolean.class, DefaultBooleanHandler.class);
-        registerTypeHandlerClassFor(Enum.class, DefaultEnumHandler.class);
+        registerTypeHandler(String.class, DefaultStringHandler.class);
+        registerTypeHandler(Character.class, DefaultCharacterHandler.class);
+        registerTypeHandler(char.class, DefaultCharacterHandler.class);
+        registerTypeHandler(Integer.class, DefaultIntegerHandler.class);
+        registerTypeHandler(int.class, DefaultIntegerHandler.class);
+        registerTypeHandler(Long.class, DefaultLongHandler.class);
+        registerTypeHandler(long.class, DefaultLongHandler.class);
+        registerTypeHandler(Date.class, DefaultDateHandler.class);
+        registerTypeHandler(Float.class, DefaultFloatHandler.class);
+        registerTypeHandler(float.class, DefaultFloatHandler.class);
+        registerTypeHandler(Double.class, DefaultDoubleHandler.class);
+        registerTypeHandler(double.class, DefaultDoubleHandler.class);
+        registerTypeHandler(BigDecimal.class, DefaultBigDecimalHandler.class);
+        registerTypeHandler(Boolean.class, DefaultBooleanHandler.class);
+        registerTypeHandler(boolean.class, DefaultBooleanHandler.class);
+        registerTypeHandler(Enum.class, DefaultEnumHandler.class);
+        registerTypeHandler(LocalDate.class, DefaultLocalDateHandler.class);
+        registerTypeHandler(LocalDateTime.class, DefaultLocalDateTimeHandler.class);
+        registerTypeHandler(LocalTime.class, DefaultLocalTimeHandler.class);
+        registerTypeHandler(Instant.class, DefaultInstantHandler.class);
+        registerTypeHandler(ZonedDateTime.class, DefaultZonedDateTimeHandler.class);
+        registerTypeHandler(OffsetDateTime.class, DefaultOffsetDateTimeHandler.class);
     }
 
     @Override

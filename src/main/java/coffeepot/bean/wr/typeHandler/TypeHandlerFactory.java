@@ -42,9 +42,9 @@ public interface TypeHandlerFactory {
      * @param handlerInstance
      */
     @Deprecated
-    void registerTypeHandlerInstanceAsDefaultFor(Class<?> forClass, TypeHandler handlerInstance);
+    void registerTypeHandlerInstance(Class<?> forClass, TypeHandler handlerInstance);
 
-    void registerTypeHandlerClassFor(Class<?> forClass, Class<? extends TypeHandler> handlerClass);
+    void registerTypeHandler(Class<?> forClass, Class<? extends TypeHandler> handlerClass);
 
     TypeHandler create(Class<?> forClass, Command[] commands) throws InstantiationException, IllegalAccessException;
 
